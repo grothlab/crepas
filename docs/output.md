@@ -22,9 +22,15 @@
     - [Filtering](#filtering)
     - [Splitting alignments by genome (spike-in normalization)](#splitting-alignments-by-genome-spike-in-normalization)
     - [Allocation of multimapping reads](#allocation-of-multimapping-reads)
-    - [Normalised bigWig files](#normalised-bigwig-files)
-
----
+    - [Final filtering of BAM files](#final-filtering-of-bam-files)
+    - [Collection of multiple metrics](#collection-of-multiple-metrics)
+    - [Read shifting (ATAC-seq)](#read-shifting-atac-seq)
+    - [phantompeakqualtools](#phantompeakqualtools)
+    - [Normalized bigWig files](#normalized-bigwig-files)
+    - [deepTools plots](#deeptools-plots)
+    - [Peak calling](#peak-calling)
+    - [Create and quantify consensus set of peaks](#create-and-quantify-consensus-set-of-peaks)
+  ---
 
 ## Introduction
 
@@ -266,6 +272,10 @@ Thus, `<allocation_method>` in the directory structure below corresponds to the 
 
 </details>
 
+### Final filtering of BAM files
+
+a
+
 ### Collection of multiple metrics
 
 <details markdown="1" open>
@@ -280,6 +290,10 @@ Thus, `<allocation_method>` in the directory structure below corresponds to the 
   - `*.pdf`: Alignment QC plot files from picard CollectMultipleMetrics.
 
 </details>
+
+### Read shifting (ATAC-seq)
+
+a
 
 ### phantompeakqualtools
 
@@ -306,8 +320,36 @@ Relative strand correlation (RSC) is the ratio between the fragment-length peak 
 
 ![MultiQC - spp RSC plot](images/mqc_spp_rsc_plot.png)
 
-### Normalised bigWig files
+### Normalized bigWig files
 
+Coverage tracks are generated for the final filtered BAM files with [deepTools bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html). The coverage is calculated as the number of reads per bin ($\alpha$), where bins are short consecutive counting windows of a defined size (`--coverage_bin_size <Int>` parameter). The lengths of the reads are extended to better reflect the actual fragment length (`--coverage_extend_reads <Int>` parameter). In the case of paired-end data, reads with mates are always extended to match the fragment size defined by the two read mates, so the user-provided fragment length is only used as a fallback for singletons or mate reads that map too far apart (with a distance greater than four times the fragment length or are located on different chromosomes).
+
+Additionally, the following normalization methods (e.g., to account for input control or spike-in reads) are available in the pipeline; note that $\alpha$ corresponds to the read count in each bin:
+
+| Method   | Description | Formula | Output | References |
+| -------- | ----------- | -------- | ------ | ---------- |
+| Raw     | No normalization | $$\alpha \times 1$$ | <ul><li>$$\text{endogenous ChIP } \alpha$$</li><li>$$\text{exogenous ChIP } \alpha$$ </li><li>$$\text{endogenous input } \alpha$$</li><li>$$\text{exogenous input } \alpha$$</li></ul> | - |
+| RPM     | **R**eads **P**er **M**illion mapped reads | $$\alpha \times \frac{10^6}{\text{total mapped reads}}$$ | <ul><li>$$\text{endogenous ChIP } \alpha_{\text{RPM}}$$</li><li>$$\text{exogenous ChIP } \alpha_{\text{RPM}}$$ </li><li>$$\text{endogenous input } \alpha_{\text{RPM}}$$</li><li>$$\text{exogenous input } \alpha_{\text{RPM}}$$</li></ul> | - |
+| SRPM    | **S**pike-in-normalized **R**eads **P**er **M**illion mapped reads | For the endogenous ChIP: <br><br> $$\alpha \times \frac{10^6}{\text{total mapped exogenous ChIP reads}}$$ <br><br> For the endogenous input: <br><br> $$\alpha \times \frac{10^6}{\text{total mapped exogenous input reads}}$$  | <ul><li>$$\text{endogenous ChIP }\alpha_{\text{SRPM}}$$</li><li>$$\text{endogenous input }\alpha_{\text{SRPM}}$$</li></ul> | [Petryk et al. (2021)](https://doi.org/10.1038/s41596-021-00585-3) |
+| CISRPM | **C**hIP-and-**I**nput-**S**pike-in-normalized **R**eads **P**er **M**illion mapped reads | For the endogenous ChIP: <br><br> $$\alpha \times \frac{10^6}{\text{total mapped exogenous ChIP reads}} \times \frac{\text{total mapped exogenous input reads}}{\text{total mapped endogenous input reads}}$$ <br><br> For the endogenous input: <br><br> $$\alpha \times \frac{10^6}{\text{total mapped exogenous input reads}} \times \frac{\text{total mapped exogenous input reads}}{\text{total mapped endogenous input reads}}$$ | <ul><li>$$\text{endogenous ChIP }\alpha_{\text{CISRPM}}$$</li><li>$$\text{endogenous input }\alpha_{\text{CISRPM}}$$</li></ul> | [Flury et al. (2023)](https://doi.org/10.1016/j.cell.2023.01.007) |
+| CISRPM-SOI | **CISRPM** **S**ignal (ChIP) **O**ver **I**nput | Per bin: <br><br> <picture> <source media="(prefers-color-scheme: dark)" srcset="./images/cisrpm_soi_eq_w.png"> <source media="(prefers-color-scheme: light)" srcset="./images/cisrpm_soi_eq.png"> <img alt="Shows a black logo in light color mode and a white one in dark color mode." src="./images/cisrpm_soi_eq.png"> </picture> | $$\alpha_{\text{CISRPM-SOI}}$$ | - |
+
+<!-- $$\alpha_{\text{CISRPM-SOI}} = \begin{cases} 0, & \text{if } \alpha_{\text{CISRPM input}} = 0 \\ \frac{\alpha_{\text{CISRPM ChIP}}}{\alpha_{\text{CISRPM input}}}, & \text{otherwise} \end{cases}$$ | $$\alpha_{\text{CISRPM-SOI}}$$  -->
+
+<details markdown="1" open>
+    <summary>Output files</summary>
+
+- `<aligner>/mergedLibrary/*/<exp_type>/coverage`
+
+  - `*.raw.<bin_size>.bigWig`: Raw bigWig files.
+  - `*.rpm.<bin_size>.bigWig`: RPM bigWig files.
+  - `*.srpm.<bin_size>.bigWig`: SRPM bigWig files.
+  - `*.cisrpm.<bin_size>.bigWig`: CISRPM bigWig files.
+  - `*.cisrpm.<bin_size>.soi.bigWig`: CISRPM-SOI bigWig files.
+
+</details>
+
+<!-- 
 <details markdown="1" open>
     <summary>Output files</summary>
 
@@ -316,9 +358,9 @@ Relative strand correlation (RSC) is the ratio between the fragment-length peak 
 
 </details>
 
-The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browsers such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This mitigates the need to load the much larger BAM files for data visualisation purposes which will be slower and result in memory issues. The coverage values represented in the bigWig file can also be normalised in order to be able to compare the coverage across multiple samples - this is not possible with BAM files. The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
+The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browsers such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This mitigates the need to load the much larger BAM files for data visualisation purposes which will be slower and result in memory issues. The coverage values represented in the bigWig file can also be normalised in order to be able to compare the coverage across multiple samples - this is not possible with BAM files. The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting. -->
 
-### deepTools
+### deepTools plots
 
 <details markdown="1" open>
     <summary>Output files</summary>

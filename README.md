@@ -18,76 +18,95 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 ## Pipeline summary
 
-1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. [Optional] UMI extraction ([`UMI-tools`](https://github.com/CGATOxford/UMI-tools) or [`umi-transfer`](https://github.com/SciLifeLab/umi-transfer))
-3. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
-4. Choice of multiple aligners:
-    1. ([`BWA`](https://sourceforge.net/projects/bio-bwa/files/))
-    2. ([`Chromap`](https://github.com/haowenz/chromap))
-    3. ([`Bowtie2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
-    4. ([`STAR`](https://github.com/alexdobin/STAR))
-5. Merge alignments from multiple libraries of the same sample (technical replicates) ([`picard`](https://broadinstitute.github.io/picard/))
-6. [Optional] Marking duplicates ([`picard`](https://broadinstitute.github.io/picard/))
+1. Raw read quality control ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 
+2. UMI extraction ([`UMI-tools`](https://github.com/CGATOxford/UMI-tools) or [`umi-transfer`](https://github.com/SciLifeLab/umi-transfer))
 
-7. BAM filtering to remove:
-    - reads mapping to blacklisted regions ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/), [`BEDTools`](https://github.com/arq5x/bedtools2/))
-    - reads that are marked as duplicates ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-    - reads that are not marked as primary alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-    - reads that are unmapped ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-    - reads that map to multiple locations ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-    - reads containing > 4 mismatches ([`BAMTools`](https://github.com/pezmaster31/bamtools))
-    - reads that have an insert size > 2kb ([`BAMTools`](https://github.com/pezmaster31/bamtools); _paired-end only_)
-    - reads that map to different chromosomes ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); _paired-end only_)
-    - reads that arent in FR orientation ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); _paired-end only_)
-    - reads where only one read of the pair fails the above criteria ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); _paired-end only_)
-8. Alignment-level QC and estimation of library complexity ([`picard`](https://broadinstitute.github.io/picard/), [`Preseq`](http://smithlabresearch.org/software/preseq/))
-9. Create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
-10. Generate gene-body meta-profile from bigWig files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
-11. Calculate genome-wide IP enrichment relative to control ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
-12. Calculate strand cross-correlation peak and ChIP-seq quality measures including NSC and RSC ([`phantompeakqualtools`](https://github.com/kundajelab/phantompeakqualtools))
+3. Adapter, quality or hard trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
+
+4. Alignment to reference genome ([`BWA`](https://sourceforge.net/projects/bio-bwa/files/), [`Chromap`](https://github.com/haowenz/chromap), [`Bowtie2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), [`STAR`](https://github.com/alexdobin/STAR), or [`HISAT2`](https://daehwankimlab.github.io/hisat2/))
+
+5. Merging of alignments from multiple libraries of the same sample (technical replicates) ([`picard`](https://broadinstitute.github.io/picard/))
+
+6. Estimation of library complexity ([`Preseq`](http://smithlabresearch.org/software/preseq/))
+
+7. UMI-based deduplication ([`UMI-tools`](https://github.com/CGATOxford/UMI-tools))
+
+8. Marking of duplicates ([`picard`](https://broadinstitute.github.io/picard/))
+
+9. BAM filtering to remove ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/))
+    - unmapped or improperly paired reads
+    - reads marked as duplicates
+
+10. BAM splitting by genome (into endogenous and exogenous/spike-in alignments) ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/))
+
+11. Multimapping read allocation ([`Chromap`](https://github.com/haowenz/chromap), [`MMR`](https://github.com/ratschlab/mmr) or [`Allo`](https://github.com/seqcode/allo))
+
+12. BAM filtering to remove ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/)):
+    - unmapped or improperly paired reads
+    - reads with low mapping quality (depending on the aligner used)
+    - secondary alignments
+
+13. Collection of alignment quality control metrics ([`picard`](https://broadinstitute.github.io/picard/))
+
+14. Shifting of aligned reads (only for ATAC-seq) ([`deepTools`](https://deeptools.readthedocs.io/en/latest/content/tools/alignmentSieve.html#alignmentsieve))
+
+15. Calculation of strand cross-correlation, peak and ChIP-seq quality measures including NSC and RSC ([`phantompeakqualtools`](https://github.com/kundajelab/phantompeakqualtools))
+
+16. Creation of coverage tracks (with a specified bin size) ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html)) and applying multiple [normalization methods](./docs/output.md#normalized-bigwig-files) accounting for spike-in.
+
+17. Generating gene-body meta-profile from coverage files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
+
+18. Downsampling of alignments to the minimum number of reads across IPs or input controls ([`picard`](https://gatk.broadinstitute.org/hc/en-us/articles/360037056792-DownsampleSam-Picard))
+
+19. Calculating genome-wide IP enrichment relative to control ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
 
 <details>
-<summary><b>13. ChIP-seq downstream analysis</b></summary>
+<summary>20. ChIP-seq, ChOR-seq and ATAC-seq downstream analyses</summary>
 
-1. Call broad/narrow peaks ([`MACS3`](https://github.com/macs3-project/MACS))
+  - Call megabase domains of enrichment ([`EDD`](https://github.com/CollasLab/edd))
 
-2. Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
+  - Call broad/narrow peaks ([`MACS3`](https://github.com/macs3-project/MACS))
 
-3. Create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+  - Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
 
-4. Count reads in consensus peaks ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
+  - Create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
 
-5. PCA and clustering ([`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
+  - Count reads in consensus peaks ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
 
-6. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
+  - PCA and clustering ([`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
+</details>
 
-7. Present QC for raw read, alignment, peak-calling and differential binding results ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
+<br>
+
+<details>
+<summary>21. SCAR-seq downstream analyses</summary>
+
+  - Splitting BAM files by forward and reverse strands.
+
+  - Computing BEDGRAPH summaries of feature coverage per strand ([`BEDTools`](https://bedtools.readthedocs.io/en/latest/content/tools/genomecov.html))
+
+  - Creating BigWig files from BEDGRAPH files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+
+  - Splitting chromosome windows
+
+  - Computing the average coverage per window ([`bigWigAverageOverBed`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+
+  - Normalizing per strand and chromosome with counts per million (CPM)
+
+  - Calculating replication fork directionality (RFD) ([`partition_smooth.pl`]())
+
+  - Generating partition files for samples, stranded inputs and input-corrected samples.
+
+  - Plotting partition files and scatter-correlation plots against OK-seq if provided.
 
 </details>
 
-<details>
-<summary><b>14. SCAR-seq downstream analysis</b></summary>
+<br>
 
-1. Splitting BAM files by forward and reverse strands.
+22. Create IGV session file containing coverage tracks and peaks for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
 
-2. Computing BEDGRAPH summaries of feature coverage per strand ([`BEDTools`](https://bedtools.readthedocs.io/en/latest/content/tools/genomecov.html))
-
-3. Creating BigWig files from BEDGRAPH files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
-
-4. Splitting chromosome windows
-
-5. Computing the average coverage per window ([`bigWigAverageOverBed`](http://hgdownload.soe.ucsc.edu/admin/exe/))
-
-6. Normalizing per strand and chromosome with counts per million (CPM)
-
-7. Calculating replication fork directionality (RFD) ([`partition_smooth.pl`]())
-
-8. Generating partition files for samples, stranded inputs and input-corrected samples.
-
-9. Plotting partition files and scatter-correlation plots against OK-seq if provided.
-
-</details>
+23. Present QC for raw read, alignment and peak-calling ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
 ## Quick start
 
@@ -117,6 +136,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
       --input <path_to_your_input_samplesheet_csv_file> \
       --outdir <path_to_output_directory> \
       --genome GRCh37 \
+      --fasta <path_to_your_genome_fasta_file> \
       -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
     ```
 

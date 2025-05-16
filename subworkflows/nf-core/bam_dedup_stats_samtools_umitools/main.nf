@@ -28,16 +28,16 @@ workflow BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS {
     ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
     ch_bam_bai_dedup = UMITOOLS_DEDUP.out.bam
-        .join(SAMTOOLS_INDEX.out.index, by: [0]) //, remainder: true)
-        // .join(SAMTOOLS_INDEX.out.csi, by: [0], remainder: true)
-        // .map {
-        //     meta, bam, bai, csi ->
-        //         if (bai) {
-        //             [ meta, bam, bai ]
-        //         } else {
-        //             [ meta, bam, csi ]
-        //         }
-        // }
+        .join(SAMTOOLS_INDEX.out.bai, by: [0], remainder: true)
+        .join(SAMTOOLS_INDEX.out.csi, by: [0], remainder: true)
+        .map {
+            meta, bam, bai, csi ->
+                if (bai) {
+                    [ meta, bam, bai ]
+                } else {
+                    [ meta, bam, csi ]
+                }
+        }
 
     BAM_STATS_SAMTOOLS ( ch_bam_bai_dedup, [ [:], [] ] )
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions)
@@ -46,9 +46,8 @@ workflow BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS {
     bam      = UMITOOLS_DEDUP.out.bam          // channel: [ val(meta), path(bam) ]
     deduplog = UMITOOLS_DEDUP.out.log          // channel: [ val(meta), path(log) ]
 
-    //bai      = SAMTOOLS_INDEX.out.bai          // channel: [ val(meta), path(bai) ]
-    //csi      = SAMTOOLS_INDEX.out.csi          // channel: [ val(meta), path(csi) ]
-    index    = SAMTOOLS_INDEX.out.index        // channel: [ val(meta), path(index) ]
+    bai      = SAMTOOLS_INDEX.out.bai          // channel: [ val(meta), path(bai) ]
+    csi      = SAMTOOLS_INDEX.out.csi          // channel: [ val(meta), path(csi) ]
     stats    = BAM_STATS_SAMTOOLS.out.stats    // channel: [ val(meta), path(stats) ]
     flagstat = BAM_STATS_SAMTOOLS.out.flagstat // channel: [ val(meta), path(flagstat) ]
     idxstats = BAM_STATS_SAMTOOLS.out.idxstats // channel: [ val(meta), path(idxstats) ]

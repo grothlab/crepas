@@ -19,7 +19,7 @@ process PLOT_MACS3_QC {
     when:
     task.ext.when == null || task.ext.when
 
-    script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // This script is bundled with the pipeline, in grothlab/glseq/bin/
     def args      = task.ext.args ?: ''
     def peak_type = is_narrow_peak ? 'narrowPeak' : 'broadPeak'
     def prefix = task.ext.prefix ?: "${meta.id}"

@@ -66,6 +66,10 @@ process MULTIQC {
     path ('deseq2/*')
     path ('deseq2/*')
 
+    path ('genrich/peaks/*')
+    path ('genrich/peaks/*')
+    path ('genrich/annotation/*')
+
     output:
     path "*multiqc_report.html", emit: report
     path "*_data"              , emit: data

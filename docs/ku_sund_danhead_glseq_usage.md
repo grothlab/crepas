@@ -2,14 +2,15 @@
 
 > [!IMPORTANT]
 > Please read this documentation on the grothlab/glseq repository: [https://github.com/grothlab/glseq/blob/dev/docs/ku_sund_danhead_glseq_usage.md](https://github.com/grothlab/glseq/blob/dev/docs/ku_sund_danhead_glseq_usage.md)
-
-> [!IMPORTANT]
-> This is a guide tailored for users of the [DAN System](https://sgn102.pages.ku.dk/a-not-long-tour-of-dangpu/). For general usage instructions, please refer to the main [usage documentation](https://github.com/grothlab/glseq/blob/dev/docs/usage.md).
+>
+> This is a guide tailored for users of the [DAN System](https://sgn102.pages.ku.dk/a-not-long-tour-of-dangpu/). For general usage instructions, please refer to the main [usage documentation](../docs/usage.md).
 
 ## Table of Contents
 
 1. [Before running the pipeline for the first time](#before-running-the-pipeline-for-the-first-time)
 2. [Running the pipeline](#running-the-pipeline)
+    - [Running the pipeline interactively (*tmux* and *srun*)](#running-the-pipeline-interactively-tmux-and-srun)
+    - [Running the pipeline through a *SBATCH* job](#running-the-pipeline-through-a-sbatch-job)
     - [Running a pipeline test](#running-a-pipeline-test)
 3. [Reference genome files](#reference-genome-files)
 4. [Tips](#tips)
@@ -18,6 +19,9 @@
 
 ## Before running the pipeline for the first time
 
+> [!NOTE]
+> This section is only required before running the pipeline for the first time. If you have already run the pipeline before, you can skip this section and go directly to [Running the pipeline](#running-the-pipeline).
+
 1. Read the [DAN System User Guide](https://sgn102.pages.ku.dk/a-not-long-tour-of-dangpu/) to understand how to use the DAN System. Login to the DAN System.
 
 2. If it is the first time you are logging in to the DAN System, run the following command:
@@ -25,10 +29,15 @@
     ```bash
     /projects/dan1/apps/etc/init_dangpu_env.sh
     ```
-  
+3. Source your `.bashrc` file to load the environment variables:
+
+    ```bash
+    source ~/.bashrc
+    ```
+
     Then, start a new bash session or simply logout and login back again.
 
-3. Generate a Personal Access Token (PAT):
+4. Generate a Personal Access Token (PAT):
 
     - Go to [GitHub](https://github.com/) and log in to your account.
 
@@ -56,7 +65,7 @@
 >
 > Remember that PATs are sensitive and should be treated like passwords. Do not share them with anyone or store them in a public repository.
 
-4. Create a [source code management (SCM) file](https://www.nextflow.io/docs/latest/git.html#git-page) by running the following code. Just replace `<your_github_username>` with your GitHub username and `<your_github_token>` with the PAT generated in the previous step:
+5. Create a [source code management (SCM) file](https://www.nextflow.io/docs/latest/git.html#git-page) by running the following code. Just replace `<your_github_username>` with your GitHub username and `<your_github_token>` with the PAT you copied in the previous step:
 
     ```bash
     # This line removes any existing SCM file
@@ -72,10 +81,28 @@
     EOF
     ```
 
-> [!NOTE]
-> The main environment variables for Nextflow (including `$NXF_HOME`) are specified in the  `/projects/dan1/apps/etc/bashrc` file. See the [DAN System configuration file (ku_sund_danhead)](https://github.com/nf-core/configs/blob/master/docs/ku_sund_danhead.md#environment-variables) for more information.
+    <!-- > [!NOTE]
+    > The main environment variables for Nextflow (including `$NXF_HOME`) are specified in the  `/projects/dan1/apps/etc/bashrc` file. See the [DAN System configuration file (ku_sund_danhead)](https://github.com/nf-core/configs/blob/master/docs/ku_sund_danhead.md#environment-variables) for more information. -->
 
+    You can verify that the SCM file was created correctly by running:
+
+    ```bash
+    cat $NXF_HOME/scm
+    ```
+
+    The output should look like this:
+
+    ```bash
+    providers {
+        github {
+            user = '<your_github_username>'
+            password = '<your_github_token>'
+        }
+    }
+    ```
 ## Running the pipeline
+
+### Running the pipeline interactively (*tmux* and *srun*)
 
 1. Start a [*tmux*](https://github.com/tmux/tmux/wiki/Getting-Started) session:
 
@@ -91,20 +118,26 @@
 > [!NOTE]  
 > Adjust `--time` as necessary, the command above keeps the slurm job active for two days (enough for most pipeline runs).
 
-3. Load the required [*modules*](https://modules.readthedocs.io/en/latest/):
+3. Source your `.bashrc` file to load the environment variables:
+
+    ```bash
+    source ~/.bashrc
+    ```
+
+4. Load the required [*modules*](https://modules.readthedocs.io/en/latest/):
 
     ```bash
     module load openjdk/20.0.0 nextflow/24.04.4 singularity/3.8.7
     ```
 
-4. Create an output directory for your pipeline run if it does not exist:
+5. Create an output directory for your pipeline run if it does not exist and move into it:
 
     ```bash
     mkdir -p <path_to_output_directory>
     cd <path_to_output_directory>
     ```
 
-5. Now you can run your own own analysis under the institution profile ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)) :
+6. Now you can run your own own analysis under the modified institution profile ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)). For example:
 
     ```bash
     nextflow run grothlab/glseq \
@@ -117,43 +150,96 @@
       --spikein_genome dm6 \
       ...
       --outdir <path_to_output_directory> \
-      --work-dir <path_to_output_directory>/work/
+      -work-dir <path_to_output_directory>/work/
     ```
 
 > [!TIP]
->  Include the `-work-dir` argument if you want to save the work/temporary files in a specific directory to inspect them later. Otherwise, these files are saved in `/scratch/temp/$::env(USER)/nxf/work` by default.
+>  Include the `-work-dir` option if you want to save the work/temporary files in a specific directory to inspect them later. Otherwise, these files are saved in `/scratch/temp/${USER}/nxf/work` by default.
 
-> [!NOTE]
-> The [`ku_sund_danhead`](https://github.com/nf-core/configs/blob/master/docs/ku_sund_danhead.md) [config profile](https://github.com/nf-core/configs/blob/master/conf/ku_sund_danhead.config) created by the DAN System administrators has set up [`cleanup = true`](https://www.nextflow.io/docs/stable/reference/config.html#unscoped-options) by default, which automatically deletes all files in the work directory on a "successful" completion of a run. However, this prevents the use of the `-resume` feature on subsequent executions of any pipeline run, and thus, a modified version ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)) with `cleanup = false` was created to facilitate the running and resuming of this pipeline.
+> [!WARNING]
+> When using the `-work-dir` option, make sure that the specified path is different from the `--outdir` path to prevent overwriting issues. Note that the work directory can nonetheless be a subdirectory within the output directory (e.g., `<path_to_output_directory>/work/`).
 
-
-
-6. You can now detach from the *tmux* session by pressing `Ctrl+b` and then `d`. You can reattach to the session later by running:
+7. You can now detach from the *tmux* session by pressing `Ctrl+b` and then `d`. You can reattach to the session later by running:
 
     ```bash
     tmux attach-session -t <session_name>
     ```
 
-### Running a pipeline test
+> [!TIP]
+> To be able to scroll through the output on the terminal inside *tmux*, press `Ctrl+b` and then `[` to enter copy mode. Now, you can scroll up and down using the arrow keys or `PgUp` and `PgDn`. To exit copy mode, press `q`. See the [*tmux* documentation](https://github.com/tmux/tmux/wiki/Getting-Started) for more information.
 
-You can test the correct functioning of any pipeline version by running one of the following pipeline tests, also under the institution profile ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)):
+### Running the pipeline through a *SBATCH* job
 
-  - `local_test_scarseq`
-  - `local_test_chipseq`
-  - `local_test_atacseq`
-  - `local_test_chorseq`
-
-If you have not already, remember to start a ***tmux*** session, launch a minimal interactive ***slurm*** job session, load the required ***modules***, and create an ***output directory*** for the test run as described in the previous steps.
-
-Now you can run a test by executing a command like the following:
+If you would prefer to submit the pipeline job to the queue rather than run an interactive session, then you do not need to start *tmux* or launch *srun*. Instead, you can create a *SBATCH* script file (e.g., `glseq_job.sh`) like the following:
 
 ```bash
+#!/bin/bash
+
+#SBATCH --job-name=GLSEQ_JOB        # specify a name for the job
+#SBATCH --mail-type=END,FAIL        # mail events (NONE, BEGIN, END, FAIL, ALL)
+#SBATCH --mail-user=NONE            # email address to receive the notifications
+#SBATCH -c 1                        # number of requested cores for the Nextflow head job
+#SBATCH --mem=4gb                   # total requested RAM for the Nextflow head job
+#SBATCH --time=2-00:00:00           # max. running time of the pipeline job, format in D-HH:MM:SS
+#SBATCH --output=glseq_job.%j.log   # standard output and error log, '%j' gives the job ID
+
+# Source the bashrc file to load the environment variables
+source ~/.bashrc
+
+# Load the required modules
+module load openjdk/20.0.0 nextflow/24.04.4 singularity/3.8.7
+
+# Create an output directory for the pipeline run if it does not exist
+mkdir -p <path_to_output_directory>
+cd <path_to_output_directory>
+
+# Run the pipeline
 nextflow run grothlab/glseq \
-  -r main \
-  -profile ku_sund_danhead_mod,local_test_scarseq \
-  --outdir <path_to_output_directory> \
-  --work-dir <path_to_output_directory>/work/
+    -r main \
+    -profile ku_sund_danhead_mod \
+    --input <path_to_input_samplesheet_csv> \
+    --with_umi \
+    --skip_umi_extract false \
+    --genome mm10 \
+    --spikein_genome dm6 \
+    --outdir <path_to_output_directory> \
+    -work-dir <path_to_output_directory>/work/
 ```
+
+Then, submit the job to the queue with:
+
+```bash
+sbatch glseq_job.sh
+```
+
+### Running a pipeline test
+
+You can test the correct functioning of any pipeline version (`-r <version>`) by running one of the following pipeline tests, also under the modified institution profile ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)):
+
+  - `local_test_chipseq`
+  - `local_test_chorseq`
+  - `local_test_scarseq`
+  - `local_test_atacseq`
+
+To do so, you have two options:
+
+- Start a ***tmux*** session, launch a minimal interactive ***slurm*** job session, source your `.bashrc` file to load the environment variables, load the required ***modules***, and create an ***output directory*** for the test run as described in [Running the pipeline interactively (*tmux* and *srun*)](#running-the-pipeline-interactively-tmux-and-srun). Finally, run a test by executing a command like the following:
+
+    ```bash
+    nextflow run grothlab/glseq \
+    -r main \
+    -profile ku_sund_danhead_mod,local_test_scarseq \
+    --outdir <path_to_output_directory> \
+    -work-dir <path_to_output_directory>/work/
+    ```
+
+- Or you can create a ***SBATCH*** script file (e.g., `glseq_test_job.sh`) like the one shown in [Running the pipeline through a *SBATCH* job](#running-the-pipeline-through-a-sbatch-job). Just replace the `nextflow run` command accordingly, and submit the job to the queue with:
+
+    ```bash
+    sbatch glseq_test_job.sh
+    ```
+
+
 
 ## Reference genome files
 
@@ -232,14 +318,14 @@ nextflow run /user/datadir/software/glseq \
       -profile ku_sund_danhead_mod \
       --input /user/datadir/projects/project1/project1_glseq_samplesheet.csv \
       --outdir /user/datadir/projects/project1/output/ \
-      --work-dir /user/datadir/projects/project1/output/work/ \
+      -work-dir /user/datadir/projects/project1/output/work/ \
       --aligner bowtie2 \
       --read_length 50 \
       --with_umi \
       --skip_umi_extract false \
       --genome mm10 \
       --spikein_genome dm6 \
-      --bowtie2_index /home/rlh546/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index \
+      --bowtie2_index /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index \
       --fasta /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/genome/fasta/GRCm38_dm6.primary_assembly.genome.fa.gz \
       --gtf /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/annotations/transcript_models/gtf/gencode.vM25.primary_assembly.annotation.gtf.gz \
       --initiation_zones /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/external_data/Replication/Okazaki_seq/bed_files/OKseq_Initiation_Zones_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed.gz \
@@ -261,6 +347,7 @@ nextflow run /user/datadir/software/glseq \
       -profile ku_sund_danhead_mod \
       --params-file /user/datadir/projects/project1/project1_glseq_params.yml
 ```
+`project1_glseq_params.yml` would look like this:
 
 ```yaml title="project1_glseq_params.yml"
 input: /user/datadir/projects/project1/project1_glseq_samplesheet.csv
@@ -272,7 +359,7 @@ with_umi: true
 skip_umi_extract: false
 genome: mm10
 spikein_genome: dm6
-bowtie2_index: /home/rlh546/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index
+bowtie2_index: /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index
 fasta: /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/genome/fasta/GRCm38_dm6.primary_assembly.genome.fa.gz
 gtf: /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/annotations/transcript_models/gtf/gencode.vM25.primary_assembly.annotation.gtf.gz
 initiation_zones: /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/external_data/Replication/Okazaki_seq/bed_files/OKseq_Initiation_Zones_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed.gz
@@ -287,6 +374,7 @@ nextflow run /user/datadir/software/glseq \
       -profile ku_sund_danhead_mod \
       --params-file /user/datadir/projects/project1/project1_glseq_params.json
 ```
+`project1_glseq_params.json` would look like this:
 
 ```json title="project1_glseq_params.json"
 {
@@ -299,7 +387,7 @@ nextflow run /user/datadir/software/glseq \
   "skip_umi_extract": false,
   "genome": "mm10",
   "spikein_genome": "dm6",
-  "bowtie2_index": "/home/rlh546/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index",
+  "bowtie2_index": "/maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index",
   "fasta": "/maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/genome/fasta/GRCm38_dm6.primary_assembly.genome.fa.gz",
   "gtf": "/maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/annotations/transcript_models/gtf/gencode.vM25.primary_assembly.annotation.gtf.gz",
   "initiation_zones": "/maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/external_data/Replication/Okazaki_seq/bed_files/OKseq_Initiation_Zones_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed.gz",
@@ -310,7 +398,7 @@ nextflow run /user/datadir/software/glseq \
 
 ### Opening the IGV session generated by the pipeline
 
-The pipeline generates an IGV session file that can be opened in IGV to visualize the coverage and peak calling results. The session file is located in the `igv` directory of the output directory. This session can be opened on the DAN System or locally on your computer.
+The pipeline generates an IGV session file that can be opened in IGV to visualize the coverage and peak calling results. The session file is located in the `/igv` directory inside the output directory. This session can be opened on the DAN System or locally on your computer.
 
 #### Opening on a local macOS computer through the DAN System 
 
@@ -354,7 +442,7 @@ The pipeline generates an IGV session file that can be opened in IGV to visualiz
     igv.sh
     ```
 
-6. The IGV window should open through XQuartz on your local computer. Go to the `File` menu and select `Open Session...` to open the IGV session file located in the `igv/` directory of the pipeline output directory.
+6. The IGV window should open through XQuartz on your local computer. Go to the `File` menu and select `Open Session...` to open the IGV session file located in the `/igv` directory of the pipeline output directory.
 
 #### Opening on a local computer
 

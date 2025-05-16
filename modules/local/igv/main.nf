@@ -13,7 +13,7 @@ process IGV {
     val allocation_method_dir
     val peak_dir
     path fasta
-    path ("${aligner_dir}/mergedLibrary/${allocation_method_dir}genomecov/*")
+    path ("${aligner_dir}/mergedLibrary/${allocation_method_dir}chipseq/coverage/*")
     path ("${aligner_dir}/mergedLibrary/${allocation_method_dir}chipseq/macs3/${peak_dir}/*")
     path ("${aligner_dir}/mergedLibrary/${allocation_method_dir}chipseq/macs3/${peak_dir}/consensus/*")
     path ("mappings/*")

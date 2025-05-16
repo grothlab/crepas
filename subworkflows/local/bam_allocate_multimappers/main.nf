@@ -45,7 +45,7 @@ workflow BAM_ALLOCATE_MULTIMAPPERS {
         ch_fasta.first()
     )
     ch_allocated_bam = BAM_SORT_STATS_SAMTOOLS.out.bam
-    ch_allocated_index = BAM_SORT_STATS_SAMTOOLS.out.index
+    ch_allocated_index = BAM_SORT_STATS_SAMTOOLS.out.bai
     ch_allocated_flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat
     ch_allocated_stats = BAM_SORT_STATS_SAMTOOLS.out.stats
     ch_allocated_idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats
@@ -53,7 +53,7 @@ workflow BAM_ALLOCATE_MULTIMAPPERS {
 
     emit:
     bam         = ch_allocated_bam          // channel: [ val(meta), [ bam ] ]
-    index       = ch_allocated_index        // channel: [ val(meta), [ index ] ]
+    bai         = ch_allocated_index        // channel: [ val(meta), [ index ] ]
     flagstat    = ch_allocated_flagstat     // channel: [ val(meta), [ flagstat ] ]
     stats       = ch_allocated_stats        // channel: [ val(meta), [ stats ] ]
     idxstats    = ch_allocated_idxstats     // channel: [ val(meta), [ idxstats ] ]

@@ -29,6 +29,8 @@ process CHROMAP_CHROMAP {
     script:
     def args = task.ext.args ?: ''
     def args2 = task.ext.args2 ?: ''
+    // Patch chromap/chromap module to include read group (otherwise picard/markduplicates erroring)
+    // https://github.com/nf-core/chipseq/commit/b209c18d16e4b81dd0033014d8b76cbf077aa3d7#diff-bf809c928cb10b54d251dec8a140a2d5505150f97175d8d7b51dda9cc57971feR265
     def args3 = task.ext.args3 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def args_list = args.tokenize()

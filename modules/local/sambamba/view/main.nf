@@ -12,28 +12,28 @@ process SAMBAMBA_VIEW {
     tuple val(meta2), path(bed)
 
     output:
-    tuple val(meta), path("*.bam"),     emit: bam,  optional: true
-    tuple val(meta), path("*.sam"),    emit: sam, optional: true
-    tuple val(meta), path("*.json"),    emit: json, optional: true
-    tuple val(meta), path("*.msgpack"),    emit: msgpack, optional: true
-    path "versions.yml"             , emit: versions
+    tuple val(meta), path("*.bam"),         emit: bam,  optional: true
+    tuple val(meta), path("*.sam"),         emit: sam, optional: true
+    tuple val(meta), path("*.json"),        emit: json, optional: true
+    tuple val(meta), path("*.msgpack"),     emit: msgpack, optional: true
+    path "versions.yml",                    emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    def blacklist_params = params.blacklist ? "--regions $bed" : ''
-    def extension = args.contains("--format sam") ? "sam" :
-                        args.contains("--format json") ? "json" :
-                            args.contains("--format msgpack") ? "msgpack" :
-                        "bam"
+    def args                = task.ext.args ?: ''
+    def prefix              = task.ext.prefix ?: "${meta.id}"
+    def whitelist_params    = bed ? "--regions $bed" : ''
+    def extension           = args.contains("--format sam") ? "sam" :
+                                args.contains("--format json") ? "json" :
+                                    args.contains("--format msgpack") ? "msgpack" :
+                                        "bam"
     """
     sambamba \\
         view \\
         $args \\
-        $blacklist_params \\
+        $whitelist_params \\
         --nthreads $task.cpus \\
         $bam \\
         --output-filename ${prefix}.${extension}

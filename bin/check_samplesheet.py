@@ -123,12 +123,13 @@ def check_samplesheet(file_in, file_out):
                 if antibody.find(" ") != -1:
                     print(f"WARNING: Spaces have been replaced by underscores for antibody: {antibody}")
                     antibody = antibody.replace(" ", "_")
-                if not control:
-                    print_error(
-                        "Both antibody and control columns must be specified!",
-                        "Line",
-                        line,
-                    )
+            ## a control sample is no longer mandatory
+                # if not control:
+                #     print_error(
+                #         "Both antibody and control columns must be specified!",
+                #         "Line",
+                #         line,
+                #     )
 
             if control:
                 if control.find(" ") != -1:

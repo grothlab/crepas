@@ -1,0 +1,107 @@
+name: genrich
+description: Peak-calling for ChIP-seq and ATAC-seq enrichment experiments
+keywords:
+  - peak-calling
+  - ChIP-seq
+  - ATAC-seq
+tools:
+  - genrich:
+      description: |
+        Genrich is a peak-caller for genomic enrichment assays (e.g. ChIP-seq, ATAC-seq).
+        It analyzes alignment files generated following the assay and produces a file
+        detailing peaks of significant enrichment.
+      homepage: https://github.com/jsh58/Genrich
+      documentation: https://github.com/jsh58/Genrich#readme
+      tool_dev_url: https://github.com/jsh58/Genrich
+      licence: ["MIT"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - treatment_bam:
+        type: file
+        description: Coordinate sorted BAM/SAM file from treatment sample or list of
+          BAM/SAM files from biological replicates
+        pattern: "*.{bam,sam}"
+    - control_bam:
+        type: file
+        description: Coordinate sorted BAM/SAM file from control sample or list of BAM/SAM
+          files from control samples
+        pattern: "*.{bam,sam}"
+  - - blacklist_bed:
+        type: file
+        description: Bed file containing genomic intervals to exclude from the analysis
+        pattern: "*.{bed}"
+output:
+  - peak:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.narrowPeak":
+          type: file
+          description: Narrow peak file containing genomic intervals of significant enrichment
+          pattern: "*.{narrowPeak}"
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+  - bedgraph_pvalues:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.pvalues.bedGraph":
+          type: file
+          description: bedGraph file containing p/q values
+          pattern: "*.{pvalues.bedGraph}"
+      - ues:
+          type: file
+          description: bedGraph file containing p/q values
+          pattern: "*.{pvalues.bedGraph}"
+  - bedgraph_pileup:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.pileup.bedGraph":
+          type: file
+          description: bedGraph file containing pileups and p-values
+          pattern: "*.{pileup.bedGraph}"
+  - bed_intervals:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.intervals.bed":
+          type: file
+          description: Bed file containing annotated intervals
+          pattern: "*.{intervals.bed}"
+      - s:
+          type: file
+          description: Bed file containing annotated intervals
+          pattern: "*.{intervals.bed}"
+  - duplicates:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.duplicates.txt":
+          type: file
+          description: Text output file containing intervals corresponding to PCR duplicates
+          pattern: "*.{intervals.txt}"
+authors:
+  - "@JoseEspinosa"
+  - "@samuelruizperez"
+maintainers:
+  - "@JoseEspinosa"
+  - "@samuelruizperez"

@@ -149,6 +149,12 @@ report_section_order:
     order: -3400
   deseq2_clustering_10:
     order: -3500
+  mlib_genrich_peak_count:
+    before: deseq2_clustering_1
+  mlib_genrich_frip_score:
+    before: mlib_genrich_peak_count
+  mlib_genrich_peak_annotation:
+    before: mlib_genrich_frip_score
   "grothlab-glseq-methods-description":
     order: -3600
   software_versions:
