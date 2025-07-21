@@ -19,10 +19,10 @@ process FILE_SORT {
     task.ext.when == null || task.ext.when
 
     script:
-    def args  = task.ext.args ?: ''
-    def args2 = task.ext.args2 ?: ''
-    def buffer   = task.memory ? "--buffer-size=${task.memory.toGiga().intdiv(2)}G" : ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def args    = task.ext.args ?: ''
+    def args2   = task.ext.args2 ?: ''
+    def buffer  = task.memory ? "--buffer-size=${task.memory.toGiga().intdiv(2)}G" : ''
+    def prefix  = task.ext.prefix ?: "${meta.id}"
 
     """
     LC_COLLATE=C sort -T '.' \\

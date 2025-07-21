@@ -66,7 +66,9 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
   - Call megabase domains of enrichment ([`EDD`](https://github.com/CollasLab/edd))
 
-  - Call broad/narrow peaks ([`MACS3`](https://github.com/macs3-project/MACS))
+  - Call broad/narrow peaks ([`MACS3`](https://github.com/macs3-project/MACS) or [`Genrich`](https://github.com/jsh58/Genrich))
+
+  - Call diffuse peaks ([`epic2`](https://github.com/biocore-ntnu/epic2))
 
   - Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
 

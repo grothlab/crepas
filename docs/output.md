@@ -26,7 +26,7 @@
     - [Collection of multiple metrics](#collection-of-multiple-metrics)
     - [Read shifting (ATAC-seq)](#read-shifting-atac-seq)
     - [phantompeakqualtools](#phantompeakqualtools)
-    - [Normalized bigWig files](#normalized-bigwig-files)
+    - [Normalized coverage files](#normalized-coverage-files)
     - [deepTools plots](#deeptools-plots)
     - [Peak calling](#peak-calling)
     - [Create and quantify consensus set of peaks](#create-and-quantify-consensus-set-of-peaks)
@@ -320,32 +320,87 @@ Relative strand correlation (RSC) is the ratio between the fragment-length peak 
 
 ![MultiQC - spp RSC plot](images/mqc_spp_rsc_plot.png)
 
-### Normalized bigWig files
+### Normalized coverage files
 
-Coverage tracks are generated for the final filtered BAM files with [deepTools bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html). The coverage is calculated as the number of reads per bin ($\alpha$), where bins are short consecutive counting windows of a defined size (`--coverage_bin_size <Int>` parameter). The lengths of the reads are extended to better reflect the actual fragment length (`--coverage_extend_reads <Int>` parameter). In the case of paired-end data, reads with mates are always extended to match the fragment size defined by the two read mates, so the user-provided fragment length is only used as a fallback for singletons or mate reads that map too far apart (with a distance greater than four times the fragment length or are located on different chromosomes).
+Coverage tracks are generated for the final filtered BAM files with [deepTools bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html). The coverage is calculated as the number of reads per bin ($\alpha_i$), where bins are short consecutive counting windows of a defined size (`--coverage_bin_size <Int>` parameter). The lengths of the reads are extended to better reflect the actual fragment length (`--coverage_extend_reads <Int>` parameter). In the case of paired-end data, reads with mates are always extended to match the fragment size defined by the two read mates, so the user-provided fragment length is only used as a fallback for singletons or mate reads that map too far apart (with a distance greater than four times the fragment length or are located on different chromosomes).
 
-Additionally, the following normalization methods (e.g., to account for input control or spike-in reads) are available in the pipeline; note that $\alpha$ corresponds to the read count in each bin:
+Additionally, the following normalization methods (e.g., to account for input control or spike-in reads) are available in the pipeline; note that $\alpha_i$ corresponds to the read count in each bin:
 
 | Method   | Description | Formula | Output | References |
 | -------- | ----------- | -------- | ------ | ---------- |
-| Raw     | No normalization | $$\alpha \times 1$$ | <ul><li>$$\text{endogenous ChIP } \alpha$$</li><li>$$\text{exogenous ChIP } \alpha$$ </li><li>$$\text{endogenous input } \alpha$$</li><li>$$\text{exogenous input } \alpha$$</li></ul> | - |
-| RPM     | **R**eads **P**er **M**illion mapped reads | $$\alpha \times \frac{10^6}{\text{total mapped reads}}$$ | <ul><li>$$\text{endogenous ChIP } \alpha_{\text{RPM}}$$</li><li>$$\text{exogenous ChIP } \alpha_{\text{RPM}}$$ </li><li>$$\text{endogenous input } \alpha_{\text{RPM}}$$</li><li>$$\text{exogenous input } \alpha_{\text{RPM}}$$</li></ul> | - |
-| SRPM    | **S**pike-in-normalized **R**eads **P**er **M**illion mapped reads | For the endogenous ChIP: <br><br> $$\alpha \times \frac{10^6}{\text{total mapped exogenous ChIP reads}}$$ <br><br> For the endogenous input: <br><br> $$\alpha \times \frac{10^6}{\text{total mapped exogenous input reads}}$$  | <ul><li>$$\text{endogenous ChIP }\alpha_{\text{SRPM}}$$</li><li>$$\text{endogenous input }\alpha_{\text{SRPM}}$$</li></ul> | [Petryk et al. (2021)](https://doi.org/10.1038/s41596-021-00585-3) |
-| CISRPM | **C**hIP-and-**I**nput-**S**pike-in-normalized **R**eads **P**er **M**illion mapped reads | For the endogenous ChIP: <br><br> $$\alpha \times \frac{10^6}{\text{total mapped exogenous ChIP reads}} \times \frac{\text{total mapped exogenous input reads}}{\text{total mapped endogenous input reads}}$$ <br><br> For the endogenous input: <br><br> $$\alpha \times \frac{10^6}{\text{total mapped exogenous input reads}} \times \frac{\text{total mapped exogenous input reads}}{\text{total mapped endogenous input reads}}$$ | <ul><li>$$\text{endogenous ChIP }\alpha_{\text{CISRPM}}$$</li><li>$$\text{endogenous input }\alpha_{\text{CISRPM}}$$</li></ul> | [Flury et al. (2023)](https://doi.org/10.1016/j.cell.2023.01.007) |
-| CISRPM-SOI | **CISRPM** **S**ignal (ChIP) **O**ver **I**nput | Per bin: <br><br> <picture> <source media="(prefers-color-scheme: dark)" srcset="./images/cisrpm_soi_eq_w.png"> <source media="(prefers-color-scheme: light)" srcset="./images/cisrpm_soi_eq.png"> <img alt="Shows a black logo in light color mode and a white one in dark color mode." src="./images/cisrpm_soi_eq.png"> </picture> | $$\alpha_{\text{CISRPM-SOI}}$$ | - |
+| **Raw**     | No normalization | $$\alpha_i \times 1$$ | <ul><li>$$\text{endogenous ChIP } \alpha$$</li><li>$$\text{exogenous ChIP } \alpha$$ </li><li>$$\text{endogenous input } \alpha$$</li><li>$$\text{exogenous input } \alpha$$</li></ul> | - |
+| **RPM**     | **R**eads **P**er **M**illion mapped reads | $$\alpha_i \times \frac{10^6}{\text{total mapped reads}}$$ | <ul><li>$$\text{endogenous ChIP } \alpha_{\text{RPM}}$$</li><li>$$\text{exogenous ChIP } \alpha_{\text{RPM}}$$ </li><li>$$\text{endogenous input } \alpha_{\text{RPM}}$$</li><li>$$\text{exogenous input } \alpha_{\text{RPM}}$$</li></ul> | - |
+| **SRPM**    | **S**pike-in-normalized **R**eads **P**er **M**illion mapped reads | For the endogenous ChIP: <br><br> $$\alpha_i \times \frac{10^6}{\text{total mapped exogenous ChIP reads}}$$ <br><br> For the endogenous input: <br><br> $$\alpha_i \times \frac{10^6}{\text{total mapped exogenous input reads}}$$  | <ul><li>$$\text{endogenous ChIP }\alpha_{\text{SRPM}}$$</li><li>$$\text{endogenous input }\alpha_{\text{SRPM}}$$</li></ul> | [Orlando et al. (2014)](https://doi.org/10.1016/j.celrep.2014.10.018), [Petryk et al. (2021)](https://doi.org/10.1038/s41596-021-00585-3) |
+| **CISRPM** | **C**hIP-and-**I**nput-**S**pike-in-normalized **R**eads **P**er **M**illion mapped reads | For the endogenous ChIP: <br><br> $$\alpha_i \times \frac{10^6}{\text{total mapped exogenous ChIP reads}} \times \frac{\text{total mapped exogenous input reads}}{\text{total mapped endogenous input reads}}$$ <br><br> For the endogenous input: <br><br> $$\alpha_i \times \frac{10^6}{\text{total mapped exogenous input reads}} \times \frac{\text{total mapped exogenous input reads}}{\text{total mapped endogenous input reads}}$$ | <ul><li>$$\text{endogenous ChIP }\alpha_{\text{CISRPM}}$$</li><li>$$\text{endogenous input }\alpha_{\text{CISRPM}}$$</li></ul> | [Fursova et al. (2019)](https://doi.org/10.1016/j.molcel.2019.03.024), [Flury et al. (2023)](https://doi.org/10.1016/j.cell.2023.01.007) |
+| **CISRPM-SOI** | **CISRPM** **S**ignal (ChIP) **O**ver **I**nput | If $\alpha_{\text{CISRPM ChIP}_i} >$ `--soi_min_count` and $\alpha_{\text{CISRPM input}_i} >$ `--soi_min_count`, then: $$\alpha_{\text{CISRPM-SOI}_i} = \frac{\alpha_{\text{CISRPM ChIP}_i}}{\alpha_{\text{CISRPM input}_i}}$$ Otherwise: $$\alpha_{\text{CISRPM-SOI}_i} = \text{NaN}$$ | $$\alpha_{\text{CISRPM-SOI}}$$ | Qian Du |
 
-<!-- $$\alpha_{\text{CISRPM-SOI}} = \begin{cases} 0, & \text{if } \alpha_{\text{CISRPM input}} = 0 \\ \frac{\alpha_{\text{CISRPM ChIP}}}{\alpha_{\text{CISRPM input}}}, & \text{otherwise} \end{cases}$$ | $$\alpha_{\text{CISRPM-SOI}}$$  -->
+
+### Calculation of the *total mapped reads* for normalization
+
+The $\text{total mapped reads}$ values in the normalization formulae above are calculated as follows:
+
+- **RPM**:
+  - ChIPs:
+    - If the antibody is in the list specified with `--rpm_use_flT2_total` (by default `"H3K9me3,H3K27me3"`), the total mapped reads value corresponds to raw total sequences **before** the final filtering step (flT3), which involves filtering of reads based on the mapping quality.
+    - If the antibody is not in the list specified with `--rpm_use_flT2_total`, the total mapped reads value corresponds to the number of reads **after** the final filtering step (flT3).
+  - Inputs:
+    - If the antibody of the corresponding ChIP is in the list specified with `--rpm_use_flT2_total`, the total mapped reads value corresponds to raw total sequences **before** the final filtering step (flT3), which involves filtering of reads based on the mapping quality.
+    - If the antibody of the corresponding ChIP is not in the list specified with `--rpm_use_flT2_total`, the total mapped reads value corresponds to the number of reads **after** the final filtering step (flT3).
+
+- **SRPM**:
+  - ChIPs:
+    - If the antibody is in the list specified with `--srpm_use_flT2_total` (by default `"H3K9me3,H3K27me3"`), the total mapped reads value corresponds to raw total sequences **before** the final filtering step (flT3), which involves filtering of reads based on the mapping quality.
+    - If the antibody is not in the list specified with `--srpm_use_flT2_total`, the total mapped reads value corresponds to the number of reads **after** the final filtering step (flT3).
+  - Inputs:
+    - If the antibody of the corresponding ChIP is in the list specified with `--srpm_use_flT2_total`, the total mapped reads value corresponds to raw total sequences **before** the final filtering step (flT3), which involves filtering of reads based on the mapping quality.
+    - If the antibody of the corresponding ChIP is not in the list specified with `--srpm_use_flT2_total`, the total mapped reads value corresponds to the number of reads **after** the final filtering step (flT3).
+
+- **CISRPM**:
+  - ChIPs:
+    - If the antibody is in the list specified with `--cisrpm_use_flT2_total` (by default `"H3K9me3,H3K27me3"`), the total mapped reads value corresponds to raw total sequences **before** the final filtering step (flT3), which involves filtering of reads based on the mapping quality.
+    - If the antibody is not in the list specified with `--cisrpm_use_flT2_total`, the total mapped reads value corresponds to the number of reads **after** the final filtering step (flT3).
+  - Inputs:
+    - If the antibody of the corresponding ChIP is in the list specified with `--cisrpm_use_flT2_total`, the total mapped reads value corresponds to raw total sequences **before** the final filtering step (flT3), which involves filtering of reads based on the mapping quality.
+    - If the antibody of the corresponding ChIP is not in the list specified with `--cisrpm_use_flT2_total`, the total mapped reads value corresponds to the number of reads **after** the final filtering step (flT3).
+
+
+---
+
 
 <details markdown="1" open>
     <summary>Output files</summary>
 
 - `<aligner>/mergedLibrary/*/<exp_type>/coverage`
 
-  - `*.raw.<bin_size>.bigWig`: Raw bigWig files.
-  - `*.rpm.<bin_size>.bigWig`: RPM bigWig files.
-  - `*.srpm.<bin_size>.bigWig`: SRPM bigWig files.
-  - `*.cisrpm.<bin_size>.bigWig`: CISRPM bigWig files.
-  - `*.cisrpm.<bin_size>.soi.bigWig`: CISRPM-SOI bigWig files.
+  - `/raw/`
+
+    - `*.<bin_size>.raw.bedgraph`: Raw bedgraphs (contiguous bins with the same count are merged).
+    - `*.<bin_size>.raw.map.bedgraph`: Raw bedgraphs (all bins of equal size).
+    - `*.<bin_size>.raw.map.bigWig`: Raw bigWigs (all bins of equal size).
+
+  - `/rpm/`
+
+    - `*.<bin_size>.rpm.bigWig`: RPM bigWigs for ChIP samples.
+    - `*.<bin_size>.rpm.bedgraph`: RPM bedgraphs for ChIP samples.
+    - `*.<bin_size>.rpm.ref_<antibody>.bigWig`: RPM bigWigs for input control samples. `ref_<antibody>` is the name of the corresponding antibody to which each input can be compared, because they are normalized in the same way.
+    - `*.<bin_size>.rpm.ref_<antibody>.bedgraph`: RPM bedgraphs for input control samples.
+
+  - `/srpm/`
+
+    - `*.<bin_size>.srpm.bigWig`: SRPM bigWigs for ChIP samples.
+    - `*.<bin_size>.srpm.bedgraph`: SRPM bedgraphs for ChIP samples.
+    - `*.<bin_size>.srpm.ref_<antibody>.bigWig`: SRPM bigWigs for input control samples. `ref_<antibody>` is the name of the corresponding antibody to which each input can be compared, because they are normalized in the same way.
+    - `*.<bin_size>.srpm.ref_<antibody>.bedgraph`: SRPM bedgraphs for input control samples.
+
+  - `/cisrpm/`
+
+    - `*.<bin_size>.cisrpm.bigWig`: CISRPM bigWigs for ChIP samples.
+    - `*.<bin_size>.cisrpm.ref_<antibody>.bigWig`: CISRPM bigWigs for input control samples. `ref_<antibody>` is the name of the corresponding antibody to which each input can be compared, because they are normalized in the same way.
+
+  - `/cisrpm/cisrpm_soi/`
+
+    - `*.<bin_size>.cisrpm.soi.bigWig`: CISRPM-SOI bigWigs.
+    - `*.<bin_size>.cisrpm.soi.bedgraph`: CISRPM-SOI bedgraphs.
 
 </details>
 
@@ -468,6 +523,58 @@ For larger experiments, it is recommended to use the `vst` transformation instea
 ![MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)
 
 ![MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)
+
+## SCAR-seq analysis
+
+### Splitting of alignments by strand
+
+SCAR-seq BAM files are split by strand based on the corresponding `strandedness` field in the input samplesheet.
+
+<details markdown="1" open>
+    <summary>Output files</summary>
+
+- `<aligner>/mergedLibrary/scarseq/1_split_by_strand/`
+  - `*.forward.bam`: Forward strand alignments.
+  - `*.forward.bam.bai`: Index for forward strand alignments.
+  - `*.reverse.bam`: Reverse strand alignments.
+  - `*.reverse.bam.bai`: Index for reverse strand alignments.
+</details>
+
+### Genome-wide coverage per strand
+
+Genome-wide coverage in BEDGRAPH format is generated for the forward and reverse strand alignments.
+
+<details markdown="1" open>
+    <summary>Output files</summary>
+
+- `<aligner>/mergedLibrary/scarseq/2_genomecov/`
+  - `*.forward.genomecov.bdg`: Forward strand coverage in bedGraph format.
+  - `*.forward.genomecov.bw`: Forward strand coverage in bigWig format.
+  - `*.reverse.genomecov.bdg`: Reverse strand coverage in bedGraph format.
+  - `*.reverse.genomecov.bw`: Reverse strand coverage in bigWig format.
+
+</details>
+
+### Average coverage over windows
+
+Then, the average coverage score (from the bigWigs) over each genomic window is calculated. 
+
+First, non-overlapping genomic windows are generated. The size of the windows is determined with the `--scar_window_size` parameter. To be able to later parallelize the calculation of the average coverage, the genomic windows are split by chromosome.
+
+<details markdown="1" open>
+    <summary>Output files</summary>
+
+- `<aligner>/mergedLibrary/scarseq/7_bwaob/`
+  - `*.forward.bwaob.bed`: Average coverage over windows for the forward strand.
+  - `*.reverse.bwaob.bed`: Average coverage over windows for the reverse strand.
+
+</details>
+
+### Normalization of the average coverage
+
+### Substraction of stranded input signal
+
+
 
 ## Aggregate analysis
 

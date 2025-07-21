@@ -10,7 +10,7 @@
 1. [Before running the pipeline for the first time](#before-running-the-pipeline-for-the-first-time)
 2. [Running the pipeline](#running-the-pipeline)
     - [Running the pipeline interactively (*tmux* and *srun*)](#running-the-pipeline-interactively-tmux-and-srun)
-    - [Running the pipeline through a *SBATCH* job](#running-the-pipeline-through-a-sbatch-job)
+    - [Running the pipeline through an *SBATCH* job](#running-the-pipeline-through-an-sbatch-job)
     - [Running a pipeline test](#running-a-pipeline-test)
 3. [Reference genome files](#reference-genome-files)
 4. [Tips](#tips)
@@ -168,9 +168,9 @@
 > [!TIP]
 > To be able to scroll through the output on the terminal inside *tmux*, press `Ctrl+b` and then `[` to enter copy mode. Now, you can scroll up and down using the arrow keys or `PgUp` and `PgDn`. To exit copy mode, press `q`. See the [*tmux* documentation](https://github.com/tmux/tmux/wiki/Getting-Started) for more information.
 
-### Running the pipeline through a *SBATCH* job
+### Running the pipeline through an *SBATCH* job
 
-If you would prefer to submit the pipeline job to the queue rather than run an interactive session, then you do not need to start *tmux* or launch *srun*. Instead, you can create a *SBATCH* script file (e.g., `glseq_job.sh`) like the following:
+If you would prefer to submit the pipeline job to the queue rather than run an interactive session, then you do not need to start *tmux* or launch *srun*. Instead, you can create an *SBATCH* script file (e.g., `glseq_job.sh`) like the following:
 
 ```bash
 #!/bin/bash
@@ -217,6 +217,7 @@ sbatch glseq_job.sh
 You can test the correct functioning of any pipeline version (`-r <version>`) by running one of the following pipeline tests, also under the modified institution profile ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)):
 
   - `local_test_chipseq`
+  - `local_test_chipexo`
   - `local_test_chorseq`
   - `local_test_scarseq`
   - `local_test_atacseq`
@@ -233,7 +234,7 @@ To do so, you have two options:
     -work-dir <path_to_output_directory>/work/
     ```
 
-- Or you can create a ***SBATCH*** script file (e.g., `glseq_test_job.sh`) like the one shown in [Running the pipeline through a *SBATCH* job](#running-the-pipeline-through-a-sbatch-job). Just replace the `nextflow run` command accordingly, and submit the job to the queue with:
+- Or you can create an ***SBATCH*** script file (e.g., `glseq_test_job.sh`) like the one shown in [Running the pipeline through a *SBATCH* job](#running-the-pipeline-through-an-sbatch-job). Just replace the `nextflow run` command accordingly, and submit the job to the queue with:
 
     ```bash
     sbatch glseq_test_job.sh
@@ -252,6 +253,25 @@ Reference files for the Groth Lab have been made available by [Nicolás Alcaraz]
   ```
   /maps/projects/dan1/data/Groth_group/shared/references/<organism>/<genome_version>/indices/<aligner>/
   ```
+
+> [!WARNING]
+> For Bowtie2, make sure that there is only one set of index files in the directory/tar specified with `--bowtie2_index`.
+> If there are multiple sets of index files (e.g., two `*.1.bt2` files), the pipeline will throw an error. For example,
+> the following index files would cause an error:
+> ```
+> /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/indices/bowtie2_2.5.4_index
+> ├── GRCm38.primary_assembly.genome.1.bt2
+> ├── GRCm38.primary_assembly.genome.2.bt2
+> ├── GRCm38.primary_assembly.genome.3.bt2
+> ├── GRCm38.primary_assembly.genome.4.bt2
+> ├── GRCm38.primary_assembly.genome.rev.1.bt2
+> ├── GRCm38.primary_assembly.genome.rev.2.bt2
+> ├── GRCm38.primary_assembly.mito_only.1.bt2
+> ├── GRCm38.primary_assembly.mito_only.2.bt2
+> ├── GRCm38.primary_assembly.mito_only.3.bt2
+> ├── GRCm38.primary_assembly.mito_only.4.bt2
+> ├── GRCm38.primary_assembly.mito_only.rev.1.bt2
+> └── GRCm38.primary_assembly.mito_only.rev.2.bt2
 
 - Genome FASTA files are inputted using the `--fasta` parameter, and can be found at:
 

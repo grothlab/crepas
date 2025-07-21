@@ -1,0 +1,1004 @@
+---
+title: "SCAR_partition_plots_mod.Rmd"
+output: html_document
+author: "Samuel Ruiz-Pérez"
+date: "2025-06-03"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+#!/usr/bin/env Rscript
+# Author: Samuel Ruiz-Pérez <samper@cancer.dk>
+# Script for plotting partition plots of SCAR-seq data and scatter plots against OK-seq if provided
+# Adapted from version by Nicolás Alcaraz <nicolas.alcaraz@cpr.ku.dk> at https://github.com/grothlab/SCARseq_Pipeline/blob/a4b327f1901ae6a980767d05ec7af79896a604c9/SCAR_partition_plots.R
+# Adapted from version by Maria Dalby at https://github.com/anderssonlab/Replication_SCARseq/blob/78ffbabbfc8149cdc5bc5b5717878b26ebd4d8f1/replication_SCARseq.R
+# Modified by Samuel Ruiz-Pérez 
+
+options(show.error.locations = TRUE)
+
+### Set user's local R library path to packages
+chooseCRANmirror(ind =  28)
+if (!dir.exists(Sys.getenv("R_LIBS_USER"))) {
+     dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE)
+}
+
+### Install required packages if missing
+if (!require("BiocManager", quietly = TRUE)) {
+     install.packages("BiocManager", lib = Sys.getenv("R_LIBS_USER"))
+}
+
+required.libs <- c("tidyverse","GenomicAlignments","GenomicFeatures", 
+                   "RColorBrewer","ggrepel","ggpubr","ggpmisc","reshape2",
+                    "hexbin","latex2exp","argparse","ggh4x")
+
+unavailable.libs <- setdiff(required.libs, rownames(installed.packages()))
+if (length(unavailable.libs) > 0) {
+    BiocManager::install(unavailable.libs)
+}
+
+suppressPackageStartupMessages({
+  lapply(required.libs, FUN = function(x) {
+    do.call("require", list(x))
+  })
+})
+
+
+parser <- ArgumentParser()
+
+
+parser$add_argument("-a","--scar_partition_file", action = "store",
+                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/H3K9me3_bias/SCAR_seq/MAPPING_mm10/rfd_files/AWEMCM2_SCAR_H3K27ac_442_DMSO_T1_r4_t1_R1.srt.nodup.mm10_PE_smooth_results_w1000_s30_d30_z1.txt.gz",
+                    type = "character",
+                    nargs = '+',
+                    help = "Partition file(s) from SCAR-seq [required]. It can be a single file path or a space-separated list of quoted file paths. If multiple files are provided, they will be plotted in the same figure.")
+
+
+parser$add_argument("-d","--scarminusinput_partition_file", action = "store",
+                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/H3K9me3_bias/SCAR_seq/MAPPING_mm10/rfd_files/AWEMCM2_SCAR_H3K27ac_442_DMSO_T1_r4_t1_R1.srt.nodup.mm10_PE_SCARminusinput_smooth_results_w1000_s30_d30_z1.txt.gz",
+                    type = "character",
+                    nargs = '+',
+                    help = "Partition file(s) from input corrected SCAR-seq [required]. It can be a single file path or a space-separated list of quoted file paths. If multiple files are provided, they will be plotted in the same figure.")
+
+parser$add_argument("-f","--strandedinput_partition_file", action = "store",
+                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/H3K9me3_bias/SCAR_seq/MAPPING_mm10/rfd_files/AWEMCM2_strandedInput_H3K27ac_442_DMSO_T1_r4_t1_R1.srt.nodup.mm10_PE_smooth_results_w1000_s30_d30_z1.txt.gz",
+                    type = "character",
+                    nargs = '+',
+                    help = "Partition file(s) from stranded input  [required]. It can be a single file path or a space-separated list of quoted file paths. If multiple files are provided, they will be plotted in the same figure.")
+
+parser$add_argument("-k", "--okazaki_file", action = "store",
+                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/rep_chromatin_TC/publication/Wenger_et_al_2023/data/external/Okazaki_mm10_r1_smooth_results_w1000_s30_d30_z1.txt.gz",
+                    default = "",
+                    type = "character",
+                    help = "Okazaki file from OK-seq [optional, required for scatter plot]")
+
+parser$add_argument("-i", "--initiation_zones", action = "store",
+                    type = "character",
+                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/rep_chromatin_TC/publication/Wenger_et_al_2023/data/external/Initiation_Zones_mm10_mESC.bed",
+                    help = "Bed file with known initiation-zones. Must be provided if no Okazaki partition file is given")
+
+parser$add_argument("-b", "--blacklist", action = "store",
+                    #default = "/maps/projects/dan1/people/ngl887/scripts/scar_example/data/mm10.blacklist.bed",
+                    type = "character",
+                    help = "Blacklist bed file with regions to exclude [optional but strongly recommended]")
+
+parser$add_argument("-n", "--prefix", action = "store",
+                    default = "SCAR",
+                    type = "character",
+                    help = "Prefix for output files and plot title")
+
+parser$add_argument("-o", "--outdir", action = "store",
+                    default = "plots",
+                    type = "character",
+                    help = "Path to output directory for plots")
+
+parser$add_argument("-c", "--rpm_cutoff", action = "store",
+                    default = 0.3,
+                    type = "double",
+                    help = "RPM cutoff for noisy bins [default: 0.3]")
+
+parser$add_argument("-r", "--plot_range", action = "store",
+                    default = 100,
+                    type = "integer",
+                    help = "Distance (KB) surrounding Initation Zones to consider for partition plots [default: 100 KB]")
+
+parser$add_argument("-e", "--exclude_chromosomes", action = "store",
+                    default = "chrX,chrY,chrM",
+                    type = "character",
+                    help = "Chromosomes to exclude from analyses, must be provided comma separated [default: chrX,chrY,chrM]")
+
+
+opt <- parser$parse_args()
+
+```
+
+```{r}
+
+# replace arguments
+
+
+opt_scar_partition_file <- NULL
+
+opt_scarminusinput_partition_file <- c(
+  "/home/whq695/datadir/projects/glseq_runs/LKO_exp043_2/glseq/output/chromap/mergedLibrary/scarseq/6_partitions/scarseq_SCAR1_557_DMSO_H4K20me0_T0_REP1.mLb.mkD.flT1.flT3.rpm.smi.partition.w1000.s30.d30.z1.tsv",
+  "/home/whq695/datadir/projects/glseq_runs/LKO_exp043_2/glseq/output/chromap/mergedLibrary/scarseq/6_partitions/scarseq_SCAR1_557_DMSO_H4K20me2_T0_REP1.mLb.mkD.flT1.flT3.rpm.smi.partition.w1000.s30.d30.z1.tsv",
+  "/home/whq695/datadir/projects/glseq_runs/LKO_exp043_2/glseq/output/chromap/mergedLibrary/scarseq/6_partitions/scarseq_SCAR1_557_dTAG_H4K20me0_T0_REP1.mLb.mkD.flT1.flT3.rpm.smi.partition.w1000.s30.d30.z1.tsv",
+  "/home/whq695/datadir/projects/glseq_runs/LKO_exp043_2/glseq/output/chromap/mergedLibrary/scarseq/6_partitions/scarseq_SCAR1_557_dTAG_H4K20me2_T0_REP1.mLb.mkD.flT1.flT3.rpm.smi.partition.w1000.s30.d30.z1.tsv"
+  
+)
+
+opt_strandedinput_partition_file <- NULL
+
+
+#opt_okazaki_file <- "/home/whq695/datadir/projects/glseq_runs/ok_seq_SRR7535256/glseq/output/chromap/mergedLibrary/scarseq/6_partitions/OK-seq_SRR7535256_REP1.mLb.mkD.flT1.flT3.rpm.partition.w1000.s30.d30.z1.tsv"
+opt_okazaki_file <- "/home/whq695/datadir/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm10/output/chromap/mergedLibrary/OK-seq/6_partitions/OK-seq_SRR7535256_REP1.mLb.mkD.flT1.flT3.rpm.rfd.w1000.s30.d30.z1.tsv"
+
+opt_initiation_zones <- NULL
+  
+#"/maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm39/external_data/Replication/Okazaki_seq/bed_files/OKseq_Initiation_Zones_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm38liftOver.GRCm39_SE_smooth_results_w1000_s30_d30_z1.bed.gz"
+
+opt_blacklist <- "/home/whq695/Groth_group/shared/references/Mus_musculus/GRCm38/annotations/blacklists/bed/GRCm38.ENCODE_ENCFF999QPV.Kundaje.unified_Excludable.bed.gz"
+
+opt_chrom_sizes <- "/home/whq695/Groth_group/shared/references/Mus_musculus/GRCm38/genome/chrom_sizes/GRCm38.primary_assembly.genome.chrom.sizes"
+
+opt_prefix <- "LEONIE_TEST_mm10_1"
+
+opt_outdir <- "/maps/projects/dan1/people/whq695/projects/glseq_runs/LKO_exp043_2/plots"
+
+opt_rpm_cutoff <- 0.3
+
+opt_zero_deriv_quantile <- 0.9
+
+opt_plot_range <- 100
+
+opt_exclude_chromosomes <- "chrX,chrY,chrM"
+
+```
+
+```{r}
+
+# Initialize partition files and flags
+part_files <- list("SCAR" = c(), "SCAR_Input_Corrected" = c(), "strandedInput" = c())
+HAS_SCAR <- FALSE
+HAS_SCARINPUT <- FALSE
+HAS_INPUT <- FALSE
+
+```
+
+```{r}
+
+# Process SCAR partition files
+if (!is.null(opt_scar_partition_file)) {
+  for (file in opt_scar_partition_file) {
+    if (!file.exists(file)) {
+      warning("Partition file not found: ", file)
+    } else {
+      part_files[["SCAR"]] <- c(part_files[["SCAR"]], file)
+      HAS_SCAR <- TRUE
+    }
+  }
+}
+
+# Process SCAR Input Corrected partition files
+if (!is.null(opt_scarminusinput_partition_file)) {
+  for (file in opt_scarminusinput_partition_file) {
+    if (!file.exists(file)) {
+      warning("SCAR input-correct file not found: ", file)
+    } else {
+      part_files[["SCAR_Input_Corrected"]] <- c(part_files[["SCAR_Input_Corrected"]], file)
+      HAS_SCARINPUT <- TRUE
+    }
+  }
+}
+
+# Process Stranded Input partition files
+if (!is.null(opt_strandedinput_partition_file)) {
+  for (file in opt_strandedinput_partition_file) {
+    if (!file.exists(file)) {
+      warning("Stranded input partition file not found: ", file)
+    } else {
+      part_files[["strandedInput"]] <- c(part_files[["strandedInput"]], file)
+      HAS_INPUT <- TRUE
+    }
+  }
+}
+
+# Count how many types have at least one file
+num_types_with_files <- sum(sapply(part_files, function(x) length(x) > 0))
+
+if (num_types_with_files == 0) {
+  stop("[", Sys.time(), "] ERROR: Please provide at least one partition file to create plots.")
+} else if (num_types_with_files == 1) {
+  plot_width <- 10
+} else if (num_types_with_files == 2) {
+  plot_width <- 13
+} else if (num_types_with_files == 3) {
+  plot_width <- 18
+}
+
+HAS_OKSEQ <- FALSE
+if (is.null(opt_okazaki_file)) {
+  HAS_OKSEQ <- FALSE
+} else if (!file.exists(opt_okazaki_file)) {
+  HAS_OKSEQ <- FALSE
+} else {
+  HAS_OKSEQ <- TRUE
+}
+
+HAS_IZ <- FALSE
+if (is.null(opt_initiation_zones)) {
+  HAS_IZ <- FALSE
+} else if (!file.exists(opt_initiation_zones)) {
+  HAS_IZ <- FALSE
+} else {
+  HAS_IZ <- TRUE
+}
+
+HAS_BLACKLIST <- FALSE
+if (is.null(opt_blacklist)) {
+  HAS_BLACKLIST <- FALSE
+} else if (!file.exists(opt_blacklist)) {
+  HAS_BLACKLIST <- FALSE
+} else {
+  HAS_BLACKLIST <- TRUE
+}
+
+HAS_CHROM_SIZES <- FALSE
+if (is.null(opt_chrom_sizes)) {
+  HAS_CHROM_SIZES <- FALSE
+} else if (!file.exists(opt_chrom_sizes)) {
+  HAS_CHROM_SIZES <- FALSE
+} else {
+  HAS_CHROM_SIZES <- TRUE
+}
+
+
+if (!HAS_OKSEQ) {
+  if (!HAS_IZ) {
+    stop("[", Sys.time(), "] Please provide either valid Okazaki RFD file or Initiation Zone bed file")
+  } else {
+    warning("\n[", Sys.time(), "] Okazaki-seq file not found, using provided initiation zones file...")
+    IZ.file <- opt_initiation_zones
+  }
+} else {
+  OK_file <- opt_okazaki_file
+}
+
+if (!HAS_BLACKLIST) {
+  warning("\n[", Sys.time(), "] Blacklist file not provided or non-existant, it is recommended to use a blacklist")
+}
+
+
+PREFIX <- opt_prefix
+RPM_cutoff <- opt_rpm_cutoff
+PLOT_RANGE <- opt_plot_range
+IZ_LIMITS <- PLOT_RANGE * 1000
+plots.dir <- opt_outdir
+if (!dir.exists(plots.dir)) {
+  dir.create(plots.dir, recursive = TRUE)
+}
+chrom_excl <- unique(unlist(strsplit(opt_exclude_chromosomes, ",")))
+
+
+print(paste("RPM cutoff:",opt_rpm_cutoff))
+
+
+```
+
+```{r}
+
+cls <- c("seqnames","start","end", # Coordinates of bin
+         "fwd_counts","rev_counts",# Forward (fwd_counts) and Reverse (rev_counts) raw counts in bin
+         "fwd_RPM","rev_RPM",      # Forward (fwd_RPM) and Reverse (rev_RPM) RPMs in bin
+         "RFD_raw","RFD_smooth",   # Partition scores computed with raw (RFD_raw) and smoothed (RFD_smooth) RPMs
+         "RFD_deriv",              # Value of the derivative of the partition at this bin
+         "score",                  # not used
+         "zero_deriv")             # second derivative at this bin
+
+blacklist_gr <- GRanges()
+if (HAS_BLACKLIST) {
+  blacklist_df <- read_tsv(opt_blacklist, col_select = c(1:3), col_names = c("seqnames","start","end"), show_col_types = FALSE)
+  blacklist_gr <- makeGRangesFromDataFrame(blacklist_df, starts.in.df.are.0based = TRUE)
+  rm(blacklist_df)
+}
+
+if (HAS_CHROM_SIZES) {
+  chrom_sizes_df <- read_tsv(opt_chrom_sizes, col_select = c(1:2), col_names = c("chr", "sizes"), show_col_types = FALSE)
+  chrom_sizes <- deframe(chrom_sizes_df)
+  rm(chrom_sizes_df)
+}
+
+```
+
+## Preprocessing OK-seq partition file
+
+```{r}
+
+if (HAS_OKSEQ) {
+  
+  ok_base_name <- sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(OK_file))
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Reading OK-seq RFD file...")
+  OK_df <- read_tsv(OK_file, col_names = cls, show_col_types = FALSE)
+
+  if (ncol(OK_df) != 12) {
+    stop("[", Sys.time(), "] (", ok_base_name, ") ERROR: The OK-seq RFD file is not in the correct format (ncol != 12)")
+  }
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Removing OK-seq bins within excluded chromosomes or outside of chrom_sizes...")
+  OK_df <- OK_df %>%
+    dplyr::filter(!seqnames %in% chrom_excl,
+                  seqnames %in% names(chrom_sizes)) %>%
+    mutate(total_counts = fwd_counts + rev_counts, # total raw counts
+           RPM = fwd_RPM + rev_RPM,                 # total counts per million
+           sample = "OK-seq",
+           sample_type = "OK-seq")
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Converting the start positions of the OK-seq bins to 1-based...")
+  OK_gr <- makeGRangesFromDataFrame(OK_df,
+                                    seqinfo = chrom_sizes,
+                                    keep.extra.columns = TRUE,
+                                    starts.in.df.are.0based = TRUE)
+  
+  # We copy the interval now and not before with dplyr because the start
+  # coordinates are now 1-based thanks to starts.in.df.are.0based = TRUE
+  OK_gr$interval <- paste0(seqnames(OK_gr), ":", start(OK_gr), "-", end(OK_gr))
+  
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Removing OK-seq bins that overlap a blacklisted region...")
+  OK_gr <- OK_gr[!overlapsAny(OK_gr, blacklist_gr, minoverlap = 1)]
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Keeping only OK-seq bins with sufficient coverage...")
+  OK_gr_tmp <- subset(OK_gr, RPM >= RPM_cutoff)
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Keeping only OK-seq bins with a RFD zero derivative above the quantile threshold...")
+  OK_gr_tmp <- OK_gr_tmp[which(OK_gr_tmp$zero_deriv > quantile(OK_gr_tmp$RFD_deriv,
+                                               probs = opt_zero_deriv_quantile,
+                                               na.rm = TRUE))]
+  
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Calculating OK-seq bin size...")
+  OK_BIN_SIZE <- width(OK_gr)[1]
+  
+  # As in Petryk et al. (2018; https://www-science.org/doi/10.1126/science.aau0294#supplementary-materials),
+  # for initiation zones less than 3 bins apart, the bin with the highest RFD derivative is selected:
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Merging overlapping/adjacent OK-seq bins with a gap smaller than 3x bin size...")
+  OK_reduced_gr <- GenomicRanges::reduce(OK_gr_tmp,
+                                     min.gapwidth = OK_BIN_SIZE * 3,
+                                     with.revmap = TRUE)
+
+  # For each set of merged bins,
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Keeping the OK-seq bin with the highest RFD derivative...")
+  filtered_data <- OK_gr_tmp[sapply(OK_reduced_gr$revmap, 
+    function(x) { x[which.max(OK_gr_tmp$RFD_deriv[x])] })]
+
+  # Set these bins as initiation zones
+  OK_gr$IZ <- ifelse(OK_gr$interval %in% filtered_data$interval, TRUE, FALSE)
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") The number of initiation zones after preprocessing is ", sum(OK_gr$IZ), ".")
+  IZ_gr <- subset(OK_gr, IZ)
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Removing overlapping initiation zones (within 100 kb upstream and 100 kb downstream of another initiation zone)...")
+  
+  # Get original start coordinate for each initiation zone 
+  IZ_gr$break_start <- start(IZ_gr)
+  
+  # Resizing initiation zones to cover 100 kb upstream and 100 kb downstream
+  IZ_gr <- resize(IZ_gr, IZ_LIMITS * 2, fix = "center")
+  
+  # Resizing can generate bins with negative start positions (out-of-bound), so we trim them
+  IZ_gr <- trim(IZ_gr)
+  
+  # Finding the nearest resized initiation zone to each resized initiation zone
+  IZ_dist <- distanceToNearest(IZ_gr)
+  
+  # Removing overlapping resized initiation zones
+  IZ_gr <- IZ_gr[-queryHits(subset(IZ_dist, IZ_dist@elementMetadata$distance == 0))]
+  
+  message("\n[", Sys.time(), "] (", ok_base_name, ") The number of initiation zones after removing overlaps is: ", length(IZ_gr), ".")
+  
+  # As in Petryk et al. (2018; https://www-science.org/doi/10.1126/science.aau0294#supplementary-materials):
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Calculating RFD rates around initiation zones (100 kb upstream and 100 kb
+  downstream of each IZ) by averaging values within each bin position...")
+  
+  # Finding out which initiation zones overlap which OK-seq bins
+  overlap_pairs <- findOverlaps(IZ_gr, OK_gr)
+  
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Extracting the OK-seq bins that overlap with an initiation zone...")
+  RFD_gr <- OK_gr[subjectHits(overlap_pairs)]
+  
+  # Adding to each OK-seq bin the interval of the initiation zone with which it overlaps
+  RFD_gr$break_ID <- IZ_gr$interval[queryHits(overlap_pairs)]
+  
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Calculating the distance from each OK-seq bin to the initiation zone with which it overlaps...")
+  RFD_gr$dist <- start(RFD_gr) - IZ_gr$break_start[queryHits(overlap_pairs)]
+  
+  # Remove temporary variables
+  rm(OK_file, OK_gr, OK_df, OK_gr_tmp, OK_reduced_gr, filtered_data, IZ_dist, overlap_pairs)
+  
+} else {
+
+  iz_base_name <- sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(opt_initiation_zones))
+  message("\n[", Sys.time(), "] (", iz_base_name, ") Reading initiation zones file...")
+  IZ_df <- read_tsv(opt_initiation_zones,
+                    col_select = c(1:3),
+                    col_names = c("seqnames", "start", "end"),
+                    show_col_types = FALSE)
+
+  message("\n[", Sys.time(), "] (", iz_base_name, ") Removing initiation zones within excluded chromosomes or outside of chrom_sizes...")
+  IZ_gr <- IZ_df %>%
+    filter(!seqnames %in% chrom_excl,
+           seqnames %in% names(chrom_sizes)) %>%
+    mutate(sample = "OK-seq",
+           sample_type = "OK-seq") %>%
+    makeGRangesFromDataFrame(seqinfo = chrom_sizes,
+                             keep.extra.columns = TRUE,
+                             starts.in.df.are.0based = TRUE)
+
+  # We copy the interval now and not before with dplyr because the start
+  # coordinates are now 1-based thanks to starts.in.df.are.0based = TRUE
+  IZ_gr$interval <- paste0(seqnames(IZ_gr), ":", start(IZ_gr), "-", end(IZ_gr))
+
+  message("\n[", Sys.time(), "] (", iz_base_name, ") Removing overlapping initiation zones (within 100 kb upstream and 100 kb downstream of another initiation zone)...")
+  
+  # Get original start coordinate for each initiation zone 
+  IZ_gr$break_start <- start(IZ_gr)
+  
+  # Resizing initiation zones to cover 100 kb upstream and 100 kb downstream
+  IZ_gr <- resize(IZ_gr, IZ_LIMITS * 2, fix = "center")
+
+  # Resizing can generate bins with negative start positions (out-of-bound), so we trim them
+  IZ_gr <- trim(IZ_gr)
+  
+  # Finding the nearest resized initiation zone to each resized initiation zone
+  IZ_dist <- distanceToNearest(IZ_gr)
+  
+  # Removing overlapping resized initiation zones
+  IZ_gr <- IZ_gr[-queryHits(subset(IZ_dist, IZ_dist@elementMetadata$distance == 0))]
+  
+  message("\n[", Sys.time(), "] (", iz_base_name, ") The number of initiation zones after removing overlaps is: ", length(IZ_gr), ".")  
+  
+  # Remove temporary variables
+  rm(OK_file, OK_gr, OK_df, OK_gr_tmp, OK_reduced_gr, filtered_data, IZ_dist, overlap_pairs)
+  
+}
+
+```
+
+## Preprocessing of partition files
+
+```{r}
+
+partition_df <- c()
+
+for (type in names(part_files)) {
+
+  message("\n[", Sys.time(), "] Processing partition files of type: ", type, "...")
+  
+  for (file in part_files[[type]]) {
+
+    base_name <- sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(file))
+
+    message("\n[", Sys.time(), "] (", base_name, ") Reading partition file...")
+    SCAR_df <- read_tsv(file, col_names = cls, show_col_types = FALSE)
+    
+    if (ncol(SCAR_df) != 12) {
+      stop("[", Sys.time(), "] ERROR:", base_name, "is not a partition file format (ncol != 12)")
+    }
+
+    message("\n[", Sys.time(), "] (", base_name, ") Removing partition bins within excluded chromosomes or outside of chromosome sizes...")
+    SCAR_df <- SCAR_df %>%
+      dplyr::filter(!seqnames %in% chrom_excl,
+                    seqnames %in% names(chrom_sizes)) %>%
+      mutate(IZ = NA,
+            strand = "*",
+            total_counts = fwd_counts + rev_counts, # total raw counts
+            RPM = fwd_RPM + rev_RPM,                # total counts pr. million
+            sample = base_name,
+            sample_type = type,
+            sample_facet = type)
+    
+    SCAR_gr <- makeGRangesFromDataFrame(SCAR_df,
+                                        seqinfo = chrom_sizes,
+                                        keep.extra.columns = TRUE,
+                                        starts.in.df.are.0based = TRUE)
+    
+    # We copy the interval now and not before with dplyr because the start
+    # coordinates are now 1-based thanks to starts.in.df.are.0based = TRUE
+    SCAR_gr$interval <- paste0(seqnames(SCAR_gr), ":", start(SCAR_gr), "-", end(SCAR_gr))    
+      
+    message("\n[", Sys.time(), "] (", base_name, ") Removing partition bins that overlap a blacklisted region...")
+    SCAR_gr <- SCAR_gr[!overlapsAny(SCAR_gr, blacklist_gr, minoverlap = 1)]
+      
+    PART_BIN_SIZE <- width(SCAR_gr)[1]
+    message("\n[", Sys.time(), "] (", base_name, ") This partition's bin size is ", PART_BIN_SIZE, " bp.")
+
+    if (HAS_OKSEQ) {
+      if (OK_BIN_SIZE != PART_BIN_SIZE) {
+        stop("\n[", Sys.time(), "] ERROR: Bin size of", base_name,
+             "(", PART_BIN_SIZE, "bp ) is not the same bin size as in the provided OK-seq partition file (", OK_BIN_SIZE, "bp ).\n")
+      }
+    }
+
+  # As in Petryk et al. (2018; https://www-science.org/doi/10.1126/science.aau0294#supplementary-materials):
+  message("\n[", Sys.time(), "] (", base_name, ") Calculating partition rates around initiation zones (100 kb upstream and 100 kb downstream of each IZ) by averaging values within each bin position...")
+  
+  # Finding out which initiation zones overlap which partition bins...
+  overlap_pairs <- findOverlaps(IZ_gr, SCAR_gr)
+
+  message("\n[", Sys.time(), "] (", base_name, ") Extracting the partition bins that overlap with an initiation zone...")
+  partition_gr <- SCAR_gr[subjectHits(overlap_pairs)]
+  
+  # Adding to each partition bin the interval of the initiation zone with which it overlaps
+  partition_gr$break_ID <- IZ_gr$interval[queryHits(overlap_pairs)]
+  
+  message("\n[", Sys.time(), "] (", base_name, ") Calculating the distance from each partition bin to the initiation zone with which it overlaps...")
+  partition_gr$dist <- start(partition_gr) - IZ_gr$break_start[queryHits(overlap_pairs)]
+  
+  partition_df <- partition_df %>%
+    bind_rows(as_tibble(partition_gr))
+  
+  message("\n[", Sys.time(), "] (", base_name, ") Finished processing partition file.")
+
+
+  }
+
+}
+
+if (HAS_OKSEQ) {
+
+  # Expand RFD_gr for each unique sample_facet in partition_mean_df
+  sample_facets <- unique(partition_df$sample_facet)
+  # if sample_facets is empty (there are no SCAR partitions, just OK-seq):
+  sample_facets <- ifelse(is.null(sample_facets), "OK-seq", sample_facets)
+  
+  expanded_RFD <- tidyr::expand_grid(
+    as_tibble(RFD_gr),
+    sample_facet = sample_facets
+  )
+  
+  partition_df <- partition_df %>%
+    bind_rows(expanded_RFD)
+
+}
+
+
+# get a summary table with the number of unique break_ID per sample and sample_type
+partition_summary <- partition_df %>%
+  dplyr::group_by(sample, sample_type, sample_facet) %>%
+  dplyr::summarise(N_IZ = n_distinct(break_ID), .groups = "drop")
+
+partition_mean_df <- partition_df %>%
+  dplyr::filter(RPM >= RPM_cutoff) %>%
+  dplyr::group_by(dist, sample, sample_type, sample_facet) %>%
+  dplyr::summarise(
+    RFD_raw = mean(RFD_raw, na.rm = TRUE),
+    RFD_smooth = mean(RFD_smooth, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(sample = gsub("^scarseq_", "", sample))
+
+partition_mean_df
+
+
+```
+
+## Partition plots
+
+```{r}
+
+sample_labels <-  c("SCAR_Input_Corrected" =  "SCAR (Input-corrected)",
+                    "SCAR" = "SCAR", "strandedInput" = "Stranded input")
+sample_labels <- sample_labels[names(part_files)]
+
+# set a color in Dark2 palette for each sample, but set OK-seq to dark gray
+dark2_colors <- RColorBrewer::brewer.pal(length(unique(partition_mean_df$sample)), "Paired")
+sample_names <- unique(partition_mean_df$sample)
+sample_colors <- setNames(dark2_colors[seq_along(sample_names)], sample_names)
+sample_colors["OK-seq"] <- "grey60"
+line_colors <- sample_colors
+
+```
+
+
+### Raw partition plot(s)
+
+```{r, fig.height = 2.5, dpi=300, fig.width=10}
+
+raw_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smooth, color = sample)) +
+    geom_rect(xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
+              fill = "grey92", inherit.aes = FALSE) +
+    geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
+              fill = "grey92", inherit.aes = FALSE) +
+    geom_vline(xintercept = 0, color = "grey70", size = 0.3) +
+    geom_hline(yintercept = 0, color = "grey70", size = 0.3) +
+    geom_line(size = 0.3) +
+    scale_color_manual(values = line_colors) +
+    xlab("Distance from initiation zone center (kb)") +
+    ylab(ifelse(HAS_OKSEQ, "Partition or RFD", "Partition")) +
+    labs(caption = paste("N =", length(IZ_gr))) +
+    theme_bw(base_family = "Helvetica") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.title = element_blank(),
+          axis.title = element_text(size = 6),
+          axis.text = element_text(size = 6),
+          legend.text = element_text(size = 6),
+          legend.key.size = unit(0.3, "cm"),
+          legend.key = element_rect(color = NA, fill = NA),
+          strip.background = element_blank(),
+          aspect.ratio = 1,
+          plot.caption = element_text(size = 6)) +
+    guides(color = guide_legend(order = 1)) +
+    facet_wrap(~ sample_facet, nrow = 1, labeller = labeller(.cols = sample_labels)) +
+    scale_y_continuous(expand = expansion(mult = c(0.11, 0.11))) +
+    annotate(geom = 'text', label = 'Lagging', x = -Inf, y = Inf, hjust = -0.13,
+            vjust = 2, size = 2) +
+    annotate(geom = 'text', label = 'Leading', x = -Inf, y = -Inf, hjust = -0.13,
+            vjust = -1.5, size = 2) +
+    annotate(geom = 'text', label = 'Lagging', x = Inf, y = -Inf, hjust = 1.13,
+            vjust = -1.5, size = 2) +
+    annotate(geom = 'text', label = 'Leading', x = Inf, y = Inf, hjust = 1.13,
+            vjust = 2, size = 2)
+
+raw_plot
+
+```
+
+```{r}
+
+
+ggsave(filename = file.path(plots.dir,paste0(PREFIX,".partition_plots_raw.pdf")),
+       plot = raw_plot, width = 4, height = 2.5, units = "in",
+       dpi = 300)
+
+
+```
+
+
+### Smoothed partition plot(s)
+
+```{r, fig.height = 2.5, dpi=300, fig.width=10}
+
+smooth_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smooth, color = sample)) +
+    geom_rect(xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
+              fill = "grey92", inherit.aes = FALSE) +
+    geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
+              fill = "grey92", inherit.aes = FALSE) +
+    geom_vline(xintercept = 0, color = "grey70", size = 0.3) +
+    geom_hline(yintercept = 0, color = "grey70", size = 0.3) +
+    geom_line(stat = "smooth", method = "gam", se = FALSE, size = 0.5) +
+    scale_color_manual(values = line_colors) +
+    xlab("Distance from initiation zone center (kb)") +
+    ylab(ifelse(HAS_OKSEQ, "Partition or RFD", "Partition")) +
+    labs(caption = paste("N =", length(IZ_gr))) +
+    theme_bw(base_family = "Helvetica") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.title = element_blank(),
+          axis.title = element_text(size = 6),
+          axis.text = element_text(size = 6),
+          legend.text = element_text(size = 6),
+          legend.key.size = unit(0.3, "cm"),
+          legend.key = element_rect(color = NA, fill = NA),
+          strip.background = element_blank(),
+          aspect.ratio = 1,
+          plot.caption = element_text(size = 6)) +
+    guides(color = guide_legend(order = 1)) +
+    facet_wrap(~ sample_facet, nrow = 1, labeller = labeller(.cols = sample_labels)) +
+    scale_y_continuous(expand = expansion(mult = c(0.11, 0.11))) +
+    annotate(geom = 'text', label = 'Lagging', x = -Inf, y = Inf, hjust = -0.13,
+            vjust = 2, size = 2) +
+    annotate(geom = 'text', label = 'Leading', x = -Inf, y = -Inf, hjust = -0.13,
+            vjust = -1.5, size = 2) +
+    annotate(geom = 'text', label = 'Lagging', x = Inf, y = -Inf, hjust = 1.13,
+            vjust = -1.5, size = 2) +
+    annotate(geom = 'text', label = 'Leading', x = Inf, y = Inf, hjust = 1.13,
+            vjust = 2, size = 2)
+
+
+smooth_plot
+
+
+```
+
+```{r}
+
+ggsave(filename = file.path(plots.dir, paste0(PREFIX, ".partition_plots_smooth.pdf")),
+       plot = smooth_plot, width = 10, height = 6.5, units = "cm")
+
+ggsave(filename = file.path(plots.dir, paste0(PREFIX, ".partition_plots_smooth.png")),
+       plot = smooth_plot, width = 10, height = 6.5, units = "cm",
+       dpi = 600)
+
+```
+
+
+## Scatter plots: RFD (OK-seq) vs partition
+
+```{r}
+
+if (HAS_OKSEQ) {
+
+  partition_df_flt <- partition_df %>%
+    filter(RPM >= RPM_cutoff,
+           !is.na(RFD_smooth)) %>%
+    dplyr::select(interval,  sample, sample_type, sample_facet, RFD_smooth)
+  
+  RFD_plot_df <- partition_df_flt %>%
+    group_by(interval, sample, sample_facet) %>%
+    summarise(RFD_smooth = mean(RFD_smooth, na.rm = TRUE), .groups = "drop") %>%
+    pivot_wider(names_from = sample, values_from = RFD_smooth) %>%
+    pivot_longer(cols = -c(interval, "OK-seq", sample_facet), names_to = "sample", values_to = "Partition") %>%
+    dplyr::rename(RFD = "OK-seq") %>%
+    mutate(sample = gsub("^scarseq_", "", sample))
+  
+  partition_scatter_plot <- RFD_plot_df %>%
+    ggplot(aes(x = RFD, y = Partition)) +
+    geom_hex(bins = 100) +
+    scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
+    geom_vline(xintercept = 0, colour = "grey70", linewidth = 0.5) +
+    geom_hline(yintercept = 0, colour = "grey70", linewidth = 0.5) +
+    geom_smooth(se = FALSE, method = "lm", size = 0.3, color = "red") +
+    # add correlation and p-value to the plot
+    stat_cor(aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+             method = "spearman", size = 2.5,
+             cor.coef.name = c("rho")) +
+    theme_bw(base_size = 20, base_family = "Helvetica") +
+    facet_grid(sample ~ sample_facet, scales = "free", labeller = labeller(.cols = sample_labels)) +
+    theme_bw(base_family = "Helvetica") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.title = element_blank(),
+          axis.title = element_text(size = 6),
+          axis.text = element_text(size = 6),
+          legend.text = element_text(size = 6),
+          strip.background = element_blank(),
+          aspect.ratio = 1)
+  
+  partition_scatter_plot
+
+}
+
+```
+
+Testing
+
+```{r}
+
+library(tidyverse)
+library(RColorBrewer)
+library(ggpubr)
+
+# read each of the files and compare their 4th column
+
+file1 <- read_tsv("/home/whq695/datadir/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm10/output/chromap/mergedLibrary/OK-seq/6_partitions/OK-seq_SRR7535256_REP1.mLb.mkD.flT1.flT3.rpm.rfd.w1000.s30.d30.z1.tsv",
+  col_names = c("seqnames","start","end", # Coordinates of bin
+    "fwd_counts","rev_counts",# Forward (fwd_counts) and Reverse (rev_counts) raw counts in bin
+    "fwd_RPM","rev_RPM",      # Forward (fwd_RPM) and Reverse (rev_RPM) RPMs in bin
+    "RFD_raw","RFD_smooth",   # Partition scores computed with raw (RFD_raw) and smoothed (RFD_smooth) RPMs
+    "RFD_deriv",              # Value of the derivative of the partition at this bin
+    "score",                  # not used
+    "zero_deriv"))
+file2 <- read_tsv("/home/whq695/datadir/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm10/output/chromap/mergedLibrary/OK-seq/6_partitions/OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed", col_names = c("seqnames","start","end", # Coordinates of bin
+    "fwd_counts","rev_counts",# Forward (fwd_counts) and Reverse (rev_counts) raw counts in bin
+    "fwd_RPM","rev_RPM",      # Forward (fwd_RPM) and Reverse (rev_RPM) RPMs in bin
+    "RFD_raw","RFD_smooth",   # Partition scores computed with raw (RFD_raw) and smoothed (RFD_smooth) RPMs
+    "RFD_deriv",              # Value of the derivative of the partition at this bin
+    "score",                  # not used
+    "zero_deriv"))
+file3 <- read_tsv("/home/whq695/datadir/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm10/output/chromap/mergedLibrary/OK-seq/6_partitions/OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.uniq.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed", col_names = c("seqnames","start","end", # Coordinates of bin
+    "fwd_counts","rev_counts",# Forward (fwd_counts) and Reverse (rev_counts) raw counts in bin
+    "fwd_RPM","rev_RPM",      # Forward (fwd_RPM) and Reverse (rev_RPM) RPMs in bin
+    "RFD_raw","RFD_smooth",   # Partition scores computed with raw (RFD_raw) and smoothed (RFD_smooth) RPMs
+    "RFD_deriv",              # Value of the derivative of the partition at this bin
+    "score",                  # not used
+    "zero_deriv"))
+
+# add suffix to the column names to distinguish them, except for the first three columns
+colnames(file1)[4:12] <- paste0(colnames(file1)[4:12], ".file1")
+colnames(file2)[4:12] <- paste0(colnames(file2)[4:12], ".file2")
+colnames(file3)[4:12] <- paste0(colnames(file3)[4:12], ".file3")
+
+# merge the three files by the first three columns
+merged_df <- file1 %>% full_join(file2, by = c("seqnames", "start", "end")) %>%
+  full_join(file3, by = c("seqnames", "start", "end"))
+
+
+# transform measures "fwd_counts","rev_counts","fwd_RPM","rev_RPM" to log10
+merged_df <- merged_df %>%
+  mutate(across(starts_with("fwd_counts"), log10),
+        across(starts_with("rev_counts"), log10),
+        across(starts_with("fwd_RPM"), log10),
+         across(starts_with("rev_RPM"), log10))
+
+# First, pivot the merged_df to longer format for all columns except the join keys
+long_df <- merged_df %>%
+  pivot_longer(
+    cols = -c(seqnames, start, end),
+    names_to = c("measure", "file"),
+    names_sep = "\\.",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    id_cols = c(seqnames, start, end, measure),
+    names_from = file,
+    values_from = value
+  )
+
+
+
+plot_1_vs_2 <- ggplot(long_df, aes(x = file1, y = file2)) +
+  geom_hex(bins = 50) +
+  scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue", size = 0.3) +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  labs(x = "OK-seq_SRR7535256_REP1.mLb.mkD.flT1.flT3.rpm.rfd.w1000.s30.d30.z1.tsv",
+       y = "OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed") +
+  stat_cor(method = "spearman", size = 3,
+           label.x.npc = "left", label.y.npc = "top") +
+  theme_bw(base_family = "Helvetica") +
+  theme(axis.title = element_text(size = 6),
+        aspect.ratio = 1) +
+  facet_wrap(~measure, scales = "free")
+
+ggsave(filename = "/maps/projects/dan1/people/whq695/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm10/plots/ok_seq_mm10_comparison_1_vs_2.png",
+       plot = plot_1_vs_2, width = 20, height = 20, units = "cm", dpi = 300)
+
+plot_1_vs_3 <- ggplot(long_df, aes(x = file1, y = file3)) +
+    geom_hex(bins = 50) +
+    scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
+    geom_smooth(method = "lm", se = FALSE, color = "blue", size = 0.3) +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    labs(x = "OK-seq_SRR7535256_REP1.mLb.mkD.flT1.flT3.rpm.rfd.w1000.s30.d30.z1.tsv",
+         y = "OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.uniq.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed") +
+    stat_cor(method = "spearman", size = 3,
+             label.x.npc = "left", label.y.npc = "top") +
+    theme_bw(base_family = "Helvetica") +
+    theme(axis.title = element_text(size = 6),
+          aspect.ratio = 1) +
+    facet_wrap(~measure, scales = "free")
+
+ggsave(filename = "/maps/projects/dan1/people/whq695/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm10/plots/ok_seq_mm10_comparison_1_vs_3.png",
+       plot = plot_1_vs_3, width = 20, height = 20, units = "cm", dpi = 300)
+
+
+
+plot_2_vs_3 <- ggplot(long_df, aes(x = file2, y = file3)) +
+    geom_hex(bins = 50) +
+    scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
+    geom_smooth(method = "lm", se = FALSE, color = "blue", size = 0.3) +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    labs(x = "OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed",
+         y = "OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.uniq.GRCm38_SE_smooth_results_w1000_s30_d30_z1.bed") +
+    theme_bw(base_family = "Helvetica") +
+    theme(axis.title = element_text(size = 6),
+          aspect.ratio = 1) +
+    stat_cor(method = "spearman", size = 3,
+             label.x.npc = "left", label.y.npc = "top") +
+    facet_wrap(~measure, scales = "free")
+
+ggsave(filename = "/maps/projects/dan1/people/whq695/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm10/plots/ok_seq_mm10_comparison_2_vs_3.png",
+       plot = plot_2_vs_3, width = 20, height = 20, units = "cm", dpi = 300)
+
+```
+
+
+
+```{r}
+
+library(tidyverse)
+library(RColorBrewer)
+library(ggpubr)
+
+# read each of the files and compare their 4th column
+
+file1 <- read_tsv("/home/whq695/datadir/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm39/output/chromap/mergedLibrary/OK-seq/6_partitions/OK-seq_SRR7535256_REP1.mLb.mkD.flT1.flT3.rpm.partition.w1000.s30.d30.z1.tsv",
+  col_names = c("seqnames","start","end", # Coordinates of bin
+    "fwd_counts","rev_counts",# Forward (fwd_counts) and Reverse (rev_counts) raw counts in bin
+    "fwd_RPM","rev_RPM",      # Forward (fwd_RPM) and Reverse (rev_RPM) RPMs in bin
+    "RFD_raw","RFD_smooth",   # Partition scores computed with raw (RFD_raw) and smoothed (RFD_smooth) RPMs
+    "RFD_deriv",              # Value of the derivative of the partition at this bin
+    "score",                  # not used
+    "zero_deriv"))
+
+file2 <- read_tsv("/home/whq695/datadir/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm39/output/chromap/mergedLibrary/OK-seq/6_partitions/OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm39_SE_smooth_results_w1000_s30_d30_z1.bed.gz", col_names = c("seqnames","start","end", # Coordinates of bin
+    "fwd_counts","rev_counts",# Forward (fwd_counts) and Reverse (rev_counts) raw counts in bin
+    "fwd_RPM","rev_RPM",      # Forward (fwd_RPM) and Reverse (rev_RPM) RPMs in bin
+    "RFD_raw","RFD_smooth",   # Partition scores computed with raw (RFD_raw) and smoothed (RFD_smooth) RPMs
+    "RFD_deriv",              # Value of the derivative of the partition at this bin
+    "score",                  # not used
+    "zero_deriv"))
+
+file3 <- read_tsv("/home/whq695/datadir/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm39/output/chromap/mergedLibrary/OK-seq/6_partitions/OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.uniq.GRCm39_SE_smooth_results_w1000_s30_d30_z1.bed.gz", col_names = c("seqnames","start","end", # Coordinates of bin
+    "fwd_counts","rev_counts",# Forward (fwd_counts) and Reverse (rev_counts) raw counts in bin
+    "fwd_RPM","rev_RPM",      # Forward (fwd_RPM) and Reverse (rev_RPM) RPMs in bin
+    "RFD_raw","RFD_smooth",   # Partition scores computed with raw (RFD_raw) and smoothed (RFD_smooth) RPMs
+    "RFD_deriv",              # Value of the derivative of the partition at this bin
+    "score",                  # not used
+    "zero_deriv"))
+
+# add suffix to the column names to distinguish them, except for the first three columns
+colnames(file1)[4:12] <- paste0(colnames(file1)[4:12], ".file1")
+colnames(file2)[4:12] <- paste0(colnames(file2)[4:12], ".file2")
+colnames(file3)[4:12] <- paste0(colnames(file3)[4:12], ".file3")
+
+# merge the three files by the first three columns
+merged_df <- file1 %>% full_join(file2, by = c("seqnames", "start", "end")) %>%
+  full_join(file3, by = c("seqnames", "start", "end"))
+
+# transform measures "fwd_counts","rev_counts","fwd_RPM","rev_RPM" to log10
+merged_df <- merged_df %>%
+  mutate(across(starts_with("fwd_counts"), log10),
+         across(starts_with("rev_counts"), log10),
+         across(starts_with("fwd_RPM"), log10),
+         across(starts_with("rev_RPM"), log10))
+
+# First, pivot the merged_df to longer format for all columns except the join keys
+long_df <- merged_df %>%
+  pivot_longer(
+    cols = -c(seqnames, start, end),
+    names_to = c("measure", "file"),
+    names_sep = "\\.",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    id_cols = c(seqnames, start, end, measure),
+    names_from = file,
+    values_from = value
+  )
+
+plot_1_vs_2 <- ggplot(long_df, aes(x = file1, y = file2)) +
+  geom_hex(bins = 50) +
+  scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue", size = 0.3) +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  labs(x = "OK-seq_SRR7535256_REP1.mLb.mkD.flT1.flT3.rpm.rfd.w1000.s30.d30.z1.tsv",
+       y = "OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm39_SE_smooth_results_w1000_s30_d30_z1.bed.gz") +
+  stat_cor(method = "spearman", size = 3,
+           label.x.npc = "left", label.y.npc = "top") +
+  theme_bw(base_family = "Helvetica") +
+  theme(axis.title = element_text(size = 6),
+        aspect.ratio = 1) +
+  facet_wrap(~measure, scales = "free")
+
+ggsave(filename = "/maps/projects/dan1/people/whq695/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm39/plots/ok_seq_mm39_comparison_1_vs_2.png",
+       plot = plot_1_vs_2, width = 20, height = 20, units = "cm", dpi = 300)
+
+plot_1_vs_3 <- ggplot(long_df, aes(x = file1, y = file3)) +
+    geom_hex(bins = 50) +
+    scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
+    geom_smooth(method = "lm", se = FALSE, color = "blue", size = 0.3) +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    labs(x = "OK-seq_SRR7535256_REP1.mLb.mkD.flT1.flT3.rpm.rfd.w1000.s30.d30.z1.tsv",
+         y = "OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.uniq.GRCm39_SE_smooth_results_w1000_s30_d30_z1.bed.gz") +
+    stat_cor(method = "spearman", size = 3,
+             label.x.npc = "left", label.y.npc = "top") +
+    theme_bw(base_family = "Helvetica") +
+    theme(axis.title = element_text(size = 6),
+          aspect.ratio = 1) +
+    facet_wrap(~measure, scales = "free")
+
+ggsave(filename = "/maps/projects/dan1/people/whq695/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm39/plots/ok_seq_mm39_comparison_1_vs_3.png",
+       plot = plot_1_vs_3, width = 20, height = 20, units = "cm", dpi = 300)
+
+plot_2_vs_3 <- ggplot(long_df, aes(x = file2, y = file3)) +
+    geom_hex(bins = 50) +
+    scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
+    geom_smooth(method = "lm", se = FALSE, color = "blue", size = 0.3) +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    labs(x = "OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.GRCm39_SE_smooth_results_w1000_s30_d30_z1.bed.gz",
+         y = "OKseq_RFD_mESC_SRR7535256_r1_R1.csorted.nodup.uniq.GRCm39_SE_smooth_results_w1000_s30_d30_z1.bed.gz") +
+    theme_bw(base_family = "Helvetica") +
+    theme(axis.title = element_text(size = 6),
+          aspect.ratio = 1) +
+    stat_cor(method = "spearman", size = 3,
+             label.x.npc = "left", label.y.npc = "top") +
+    facet_wrap(~measure, scales = "free")
+
+ggsave(filename = "/maps/projects/dan1/people/whq695/projects/glseq_runs/ok_seq_SRR7535256/glseq_mm39/plots/ok_seq_mm39_comparison_2_vs_3.png",
+       plot = plot_2_vs_3, width = 20, height = 20, units = "cm", dpi = 300)
+
+
+```

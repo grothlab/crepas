@@ -165,6 +165,20 @@
                     "fa_icon": "fas fa-book-dead",
                     "help_text": "Defines the annotation file of 'sparse segments' (genomic regions) from the complement of an 'inflated' BED file of known active regions. See https://github.com/nolan-h-hamilton/Consenrich/blob/5e7f287d81ac4a9bc098ae29e825a5ded07af3b8/consenrich/consenrich.py#L58C54-L58C174"
                 },
+                "active_regions": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to BED file with active regions for Consenrich.",
+                    "fa_icon": "fas fa-book-dead",
+                    "help_text": "Defines the annotation file of 'active regions' (genomic regions) for Consenrich. See https://github.com/nolan-h-hamilton/Consenrich/blob/5e7f287d81ac4a9bc098ae29e825a5ded07af3b8/consenrich/consenrich.py#L67"
+                },
+                "rocco_params": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to ROCCO parameters file.",
+                    "fa_icon": "fas fa-file-alt",
+                    "help_text": "CSV file containing chromosome-specific optimization parameters. Each supported genome has a custom `--params` file packaged with ROCCO, but a custom file has to be manually passed to ROCCO within this pipeline. Consider using this argument to set chromosome-specific budget and gamma values custom to your data and preferences. See the [ROCCO documentation](https://nolan-h-hamilton.github.io/ROCCO/#rocco-constants) for more details."
+                },
                 "splicesites": {
                     "type": "string",
                     "format": "file-path",
@@ -424,11 +438,11 @@
                 }
             }
         },
-        "spikein_normalization_options": {
-            "title": "Spike-in normalization options",
+        "spikein_options": {
+            "title": "Spike-in options",
             "type": "object",
             "fa_icon": "fas fa-dna",
-            "description": "Options to adjust spike-in splitting and normalization criteria.",
+            "description": "Options to adjust spike-in splitting criteria.",
             "properties": {
                 "spikein_genome": {
                     "type": "string",
@@ -449,15 +463,9 @@
             "fa_icon": "fas fa-dice-d20",
             "description": "Options to adjust multimapper allocation criteria.",
             "properties": {
-                "allocate_n_multimappers": {
-                    "type": "integer",
-                    "description": "Max number of multimappers to allocate. Must be equal or smaller than `--map_n_multimappers`.",
-                    "fa_icon": "fas fa-dice-d20"
-                },
-                "allocation_method": {
+                "multimap_allocation_method": {
                     "type": "string",
-                    "default": "allo",
-                    "description": "Method to allocate multimappers. Options are `allo`, `chromap`, and `mmr`.",
+                    "description": "Method to allocate multimappers. Options are `allo`, `chromap`, and `mmr`. Not setting this parameter means that multimappers will not be allocated (the default).",
                     "fa_icon": "fas fa-dice-d20",
                     "enum": ["allo", "chromap", "mmr"]
                 },
@@ -495,6 +503,20 @@
                 }
             }
         },
+        "filtering_options": {
+            "title": "Filtering options",
+            "type": "object",
+            "fa_icon": "fas fa-filter",
+            "description": "Options to adjust filtering criteria for BAM files.",
+            "properties": {
+                "skip_flT3": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to skip the flT3 filtering step (filtering by mapping quality, which also removes multimapping reads in most cases).",
+                    "fa_icon": "fas fa-filter"
+                }
+            }
+        },
         "coverage_and_normalization_options": {
             "title": "Coverage and normalization options",
             "type": "object",
@@ -521,8 +543,8 @@
                 },
                 "soi_min_count": {
                     "type": "integer",
-                    "default": 1,
-                    "description": "Minimum number of reads required in a bin to be included in the signal over input (SOI) calculation.",
+                    "default": 0,
+                    "description": "Minimum CISRPM value required in a bin to be included in the signal over input (SOI) calculation.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "coverage_extend_reads": {
@@ -541,19 +563,19 @@
                 "rpm_use_flT2_total": {
                     "type": "string",
                     "default": "H3K9me3,H3K27me3",
-                    "description": "Comma-separated list of histone marks for which RPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list and for input controls, the total mapped reads after flT3 will be used for normalization factor calculation.",
+                    "description": "Comma-separated list of histone marks for which RPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list the total mapped reads after flT3 will be used for normalization factor calculation.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "srpm_use_flT2_total": {
                     "type": "string",
                     "default": "H3K9me3,H3K27me3",
-                    "description": "Comma-separated list of histone marks for which SRPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list and for input controls, the total mapped reads after flT3 will be used for normalization factor calculation.",
+                    "description": "Comma-separated list of histone marks for which SRPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list the total mapped reads after flT3 will be used for normalization factor calculation.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "cisrpm_use_flT2_total": {
                     "type": "string",
                     "default": "H3K9me3,H3K27me3",
-                    "description": "Comma-separated list of histone marks for which CISRPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list and for input controls, the total mapped reads after flT3 will be used for normalization factor calculation.",
+                    "description": "Comma-separated list of histone marks for which CISRPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list the total mapped reads after flT3 will be used for normalization factor calculation.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "save_coverage_intermeds": {
@@ -572,10 +594,28 @@
             "properties": {
                 "bam_downsampling_method": {
                     "type": "string",
-                    "description": "Method to downsample BAM files. Only option currently is `min_by_type`. Leave empty to disable downsampling.",
-                    "help_text": "The `min_by_type` method will downsample each input BAM file to the minimum total mapped reads across all input BAM files, and will downsample each ChIP file to the minimum total mapped reads across all ChIP files. Currently, this downsampling method does not differentiate between samples/inputs of different experiment types (e.g., ChIP-seq vs. ChOR-seq).",
+                    "description": "Method to downsample BAM files. Leave empty to disable downsampling.",
+                    "help_text": "The `min_endo_across` method will downsample all IPs and inputs of the same antibody to the minimum number of endogenous reads across all IPs and inputs of the same antibody.\nThe `min_exo_across` method will downsample all IPs and inputs of the same antibody to the minimum number of exogenous reads across all IPs and inputs of the same antibody.\nThe `min_endo_by_type` method will downsample all IPs to the minimum number of endogenous reads across all IPs of the same antibody, and all the inputs to the minimum number of endogenous reads across all inputs of the same antibody.\nThe `min_exo_by_type` method will downsample all IPs to the minimum number of exogenous reads across all IPs of the same antibody, and all the inputs to the minimum number of exogenous reads across all inputs of the same antibody.",
                     "fa_icon": "fas fa-compress-arrows-alt",
-                    "enum": ["min_by_type"]
+                    "enum": ["min_endo_across", "min_exo_across", "min_endo_by_type", "min_exo_by_type"]
+                },
+                "downsampling_endo_threshold": {
+                    "type": "integer",
+                    "default": 10000000,
+                    "description": "Threshold of endogenous mapped reads for downsampling. For downsampling methods that search for the minimum endogenous mapped reads across a set of samples, this parameter will determine the lower limit of that minimum. In other words, the minimum mapped endogenous reads should be the minimum number above the `downsampling_endo_threshold`. If there are no totals above this threshold, then the (true) minimum is used.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "downsampling_exo_threshold": {
+                    "type": "integer",
+                    "default": 300000,
+                    "description": "Threshold of exogenous mapped reads for downsampling. For downsampling methods that search for the minimum exogenous mapped reads across a set of samples, this parameter will determine the lower limit of that minimum. In other words, the minimum mapped exogenous reads should be the minimum number above the `downsampling_exogenous_threshold`. If there are no totals above this threshold, then the (true) minimum is used.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "dSp_use_flT2_total": {
+                    "type": "string",
+                    "default": "H3K9me3,H3K27me3",
+                    "description": "Comma-separated list of histone marks for which downsampling probabilities should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list, the total mapped reads after flT3 will be used for downsampling probability calculation.",
+                    "fa_icon": "fas fa-chart-area"
                 },
                 "bam_downsampling_strategy": {
                     "type": "string",
@@ -665,7 +705,13 @@
                     "description": "Skip consensus peak generation, annotation and counting.",
                     "fa_icon": "fas fa-fast-forward"
                 },
-                "save_macs_pileup_intermeds": {
+                "skip_bdgcmp": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip bdgcmp calculation with MACS3.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "save_macs_bdgcmp_intermeds": {
                     "type": "boolean"
                 },
                 "skip_edd": {
@@ -721,10 +767,91 @@
                     "description": "Skip Genrich peak calling.",
                     "fa_icon": "fas fa-fast-forward"
                 },
+                "epic2_binsize": {
+                    "type": "integer",
+                    "default": 150,
+                    "description": "Size of the windows to scan the genome in epic2. Bin size is the smallest possible island.",
+                    "fa_icon": "fas fa-chart-area"
+                },
+                "epic2_fdr": {
+                    "type": "number",
+                    "default": 0.01,
+                    "description": "In epic2 peak calling, remove all islands with an FDR above this cutoff.",
+                    "fa_icon": "fas fa-chart-area"
+                },
+                "skip_epic2": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip epic2 peak calling.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
                 "skip_consenrich": {
                     "type": "boolean",
                     "description": "Skip Consenrich (Genome-wide 'consensus' epigenomic state estimates and uncertainty metrics).",
                     "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_mace": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip MACE peak calling.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "mace_kmer_size": {
+                    "type": "integer",
+                    "description": "Set the k-mer size for MACE peak calling. Kmer size [6,12] to correct nucleotide composition bias. kmerSize < 0.5*read_length. Larger KmerSize might make program slower. Set kmerSize = 0 to turn off nucleotide compsition bias correction. default=6. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "mace_bin": {
+                    "type": "integer",
+                    "description": "Chromosome chunk size. Each chomosome will be cut into small chunks of this size. Decrease chunk size will save more RAM. default=100000 (bp). See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "mace_depth": {
+                    "type": "integer",
+                    "description": "Reference reads count (default = 10 million). Sequencing depth will be normailzed to this number, so that wig files are comparable between replicates. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "mace_qcut": {
+                    "type": "number",
+                    "description": "phred scaled mapping quality threshhold to determine “uniqueness” of alignments. default=30. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "mace_norm_method": {
+                    "type": "string",
+                    "description": "methods (“EM”, “AM”, “GM”, or “SNR”) used to consolidate replicates and reduce noise. “EM” = Entropy weighted mean, “AM”=Arithmetic mean, “GM”=Geometric mean, “SNR”=Signal-to-noise ratio. default=EM. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna",
+                    "enum": ["EM", "AM", "GM", "SNR"]
+                },
+                "mace_pvalue": {
+                    "type": "number",
+                    "description": "Pvalue cutoff for border detection and subsequent border pairing. default=0.05. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "mace_max_dist": {
+                    "type": "integer",
+                    "description": "Maximum distance allowed for border pairing. default=100 (bp). See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "mace_fuzzy_size": {
+                    "type": "integer",
+                    "description": "Peaks (i.e. borders) located closely within this window will be merged. default=5 (bp). See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "mace_window_size": {
+                    "type": "integer",
+                    "description": "Background window size used to determine background signal level. default=100 (bp). See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "mace_signal_fold": {
+                    "type": "number",
+                    "description": "Minimum coverage signal used to build model (i.e. estimate optimal peak pair size). default=2.0. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "save_mace_intermeds": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to save the intermediate files from the MACE peak calling step. These include the MACE peak files in bedGraph format.",
+                    "fa_icon": "fas fa-save"
                 }
             }
         },
@@ -794,49 +921,45 @@
                 }
             }
         },
-        "scarseq_analysis_options": {
-            "title": "SCAR-seq analysis options",
+        "partition_and_rfd_analysis_options": {
+            "title": "SCAR-seq (partition) and OK-seq (RFD) analysis options",
             "type": "object",
             "fa_icon": "fas fa-dna",
-            "description": "Options to adjust SCAR-seq analysis criteria.",
+            "description": "Options to adjust SCAR-seq and OK-seq analysis criteria.",
             "properties": {
-                "scar_slop": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "scar_window_size": {
+                "partition_window_size": {
                     "type": "integer",
                     "default": 1000
                 },
-                "scar_step_size": {
+                "partition_step_size": {
                     "type": "integer",
                     "default": 1000
                 },
-                "scar_radius": {
+                "smooth_radius": {
                     "type": "integer",
                     "default": 30
                 },
-                "scar_dradius": {
+                "derivative_radius": {
                     "type": "integer",
                     "default": 30
                 },
-                "scar_zradius": {
+                "zero_crossing_radius": {
                     "type": "integer",
                     "default": 1
                 },
-                "scar_cpm_cutoff": {
+                "partition_cpm_cutoff": {
                     "type": "number",
                     "default": 0.3
                 },
-                "scar_plot_range": {
+                "partition_plot_range": {
                     "type": "integer",
                     "default": 100
                 },
-                "scar_exclude_chromosomes": {
+                "partition_exclude_chromosomes": {
                     "type": "string",
                     "default": "chrX,chrY,chrM"
                 },
-                "save_scarseq_intermeds": {
+                "save_partition_intermeds": {
                     "type": "boolean"
                 }
             }
@@ -982,13 +1105,16 @@
             "$ref": "#/definitions/alignment_options"
         },
         {
-            "$ref": "#/definitions/spikein_normalization_options"
+            "$ref": "#/definitions/spikein_options"
         },
         {
             "$ref": "#/definitions/multimapper_allocation_options"
         },
         {
             "$ref": "#/definitions/alignment_shifting_options"
+        },
+        {
+            "$ref": "#/definitions/filtering_options"
         },
         {
             "$ref": "#/definitions/coverage_and_normalization_options"
@@ -1003,7 +1129,7 @@
             "$ref": "#/definitions/process_skipping_options"
         },
         {
-            "$ref": "#/definitions/scarseq_analysis_options"
+            "$ref": "#/definitions/partition_and_rfd_analysis_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"

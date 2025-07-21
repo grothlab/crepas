@@ -11,7 +11,8 @@ include { BEDTOOLS_SLOP                  } from '../../../modules/nf-core/bedtoo
 include { AWK_FIX_MACS3_BDGCMP       } from '../../../modules/local/awk_fix_macs3_bdgcmp/main'
 include { UCSC_BEDCLIP               } from '../../../modules/nf-core/ucsc/bedclip/main'
 include { FILE_SORT                  } from '../../../modules/local/file_sort/main'
-include { UCSC_BEDGRAPHTOBIGWIG      } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
+//include { UCSC_BEDGRAPHTOBIGWIG      } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { BIGTOOLS_BEDGRAPHTOBIGWIG } from '../../../modules/local/bigtools/bedgraphtobigwig/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../../modules/nf-core/homer/annotatepeaks/main'
 
 include { FRIP_SCORE               } from '../../../modules/local/frip_score/main'
@@ -35,6 +36,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     skip_peak_annotation              // boolean: true/false
     skip_peak_qc                      // boolean: true/false
     skip_edd                          // boolean: true/false
+    skip_bdgcmp                       // boolean: true/false
+
 
     main:
 
@@ -80,40 +83,44 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         .set { ch_bdgs }
 
 
-    MACS3_BDGCMP (
-        ch_bdgs
-    )
-    ch_versions = ch_versions.mix(MACS3_BDGCMP.out.versions.first())
+    if (!skip_bdgcmp) {
+        MACS3_BDGCMP (
+            ch_bdgs
+        )
+        ch_versions = ch_versions.mix(MACS3_BDGCMP.out.versions.first())
 
-    BEDTOOLS_SLOP (
-        MACS3_BDGCMP.out.bdg,
-        ch_chrom_sizes.map{ it[1] }
-    )
-    ch_versions = ch_versions.mix(BEDTOOLS_SLOP.out.versions.first())
+        BEDTOOLS_SLOP (
+            MACS3_BDGCMP.out.bdg,
+            ch_chrom_sizes.map{ it[1] }
+        )
+        ch_versions = ch_versions.mix(BEDTOOLS_SLOP.out.versions.first())
 
-    AWK_FIX_MACS3_BDGCMP (
-        BEDTOOLS_SLOP.out.bed,
-    )
-    ch_versions = ch_versions.mix(AWK_FIX_MACS3_BDGCMP.out.versions.first())
+        AWK_FIX_MACS3_BDGCMP (
+            BEDTOOLS_SLOP.out.bed,
+        )
+        ch_versions = ch_versions.mix(AWK_FIX_MACS3_BDGCMP.out.versions.first())
 
-    UCSC_BEDCLIP (
-        AWK_FIX_MACS3_BDGCMP.out.bed,
-        ch_chrom_sizes.map{ it[1] }
-    )
-    ch_versions = ch_versions.mix(UCSC_BEDCLIP.out.versions.first())
+        UCSC_BEDCLIP (
+            AWK_FIX_MACS3_BDGCMP.out.bed,
+            ch_chrom_sizes.map{ it[1] }
+        )
+        ch_versions = ch_versions.mix(UCSC_BEDCLIP.out.versions.first())
 
-    // TODO: maybe a whole module for this is overkill
-    FILE_SORT (
-        UCSC_BEDCLIP.out.bedgraph,
-        'sorted'
-    )
-    ch_versions = ch_versions.mix(FILE_SORT.out.versions.first())
+        // TODO: maybe a whole module for this is overkill
+        FILE_SORT (
+            UCSC_BEDCLIP.out.bedgraph,
+            'sorted'
+        )
+        ch_versions = ch_versions.mix(FILE_SORT.out.versions.first())
 
-    UCSC_BEDGRAPHTOBIGWIG (
-        FILE_SORT.out.sorted,
-        ch_chrom_sizes.map{ it[1] }
-    )
-    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
+        BIGTOOLS_BEDGRAPHTOBIGWIG (
+            FILE_SORT.out.sorted,
+            ch_chrom_sizes
+        )
+        ch_versions = ch_versions.mix(BIGTOOLS_BEDGRAPHTOBIGWIG.out.versions.first())
+    }
+
+
 
     // Create channels: [ meta, ip_bam, peaks ]
     ch_bam

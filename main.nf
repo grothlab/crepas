@@ -25,6 +25,9 @@ params.gtf              = getGenomeAttribute('gtf')
 params.gff              = getGenomeAttribute('gff')
 params.gene_bed         = getGenomeAttribute('gene_bed')
 params.blacklist        = getGenomeAttribute('blacklist')
+params.sparsebed        = getGenomeAttribute('sparsebed')
+params.active_regions   = getGenomeAttribute('active_regions')
+params.rocco_params     = getGenomeAttribute('rocco_params')
 params.splicesites      = getGenomeAttribute('splicesites')
 params.initiation_zones = getGenomeAttribute('initiation_zones')
 params.macs_gsize       = getMacsGsize(params)
@@ -64,6 +67,8 @@ workflow GROTHLAB_GLSEQ {
         params.gff,
         params.blacklist,
         params.sparsebed,
+        params.active_regions,
+        params.rocco_params,
         params.gene_bed,
         params.bwa_index,
         params.bowtie2_index,
@@ -93,6 +98,8 @@ workflow GROTHLAB_GLSEQ {
         PREPARE_GENOME.out.filtered_bed,
         PREPARE_GENOME.out.blacklist,
         PREPARE_GENOME.out.sparsebed,
+        PREPARE_GENOME.out.active_regions,
+        PREPARE_GENOME.out.rocco_params,
         PREPARE_GENOME.out.initiation_zones,
         PREPARE_GENOME.out.bwa_index,
         PREPARE_GENOME.out.bowtie2_index,

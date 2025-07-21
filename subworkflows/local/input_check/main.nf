@@ -68,5 +68,8 @@ def create_fastq_channel(LinkedHashMap row, String seq_center) {
             fastq_meta = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
         }
     }
+    if (meta.okseq_part_file && !file(meta.okseq_part_file).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> OKSeq part file does not exist!\n${meta.okseq_part_file}"
+    }
     return fastq_meta
 }

@@ -30,8 +30,11 @@ process BEDGRAPH_SIGNAL_OVER_INPUT {
             {key=\$1 FS \$2 FS \$3; chip=\$4; input=(key in value ? value[key] : 0); 
             if (chip >= $min_count && input >= $min_count) { 
                 ratio = chip / input; 
-                print \$1, \$2, \$3, ratio 
-            }}' OFS="\\t" \\
+            } else { 
+                ratio = "NaN"; 
+            }
+            print \$1, \$2, \$3, ratio 
+            }' OFS="\\t" \\
         $control_bedgraph \\
         $ip_bedgraph \\
     > ${prefix}.bedgraph

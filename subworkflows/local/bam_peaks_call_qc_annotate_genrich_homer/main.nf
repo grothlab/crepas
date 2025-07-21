@@ -38,29 +38,36 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     SAMTOOLS_SORT
         .out
         .bam
-        .branch { meta, bam ->
+        .map { meta, bam ->
+            // samples can have meta.antibody, while controls can have meta.control_of_antibody (if downsampling was performed)
+            def antibody_to_use = meta.antibody ?: meta.control_of_antibody
+            [ meta, antibody_to_use, bam ]
+        }
+        .branch { meta, antibody, bam ->
             ips_with_control: meta.control
-                return [ meta.control, meta, [ bam ] ]
+                return [ meta.control, antibody, meta, [ bam ] ]
             ips_wo_control: !meta.control && !meta.is_control
-                return [ meta.id, meta, [ bam ] ]
+                return [ meta.id, antibody, meta, [ bam ] ]
             controls: !meta.control && meta.is_control
-                return [ meta.id, [ bam ] ]
+                return [ meta.id, antibody, [ bam ] ]
         }
         .set { ch_bam_by_type }
 
     // Create channel: [ meta, [ip_bams_merged_reps], [control_bams_merged_reps] ]
     ch_bam_by_type.ips_with_control
-        .combine(ch_bam_by_type.controls, by: 0)
+        .combine(ch_bam_by_type.controls, by: [0, 1])
         .mix(ch_bam_by_type.ips_wo_control)
-        .map { control_id, ip_meta, ip_bam, control_bam ->
-            def meta_clone = ip_meta.clone()
+        // this is: [ control_id, antibody, ip_meta, ip_bam, control_bam ]
+        // control_bam can be empty if we only have ips_wo_control        
+        .map { it ->
+            def meta_clone = it[2].clone()
             meta_clone.id = meta_clone.id - ~/_REP\d+$/
             meta_clone.control = meta_clone.control - ~/_REP\d+$/
-            [ meta_clone.id, meta_clone, ip_bam, control_bam ?: [] ]
+            [ meta_clone.id, it[1], meta_clone, it[3], it[4] ?: [] ]
         }
-        .groupTuple()
+        .groupTuple(by: [0, 1])
         .map {
-            id, metas, ip_bams, control_bams ->
+            id, antibody, metas, ip_bams, control_bams ->
                 [ metas[0], ip_bams.flatten(), control_bams.flatten() ]
         }
         .set { ch_ip_control_bam_merged_reps }

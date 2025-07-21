@@ -172,29 +172,15 @@ def validateInputParameters() {
     }
 
     if (params.map_n_multimappers) {
-        if (!['chromap', 'bowtie2'].contains(params.aligner)) {
-            error("The '--map_n_multimappers' parameter requires the aligner to be set to 'chromap' or 'bowtie2'.")
+        if (!['chromap', 'bowtie2', 'hisat2'].contains(params.aligner)) {
+            error("The '--map_n_multimappers' parameter requires the aligner to be set to 'chromap', 'bowtie2', or 'hisat2'.")
         }
     }
 
-    if (params.allocate_n_multimappers) {
-        if (!params.map_n_multimappers || params.map_n_multimappers < params.allocate_n_multimappers) {
-            error("The '--map_n_multimappers' parameter must be equal or greater than the '--allocate_n_multimappers' parameter.")
-        }
-    
-        if (!['chromap', 'bowtie2'].contains(params.aligner)) {
-            error("Allocating multimapping reads requires the aligner to be set to 'chromap' or 'bowtie2'.")
-        }
-    
-        if (params.allocation_method == 'chromap' && params.aligner != 'chromap') {
-            error("Allocating multimapping reads with 'chromap' requires the aligner to be set to 'chromap'.")
-        }
-    
-        if (params.allocation_method == 'chromap' && params.map_n_multimappers != params.allocate_n_multimappers) {
-            error("The '--map_n_multimappers' and '--allocate_n_multimappers' parameters must be equal when using the Chromap allocation method.")
-        }
-
+    if (params.multimap_allocation_method == 'chromap' && params.aligner != 'chromap') {
+        error("Allocating multimapping reads with 'chromap' requires the aligner to be set to 'chromap'.")
     }
+    
 }
 
 //

@@ -8,6 +8,8 @@ include {
     GUNZIP as GUNZIP_GFF
     GUNZIP as GUNZIP_GENE_BED
     GUNZIP as GUNZIP_SPARSEBED
+    GUNZIP as GUNZIP_ACTIVE_REGIONS
+    GUNZIP as GUNZIP_ROCCO_PARAMS
     GUNZIP as GUNZIP_BLACKLIST } from '../../../modules/nf-core/gunzip/main'
 
 include {
@@ -41,6 +43,8 @@ workflow PREPARE_GENOME {
     gff                //    file: /path/to/genome.gff
     blacklist          //    file: /path/to/blacklist.bed
     sparsebed          //    file: /path/to/sparsebed.bed
+    active_regions     //    file: /path/to/active_regions.bed
+    rocco_params       //    file: /path/to/rocco_params.yml
     gene_bed           //    file: /path/to/gene.bed
     bwa_index          //    file: /path/to/bwa/index/
     bowtie2_index      //    file: /path/to/bowtie2/index/
@@ -112,6 +116,26 @@ workflow PREPARE_GENOME {
             ch_sparsebed = Channel.of( [ [id:'sparsebed'], file(params.sparsebed) ] )
         }
     }
+
+    ch_active_regions = Channel.empty()
+    if (params.active_regions) {
+        if (params.active_regions.endsWith('.gz')) {
+            ch_active_regions = GUNZIP_ACTIVE_REGIONS ( [ [id:'active_regions'], params.active_regions ] ).gunzip
+            ch_versions  = ch_versions.mix(GUNZIP_ACTIVE_REGIONS.out.versions)
+        } else {
+            ch_active_regions = Channel.of( [ [id:'active_regions'], file(params.active_regions) ] )
+        }
+    }
+
+    ch_rocco_params = Channel.empty()
+    if (params.rocco_params) {
+        if (params.rocco_params.endsWith('.gz')) {
+            ch_rocco_params = GUNZIP_ROCCO_PARAMS ( [ [id:'rocco_params'], params.rocco_params ] ).gunzip
+            ch_versions     = ch_versions.mix(GUNZIP_ROCCO_PARAMS.out.versions)
+        } else {
+            ch_rocco_params = Channel.of( [ [id:'rocco_params'], file(params.rocco_params) ] )
+        }
+    } 
 
     // Create dummy file 
     // https://github.com/nf-core/sarek/blob/a7679b9b5c178351b1e96a3ffe7ee81ddf9aad06/main.nf#L201
@@ -315,12 +339,14 @@ workflow PREPARE_GENOME {
     gtf           = ch_gtf                    //    channel: [ val(meta), [ genome.gtf ]]
     gene_bed      = ch_gene_bed               //    channel: [ val(meta), [ gene.bed ]]
     chrom_sizes   = ch_chrom_sizes            //    channel: [ val(meta), [ genome.sizes ]]
-    chrom_sizes_endo = ch_chrom_sizes_endo //    channel: [ val(meta), [ genome_endo.sizes ]]
-    chrom_sizes_exo = ch_chrom_sizes_exo //    channel: [ val(meta), [ genome_exo.sizes ]]
-    scaffolds  = ch_scaffolds              //    channel: [ scaffolds ]
-    filtered_bed  = ch_genome_filtered_bed    //    channel: [ val(meta), [ *.include_regions.bed ]]
-    blacklist     = ch_blacklist              //    channel: [  blacklist.bed ]
-    sparsebed     = ch_sparsebed              //    channel: [ val(meta), [ sparsebed.bed ]]
+    chrom_sizes_endo    = ch_chrom_sizes_endo //    channel: [ val(meta), [ genome_endo.sizes ]]
+    chrom_sizes_exo     = ch_chrom_sizes_exo //    channel: [ val(meta), [ genome_exo.sizes ]]
+    scaffolds           = ch_scaffolds              //    channel: [ scaffolds ]
+    filtered_bed        = ch_genome_filtered_bed    //    channel: [ val(meta), [ *.include_regions.bed ]]
+    blacklist           = ch_blacklist              //    channel: [  blacklist.bed ]
+    sparsebed           = ch_sparsebed              //    channel: [ val(meta), [ sparsebed.bed ]]
+    active_regions      = ch_active_regions        //    channel: [ val(meta), [ active_regions.bed ]]
+    rocco_params        = ch_rocco_params           //    channel: [ val(meta), [ rocco_params.yml ]]
     initiation_zones = ch_initiation_zones    //    channel: [ val(meta), [ initiation_zones.bed ]]
     bwa_index     = ch_bwa_index              //    path: bwa/index/
     bowtie2_index = ch_bowtie2_index          //    channel: [ val(meta), [ bowtie2/index/ ]]
