@@ -21,6 +21,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
     ch_peak_count_header_multiqc      // channel: [ header_file ]
     ch_frip_score_multiqc             // channel: [ header_file ]
     ch_peak_annotation_header_multiqc // channel: [ header_file ]
+    is_narrow_peak                    // boolean: true/false
     skip_peak_annotation              // boolean: true/false
     skip_peak_qc                      // boolean: true/false
 
@@ -28,49 +29,28 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
 
     ch_versions = Channel.empty()
 
-    // Branch channels based on if input control is present
     ch_bam
-        .branch { meta, bam ->
+        .map { meta, bam ->
+            // samples can have meta.antibody, while controls can have meta.control_of_antibody (if downsampling was performed)
+            def antibody_to_use = meta.antibody ?: meta.control_of_antibody
+            [ meta, antibody_to_use,bam ]
+        }
+        .branch { meta, antibody, bam ->
             ips_with_control: meta.control
-                return [meta.control, meta.antibody, meta, bam]
+                return [ meta.control, antibody, meta, [ bam ] ]
             ips_wo_control: !meta.control && !meta.is_control
-                return [meta.id, meta.antibody, meta, bam]
+                return [ meta.id, antibody, meta, [ bam ] ]
             controls: !meta.control && meta.is_control
-                return [meta.id, meta, bam]
+                return [ meta.id, antibody, [ bam ] ]
         }
         .set { ch_bam_by_type }
 
-    // For non-downsampled files, duplicate input controls for each antibody 
-    ch_bam_by_type
-        .controls
-        .branch { id, meta, bam ->
-            dsp: meta.control_of_antibody && meta.dSp_total_mapped_reads
-                return [id, meta.control_of_antibody, meta, bam]
-            not_dsp: !meta.control_of_antibody && !meta.dSp_total_mapped_reads
-                return [id, meta, bam]
-        }
-        .set { ch_bam_controls }
-    
-    ch_bam_controls
-        .not_dsp
-        .combine(ch_bam_by_type.ips_with_control, by: 0) // combine by control id only
-        .map { control_id, control_meta, control_bam, ip_antibody, ip_meta, ip_bam ->
-            def meta_clone = control_meta.clone()
-            meta_clone.control_of_antibody = ip_antibody
-            [ control_id, meta_clone.control_of_antibody, meta_clone, control_bam ]
-        }
-        .unique()
-        .set { ch_bam_controls_not_dsp }
-
     // Create channel: [ meta, [ip_bams_merged_reps], [control_bams_merged_reps] ]
-    ch_bam_by_type
-        .ips_with_control
-        .combine(ch_bam_controls.dsp.mix(ch_bam_controls_not_dsp), by: [0, 1])
-        .map { control_id, antibody, ip_meta, ip_bam, control_meta, control_bam ->
-            [ control_id, antibody, ip_meta, ip_bam, control_bam ]
-        }
+    ch_bam_by_type.ips_with_control
+        .combine(ch_bam_by_type.controls, by: [0, 1])
         .mix(ch_bam_by_type.ips_wo_control)
-        // ips_wo_control do not have control_bam (it[4])
+        // this is: [ control_id, antibody, ip_meta, ip_bam, control_bam ]
+        // control_bam can be empty if we only have ips_wo_control  
         .map { it ->
             def meta_clone = it[2].clone()
             meta_clone.id = meta_clone.id - ~/_REP\d+$/
@@ -90,7 +70,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
             meta, ip_bams, control_bams ->
                 "${meta}\t${ip_bams}\t${control_bams}"
         }
-        .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER" )
+        .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}" )
 
 
     //
@@ -173,7 +153,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
         HOMER_ANNOTATEPEAKS (
             ch_epic2_peaks,
             ch_fasta.map{ it[1] },
-            ch_gtf.map{ it[1] }
+            ch_gtf
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
@@ -182,21 +162,21 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
 
             // Create channels: [ meta, [ peaks ] ]
             // Where meta = [ id:exp_type, exp_type:exp_type ]
-            // ch_epic2_peaks
-            //     .map {
-            //         meta, peaks ->
-            //             [ meta.exp_type, meta.genome, peaks ]
-            //     }
-            //     .groupTuple(by: [0, 1])
-            //     .map {
-            //         exp_type, genome, peaks ->
-            //             def meta_new = [:]
-            //             meta_new.id = exp_type
-            //             meta_new.exp_type = exp_type
-            //             meta_new.genome = genome
-            //             [ meta_new, peaks ]
-            //     }
-            //     .set { ch_epic2_peaks_grouped }
+            ch_epic2_peaks
+                .map {
+                    meta, peaks ->
+                        [ meta.exp_type, meta.genome, peaks ]
+                }
+                .groupTuple(by: [0, 1])
+                .map {
+                    exp_type, genome, peaks ->
+                        def meta_new = [:]
+                        meta_new.id = exp_type
+                        meta_new.exp_type = exp_type
+                        meta_new.genome = genome
+                        [ meta_new, peaks ]
+                }
+                .set { ch_epic2_peaks_grouped }
             
             //
             // epic2 QC plots with R

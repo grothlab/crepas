@@ -22,10 +22,11 @@ process SAMBAMBA_INDEX {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def extension = args.contains("--format sam") ? "sam" :
     """
-    sambamba index \\
-        ${args} \\
-        --nthreads ${task.cpus} \\
-        ${bam} \\
+    sambamba \\
+        index \\
+        $args \\
+        --nthreads $task.cpus \\
+        $bam \\
         ${prefix}.bai
 
     cat <<-END_VERSIONS > versions.yml

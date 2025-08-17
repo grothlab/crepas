@@ -33,7 +33,6 @@ input:
         description: |
           List of input FastQ files of size 1 and 2 for single-end and paired-end data,
           respectively.
-        ontologies: []
   - - meta2:
         type: map
         description: |
@@ -43,7 +42,6 @@ input:
         type: file
         description: |
           The fasta reference file.
-        ontologies: []
   - - meta3:
         type: map
         description: |
@@ -53,30 +51,25 @@ input:
         type: file
         description: |
           Chromap genome index files (*.index)
-        ontologies: []
-  - barcodes:
-      type: file
-      description: |
-        Cell barcode files
-      ontologies: []
-  - whitelist:
-      type: file
-      description: |
-        Cell barcode whitelist file
-      ontologies: []
-  - chr_order:
-      type: file
-      description: |
-        Custom chromosome order
-      ontologies: []
-  - pairs_chr_order:
-      type: file
-      description: |
-        Natural chromosome order for pairs flipping
-      ontologies: []
+  - - barcodes:
+        type: file
+        description: |
+          Cell barcode files
+  - - whitelist:
+        type: file
+        description: |
+          Cell barcode whitelist file
+  - - chr_order:
+        type: file
+        description: |
+          Custom chromosome order
+  - - pairs_chr_order:
+        type: file
+        description: |
+          Natural chromosome order for pairs flipping
 output:
-  bed:
-    - - meta:
+  - bed:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -85,10 +78,8 @@ output:
           type: file
           description: BED file
           pattern: "*.bed.gz"
-          ontologies:
-            - edam: http://edamontology.org/format_3989 # GZIP format
-  bam:
-    - - meta:
+  - bam:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -97,9 +88,8 @@ output:
           type: file
           description: BAM file
           pattern: "*.bam"
-          ontologies: []
-  tagAlign:
-    - - meta:
+  - tagAlign:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -108,10 +98,8 @@ output:
           type: file
           description: tagAlign file
           pattern: "*.tagAlign.gz"
-          ontologies:
-            - edam: http://edamontology.org/format_3989 # GZIP format
-  pairs:
-    - - meta:
+  - pairs:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -120,15 +108,11 @@ output:
           type: file
           description: pairs file
           pattern: "*.pairs.gz"
-          ontologies:
-            - edam: http://edamontology.org/format_3989 # GZIP format
-  versions:
-    - versions.yml:
-        type: file
-        description: File containing software versions
-        pattern: "versions.yml"
-        ontologies:
-          - edam: http://edamontology.org/format_3750 # YAML
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
 authors:
   - "@mahesh-panchal"
   - "@joseespinosa"

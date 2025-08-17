@@ -24,15 +24,13 @@ input:
         type: file
         description: BAM files
         pattern: "*.bam"
-        ontologies: []
     - bais:
         type: file
         description: Corresponding BAM file indexes
         pattern: "*.bam.bai"
-        ontologies: []
 output:
-  pdf:
-    - - meta:
+  - pdf:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -42,9 +40,8 @@ output:
           description: |
             Output figure containing resulting plot
           pattern: "*.{plotFingerprint.pdf}"
-          ontologies: []
-  matrix:
-    - - meta:
+  - matrix:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -54,9 +51,8 @@ output:
           description: |
             Output file summarizing the read counts per bin
           pattern: "*.{plotFingerprint.raw.txt}"
-          ontologies: []
-  metrics:
-    - - meta:
+  - metrics:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -66,14 +62,11 @@ output:
           description: |
             file containing BAM file quality metrics
           pattern: "*.{qcmetrics.txt}"
-          ontologies: []
-  versions:
-    - versions.yml:
-        type: file
-        description: File containing software versions
-        pattern: "versions.yml"
-        ontologies:
-          - edam: http://edamontology.org/format_3750 # YAML
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
 authors:
   - "@edmundmiller"
   - "@drpatelh"
