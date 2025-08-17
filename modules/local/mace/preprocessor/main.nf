@@ -1,12 +1,11 @@
-
 process MACE_PREPROCESSOR {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mace:1.2--py27he7e273a_2':
-        'biocontainers/mace:1.2_cv1' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/mace:1.2--py27he7e273a_2'
+        : 'biocontainers/mace:1.2_cv1'}"
 
     input:
     tuple val(meta), path(bam), path(bai)
@@ -15,7 +14,7 @@ process MACE_PREPROCESSOR {
     output:
     tuple val(meta), path("*_Forward.wig"), emit: forward_wig
     tuple val(meta), path("*_Reverse.wig"), emit: reverse_wig
-    path  "versions.yml",                   emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -23,7 +22,7 @@ process MACE_PREPROCESSOR {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def treatment  = bam ? "--inputFile ${bam.join(',')}" : ""
+    def treatment = bam ? "--inputFile ${bam.join(',')}" : ""
     """
     preprocessor.py \\
         ${args} \\
@@ -38,7 +37,6 @@ process MACE_PREPROCESSOR {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}_Forward.wig

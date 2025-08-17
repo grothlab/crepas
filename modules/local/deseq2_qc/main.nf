@@ -29,7 +29,6 @@ process DESEQ2_QC {
 
     script:
     def args      = task.ext.args ?: ''
-    def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
     def prefix    = task.ext.prefix ?: "${meta.id}"
     """
     deseq2_qc.r \\

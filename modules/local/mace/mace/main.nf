@@ -1,24 +1,23 @@
-
 process MACE_MACE {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mace:1.2--py27he7e273a_2':
-        'biocontainers/mace:1.2_cv1' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/mace:1.2--py27he7e273a_2'
+        : 'biocontainers/mace:1.2_cv1'}"
 
     input:
     tuple val(meta), path(forward_bw), path(reverse_bw)
     tuple val(meta2), path(chrom_sizes)
 
     output:
-    tuple val(meta), path("*.border.bed"),             emit: border
-    tuple val(meta), path("*.border_cluster.bed"),     emit: border_cluster
-    tuple val(meta), path("*.border_pair_elite.bed"),  emit: border_pair_elite
-    tuple val(meta), path("*.border_pair.bed"),        emit: border_pair
-    tuple val(meta), path("*.border_pair.peak"),       emit: border_pair_peak
-    path  "versions.yml",                              emit: versions
+    tuple val(meta), path("*.border.bed"), emit: border
+    tuple val(meta), path("*.border_cluster.bed"), emit: border_cluster
+    tuple val(meta), path("*.border_pair_elite.bed"), emit: border_pair_elite
+    tuple val(meta), path("*.border_pair.bed"), emit: border_pair
+    tuple val(meta), path("*.border_pair.peak"), emit: border_pair_peak
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -49,7 +48,6 @@ process MACE_MACE {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.border.bed

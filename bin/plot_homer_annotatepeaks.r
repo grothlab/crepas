@@ -1,5 +1,22 @@
 #!/usr/bin/env Rscript
 
+# ===============================================================================
+# plot_homer_annotatepeaks.R
+#
+# Originally created by:
+#     - Jose Espinosa-Carrasco <https://github.com/JoseEspinosa>
+#     - Harshil Patel <https://github.com/drpatelh>
+# Source:
+#     https://github.com/nf-core/chipseq/blob/76e2382b6d443db4dc2396e6831d1243256d80b0/bin/plot_homer_annotatepeaks.r
+#
+# Adapted for the grothlab/glseq pipeline by:
+#     - Samuel Ruiz-Pérez <samper@cancer.dk>
+#     https://github.com/grothlab/glseq/
+#
+# Description:
+#     Generates plots from HOMER annotatePeaks output.
+# ===============================================================================
+
 ################################################
 ################################################
 ## LOAD LIBRARIES                             ##

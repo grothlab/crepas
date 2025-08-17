@@ -32,7 +32,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             meta, peaks ->
                 "${meta}\t${peaks}"
         }
-        .collectFile( name: 'ch_peaks.txt', newLine: true, sort: false, storeDir: "${params.outdir}" )
+        .collectFile( name: 'ch_peaks.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2" )
 
 
     // Create channels: [ meta , [ peaks ] ]
@@ -74,7 +74,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             meta, peaks ->
                 "${meta}\t${peaks}"
         }
-        .collectFile( name: 'antibody_peaks.txt', newLine: true, sort: false, storeDir: "${params.outdir}" )
+        .collectFile( name: 'antibody_peaks.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2" )
 
     //
     // Generate consensus peaks across samples
@@ -100,7 +100,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         // MODULE: Add boolean fields to annotated consensus peaks to aid filtering
         //
         ANNOTATE_BOOLEAN_PEAKS (
-            MACS3_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS.out.txt, by: [0]),
+            MACS3_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS.out.txt, by: [0])
         )
         ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
     }

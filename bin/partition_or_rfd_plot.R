@@ -1,8 +1,21 @@
 #!/usr/bin/env Rscript
-# Author: Nicolas Alcaraz <nicolas.alcaraz@cpr.ku.dk>
-# Script for plotting partition plots of SCARseq together with it's stranded Input
-# Also plots scatter-correlation plots against OK-seq if provided
-# downloaded from https://github.com/grothlab/SCARseq_Pipeline/blob/main/SCAR_partition_plots.R
+
+# ===============================================================================
+# partition_or_rfd_plot.R
+#
+# Originally created by:
+#     - Nicolas Alcaraz <nicolas.alcaraz@cpr.ku.dk>
+# Source:
+#     https://github.com/grothlab/SCARseq_Pipeline/blob/a4b327f1901ae6a980767d05ec7af79896a604c9/SCAR_partition_plots.R
+#
+# Adapted for the grothlab/glseq pipeline by:
+#     - Samuel Ruiz-Pérez <samper@cancer.dk>
+#     https://github.com/grothlab/glseq/
+#
+# Description:
+#     Script for plotting partition plots of SCARseq together with its stranded Input.
+#     Also plots scatter-correlation plots against OK-seq if provided.
+# ===============================================================================
 
 options(show.error.locations = TRUE)
 

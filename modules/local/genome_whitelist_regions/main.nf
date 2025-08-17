@@ -1,7 +1,7 @@
 /*
  * Prepare genome intervals for filtering by removing regions in blacklist file
  */
-process GENOME_BLACKLIST_REGIONS {
+process GENOME_WHITELIST_REGIONS {
     tag "$sizes"
 
     conda "${moduleDir}/environment.yml"
@@ -21,10 +21,13 @@ process GENOME_BLACKLIST_REGIONS {
     task.ext.when == null || task.ext.when
 
     script:
-    def file_out = "${sizes.simpleName}.include_regions.bed"
+    def args = task.ext.args ?: ''
+    def args2 = task.ext.args2 ?: ''
+    def args3 = task.ext.args3 ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}.${sizes.simpleName}.whitelist"
     if (blacklist) {
         """
-        sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
+        sortBed ${args} -i $blacklist -g $sizes | complementBed ${args2} -i stdin -g $sizes > ${prefix}.bed
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
@@ -33,12 +36,23 @@ process GENOME_BLACKLIST_REGIONS {
         """
     } else {
         """
-        awk '{print \$1, '0' , \$2}' OFS='\t' $sizes > $file_out
+        awk ${args3} '{print \$1, '0' , \$2}' OFS='\t' $sizes > ${prefix}.bed
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
-            bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
+            awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
         END_VERSIONS
         """
     }
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}.${sizes.simpleName}.whitelist"
+    """
+    touch ${prefix}.bed
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+            bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
+    END_VERSIONS
+    """
 }

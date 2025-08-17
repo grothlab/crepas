@@ -20,7 +20,7 @@ process BEDGRAPH_NORMALIZE {
     script:
     def args  = task.ext.args ?: ''
     def args2 = task.ext.args2 ?: ''
-    prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
     def norm_factor = args2.contains('--norm_factor ') ? args2.split('--norm_factor ')[1].split(' ')[0] : '1'
     def norm_operation = args2.contains('--norm_operation ') ? args2.split('--norm_operation ')[1].split(' ')[0] : 'multiply'
     def pseudocount = args2.contains('--add_pseudocount') ? 1 : 0

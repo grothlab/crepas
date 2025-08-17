@@ -12,9 +12,9 @@ process BAM_SPLIT_BY_GENOME {
 
     input:
     tuple val(meta), path(bam)
-    val filter_genome_string
-    val keep_genome_string
-    val filter_out
+    val endo_genome   // e.g., 'hg38'
+    val exo_genome    // e.g., 'dm6'
+    val reads_to_keep // 'endo' or 'exo'
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
@@ -24,23 +24,60 @@ process BAM_SPLIT_BY_GENOME {
     task.ext.when == null || task.ext.when
 
     script:
-    def prefix           = task.ext.prefix ?: "${meta.id}"
-    def grep_command     = filter_out ? "grep -v" : "grep"
-    def reheader_command = filter_out ? "samtools reheader -c 'grep -v \"_${filter_genome_string}\" -e ^@CO -e ^@PG' ${prefix}.${keep_genome_string}.sam > ${prefix}.${keep_genome_string}.tmp.sam && mv ${prefix}.${keep_genome_string}.tmp.sam ${prefix}.${keep_genome_string}.sam" : ''
+    def prefix = task.ext.prefix ?: "${meta.id}_${reads_to_keep}"
+    // Split the number of extra threads between the two samtools commands
+    def nthreads1 = Math.max(1, (task.cpus / 2) as int)
+    def nthreads2 = Math.max(0, (task.cpus - nthreads1) as int)
+    if (reads_to_keep == 'endo') {
+        """
+        samtools view \\
+            --threads ${nthreads1} \\
+            --with-header \\
+            --no-PG \\
+            ${bam} \\
+            | grep -v -e "_${exo_genome}" -e '^@CO' -e '^@PG' \\
+            | samtools view \\
+                --threads ${nthreads2} \\
+                --bam \\
+                - \\
+                > ${prefix}.${endo_genome}.bam
+
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        END_VERSIONS
+        """
+    } else if (reads_to_keep == 'exo') {
+        """
+        samtools view \\
+            --threads ${nthreads1} \\
+            --with-header \\
+            --no-PG \\
+            ${bam} \\
+            | grep -E "^@RG|_${exo_genome}" | grep -v -e '^@CO' -e '^@PG' \\
+            | samtools view \\
+                --threads ${nthreads2} \\
+                --no-PG \\
+                --bam \\
+                - \\
+                > ${prefix}.${exo_genome}.bam
+
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        END_VERSIONS
+        """
+    }
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}_${reads_to_keep}"
     """
-    samtools view \\
-        -h $bam | \\
-            $grep_command "_${filter_genome_string}" > ${prefix}.${keep_genome_string}.sam
-
-    # reaheader if filter_out is set
-    $reheader_command
-
-    samtools view -b ${prefix}.${keep_genome_string}.sam \\
-        > ${prefix}.${keep_genome_string}.bam
+    touch ${prefix}.${reads_to_keep}.bam
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
     END_VERSIONS
     """
+    
 }

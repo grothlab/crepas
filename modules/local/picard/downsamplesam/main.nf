@@ -29,7 +29,7 @@ process PICARD_DOWNSAMPLESAM {
     def reference = fasta ? "--REFERENCE_SEQUENCE ${fasta}" : ""
     def avail_mem = 3072
     if (!task.memory) {
-        log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
+        log.info '[Picard DownsampleSam] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
     } else {
         avail_mem = (task.memory.mega*0.8).intValue()
     }
@@ -49,16 +49,19 @@ process PICARD_DOWNSAMPLESAM {
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
-            picard: \$(echo \$(picard MarkDuplicates --version 2>&1) | grep -o 'Version:.*' | cut -f2- -d:)
+            picard: \$(echo \$(picard DownsampleSam --version 2>&1) | grep -o 'Version:.*' | cut -f2- -d:)
         END_VERSIONS
         """
     } else {
         """
+        if [ -L ${prefix}.${suffix} ]; then
+            rm ${prefix}.${suffix}
+        fi
         ln -s $reads ${prefix}.${suffix}
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
-            picard: \$(echo \$(picard MarkDuplicates --version 2>&1) | grep -o 'Version:.*' | cut -f2- -d:)
+            picard: \$(echo \$(picard DownsampleSam --version 2>&1) | grep -o 'Version:.*' | cut -f2- -d:)
         END_VERSIONS
         """
     }

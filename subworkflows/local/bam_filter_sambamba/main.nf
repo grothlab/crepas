@@ -2,14 +2,13 @@
  * Filter BAM file
  */
 
-include { SAMTOOLS_INDEX } from '../../../modules/nf-core/samtools/index/main'
 include { SAMBAMBA_VIEW }            from '../../../modules/local/sambamba/view/main'
 include { BAM_SORT_STATS_SAMTOOLS  } from '../../../subworkflows/nf-core/bam_sort_stats_samtools'
 
 workflow BAM_FILTER_SAMBAMBA {
     take:
     ch_bam_index              // channel: [ val(meta), [ bam ], [ index ]]
-    ch_bed                    // channel: [ bed ]
+    ch_bed                    // channel: [ val(meta2), [ bed ] ]
     ch_fasta                  // channel: [ fasta ]
 
     main:
@@ -19,14 +18,13 @@ workflow BAM_FILTER_SAMBAMBA {
         ch_bam_index,
         ch_bed
     )
+    ch_versions = ch_versions.mix(SAMBAMBA_VIEW.out.versions)
 
     BAM_SORT_STATS_SAMTOOLS (
         SAMBAMBA_VIEW.out.bam,
         ch_fasta
     )
-
-    ch_versions = ch_versions.mix(SAMBAMBA_VIEW.out.versions,
-                    BAM_SORT_STATS_SAMTOOLS.out.versions)
+    ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS.out.versions)
 
     emit:
     bam      = BAM_SORT_STATS_SAMTOOLS.out.bam      // channel: [ val(meta), [ bam ] ]

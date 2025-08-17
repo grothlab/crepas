@@ -1,32 +1,34 @@
 process SAMTOOLS_STATS_TRANSPOSE {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/ubuntu:22.04' :
-        'nf-core/ubuntu:22.04' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/ubuntu:22.04'
+        : 'nf-core/ubuntu:22.04'}"
 
     input:
     tuple val(meta), file(stats)
 
     output:
-    tuple val(meta), path("*.tsv")            , emit: t_stats
-    path  "versions.yml"    , emit: versions
+    tuple val(meta), path("*.tsv"), emit: t_stats
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
+    def args2 = task.ext.args2 ?: ''
+    def args3 = task.ext.args3 ?: ''
     def prefix = task.ext.prefix ?: "${stats.baseName}.transposed"
     """
-    basename=\$(basename $stats .stats)
+    basename=\$(basename ${stats} .stats)
 
-    grep ^SN $stats | cut -f 2-3 | sed 's/:\\t/\\t/' > ${prefix}.tmp
+    grep ${args} ^SN ${stats} | cut -f 2-3 | sed 's/:\\t/\\t/' > ${prefix}.tmp
     
     # transpose
-    awk '
+    awk ${args2} '
     BEGIN { FS=OFS="\\t" }
     {
         for (rowNr=1;rowNr<=NF;rowNr++) {
@@ -44,11 +46,11 @@ process SAMTOOLS_STATS_TRANSPOSE {
     }' ${prefix}.tmp > ${prefix}.tmp2
 
     # prepend column with ID as first row and the basename as second row
-    awk -v basename="\$basename" 'NR==1{print "ID\\t"\$0} NR==2{print basename"\\t"\$0} NR>2{print}' ${prefix}.tmp2 > ${prefix}.tsv
+    awk ${args3} -v basename="\$basename" 'NR==1{print "ID\\t"\$0} NR==2{print basename"\\t"\$0} NR>2{print}' ${prefix}.tmp2 > ${prefix}.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        #samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
     END_VERSIONS
     """
 
@@ -59,7 +61,7 @@ process SAMTOOLS_STATS_TRANSPOSE {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        #samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
     END_VERSIONS
     """
 }

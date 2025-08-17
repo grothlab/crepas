@@ -1,10 +1,27 @@
 #!/usr/bin/env python3
 
-#######################################################################
-#######################################################################
-## Created on June 29th 2018 to annotate merged peaks
-#######################################################################
-#######################################################################
+"""
+===============================================================================
+macs3_merged_expand.py
+
+Originally created June 29th 2018 by:
+    - Harshil Patel <https://github.com/drpatelh>
+
+With contributions from:
+    - Jose Espinosa-Carrasco <https://github.com/JoseEspinosa>
+
+Source:
+    https://github.com/nf-core/chipseq/blob/76e2382b6d443db4dc2396e6831d1243256d80b0/bin/macs3_merged_expand.py
+
+Adapted for the grothlab/glseq pipeline by:
+    - Samuel Ruiz-Pérez <samper@cancer.dk>
+    https://github.com/grothlab/glseq/
+
+Description:
+    Add sample boolean files and aggregate columns from merged MACS narrow or broad peak file.
+
+===============================================================================
+"""
 
 import os
 import errno

@@ -13,27 +13,28 @@ process CHROM_SIZES_SPIKEIN_SPLIT {
     val endo_genome_string
 
     output:
-    tuple val(meta), path ("*.${endo_genome_string}.sizes")   , emit: endo_sizes
-    tuple val(meta), path ("*.${exo_genome_string}.sizes")   , emit: exo_sizes
-    path  "versions.yml"                , emit: versions
+    tuple val(meta), path ("*.${endo_genome_string}.sizes") , emit: endo_sizes
+    tuple val(meta), path ("*.${exo_genome_string}.sizes")  , emit: exo_sizes
+    path  "versions.yml"                                    , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args  = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${sizes.baseName}"
     """
     awk \\
-        $args \\
+        ${args} \\
         '!(\$1 ~ /_${exo_genome_string}\$/)' \\
-        $sizes \\
-        > ${sizes.baseName}.${endo_genome_string}.sizes
+        ${sizes} \\
+        > ${prefix}.${endo_genome_string}.sizes
 
     awk \\
-        $args \\
+        ${args} \\
         '(\$1 ~ /_${exo_genome_string}\$/)' \\
-        $sizes \\
-        > ${sizes.baseName}.${exo_genome_string}.sizes
+        ${sizes} \\
+        > ${prefix}.${exo_genome_string}.sizes
 
 
     cat <<-END_VERSIONS > versions.yml
@@ -43,10 +44,10 @@ process CHROM_SIZES_SPIKEIN_SPLIT {
     """
 
     stub:
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = task.ext.prefix ?: "${sizes.baseName}"
     """
-    touch endo.sizes
-    touch exo.sizes
+    touch ${prefix}.${endo_genome_string}.sizes
+    touch ${prefix}.${exo_genome_string}.sizes
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

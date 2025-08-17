@@ -1,5 +1,21 @@
 #!/usr/bin/env Rscript
 
+# ===============================================================================
+# plot_peak_intersect.R
+#
+# Originally created by:
+#     - Harshil Patel <https://github.com/drpatelh>
+# Source:
+#     https://github.com/nf-core/chipseq/blob/76e2382b6d443db4dc2396e6831d1243256d80b0/bin/plot_peak_intersect.r
+#
+# Adapted for the grothlab/glseq pipeline by:
+#     - Samuel Ruiz-Pérez <samper@cancer.dk>
+#     https://github.com/grothlab/glseq/
+#
+# Description:
+#     Generates UpSet plots from peak intersection data.
+# ===============================================================================
+
 ################################################
 ################################################
 ## LOAD LIBRARIES                             ##

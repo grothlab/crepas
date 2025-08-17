@@ -1,10 +1,30 @@
 #!/usr/bin/env python3
 
-#######################################################################
-#######################################################################
-## Created on July 4th 2018 to create IGV session file from file list
-#######################################################################
-#######################################################################
+"""
+===============================================================================
+igv_files_to_session.py
+
+Originally created July 4th 2018 by:
+    - Harshil Patel <https://github.com/drpatelh>
+
+With contributions from:
+    - Jose Espinosa-Carrasco <https://github.com/JoseEspinosa>
+
+Source:
+    https://github.com/nf-core/chipseq/blob/76e2382b6d443db4dc2396e6831d1243256d80b0/bin/igv_files_to_session.py
+
+Adapted for the grothlab/glseq pipeline by:
+    - Samuel Ruiz-Pérez <samper@cancer.dk>
+    https://github.com/grothlab/glseq/
+
+Description:
+    Create IGV session file from a list of files and associated colours.
+    Supports ".bed", ".bw", ".bigwig", ".tdf", ".gtf" files.
+
+===============================================================================
+"""
+
+
 
 import os
 import errno

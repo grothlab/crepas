@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_create_partitions"
+description: Splitting BAM files by strand, calculating coverage, normalizing and creating partitions (SCAR-seq and OK-seq)
+keywords:
+  - scarseq
+  - okseq
+  - partition
+  - rfd
+components:
+  - bam_split_by_strand
+  - samtools/index
+  - bedtools/genomecov
+  - bedtools/makewindows
+  - bigtools/bigwigaverageoverbed
+  - bedgraph_normalize
+  - bedgraph_signal_minus_input
+  - partition_or_rfd_smooth
+  - collect_partitions
+  - bigtools/bedgraphtobigwig
+  - partition_plot
+input:
+  - ch_bam:
+      type: file
+      description: |
+        Channel containing BAM files with metadata
+        Structure: [ val(meta), [ bam ] ]
+  - ch_chrom_sizes:
+      type: file
+      description: |
+        Channel containing chromosome sizes file
+        Structure: [ bed ]
+  - ch_blacklist:
+      type: file
+      description: |
+        Channel containing blacklist regions
+        Structure: [ val(meta), [ bed ] ]
+  - ch_initiation_zones:
+      type: file
+      description: |
+        Channel containing initiation zones
+        Structure: [ val(meta), [ bed ] ]
+  - rpm_use_flT2_total:
+      type: string
+      description: |
+        Comma-separated list of antibodies for which to use flT2_total_mapped_reads 
+        instead of flT3_total_mapped_reads for RPM normalization
+  - smooth_radius:
+      type: integer
+      description: |
+        Radius for smoothing operations
+  - derivative_radius:
+      type: integer
+      description: |
+        Radius for derivative calculations
+  - zero_crossing_radius:
+      type: integer
+      description: |
+        Radius for zero crossing detection
+output:
+  - tab:
+      type: file
+      description: |
+        Tab-delimited file containing RFD (Replication fork directionality) or partition data
+        Structure: [ val(meta), [ tab ] ]
+      pattern: "*.{tab,tsv}"
+  - versions:
+      type: file
+      description: |
+        File containing software versions used in the subworkflow
+        Structure: [ versions.yml ]
+      pattern: "versions.yml"
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

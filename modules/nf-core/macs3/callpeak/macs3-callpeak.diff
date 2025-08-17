@@ -1,0 +1,22 @@
+Changes in module 'nf-core/macs3/callpeak'
+'modules/nf-core/macs3/callpeak/meta.yml' is unchanged
+Changes in 'macs3/callpeak/main.nf':
+--- modules/nf-core/macs3/callpeak/main.nf
++++ modules/nf-core/macs3/callpeak/main.nf
+@@ -19,7 +19,8 @@
+ 
+     tuple val(meta), path("*.gappedPeak"), optional:true, emit: gapped
+     tuple val(meta), path("*.bed")       , optional:true, emit: bed
+-    tuple val(meta), path("*.bdg")       , optional:true, emit: bdg
++    tuple val(meta), path("*_pileup.bdg")       , optional:true, emit: pileup_bdg
++    tuple val(meta), path("*_lambda.bdg") , optional:true, emit: lambda_bdg
+ 
+     when:
+     task.ext.when == null || task.ext.when
+
+'modules/nf-core/macs3/callpeak/environment.yml' is unchanged
+'modules/nf-core/macs3/callpeak/tests/bed.config' is unchanged
+'modules/nf-core/macs3/callpeak/tests/bam.config' is unchanged
+'modules/nf-core/macs3/callpeak/tests/main.nf.test' is unchanged
+'modules/nf-core/macs3/callpeak/tests/main.nf.test.snap' is unchanged
+************************************************************

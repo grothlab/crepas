@@ -1,5 +1,22 @@
 #!/usr/bin/env Rscript
 
+# ===============================================================================
+# deseq2_qc.R
+#
+# Originally created by:
+#     - Jose Espinosa-Carrasco <https://github.com/JoseEspinosa>
+#     - Harshil Patel <https://github.com/drpatelh>
+# Source:
+#     https://github.com/nf-core/chipseq/blame/76e2382b6d443db4dc2396e6831d1243256d80b0/bin/deseq2_qc.r
+#
+# Adapted for the grothlab/glseq pipeline by:
+#     - Samuel Ruiz-Pérez <samper@cancer.dk>
+#     https://github.com/grothlab/glseq/
+#
+# Description:
+#     Generates quality control plots from DESeq2 output.
+# ===============================================================================
+
 ################################################
 ################################################
 ## REQUIREMENTS                               ##

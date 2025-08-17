@@ -80,11 +80,11 @@ report_section_order:
     before: mlib_genrich_frip_score
   # Summaries
   "grothlab-glseq-methods-description":
-    order: -1000
+    order: -4000
   software_versions:
-    order: -1001
+    order: -4001
   "grothlab-glseq-summary":
-    order: -1002
+    order: -4002
 
 
 export_plots: true

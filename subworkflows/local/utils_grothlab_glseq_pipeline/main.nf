@@ -122,6 +122,37 @@ workflow PIPELINE_COMPLETION {
     FUNCTIONS
 ========================================================================================
 */
+
+//
+// Get attribute from genome config file e.g. fasta
+//
+def getGenomeAttribute(attribute) {
+    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
+        if (params.genomes[ params.genome ].containsKey(attribute)) {
+            return params.genomes[ params.genome ][ attribute ]
+        } else {
+            return null
+        }
+    } else {
+        return null
+    }
+}
+
+//
+// Get macs genome size (macs_gsize)
+//
+def getMacsGsize(params) {
+    def val = null
+    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
+        if (params.genomes[ params.genome ].containsKey('macs_gsize')) {
+            if (params.genomes[ params.genome ][ 'macs_gsize' ].containsKey(params.read_length.toString())) {
+                val = params.genomes[ params.genome ][ 'macs_gsize' ][ params.read_length.toString() ]
+            }
+        }
+    }
+    return val
+}
+
 //
 // Check and validate pipeline parameters
 //
@@ -238,8 +269,10 @@ def methodsDescriptionText(mqc_methods_yaml) {
         // Removing `https://doi.org/` to handle pipelines using DOIs vs DOI resolvers
         // Removing ` ` since the manifest.doi is a string and not a proper list
         def temp_doi_ref = ""
-        String[] manifest_doi = meta.manifest_map.doi.tokenize(",")
-        for (String doi_ref: manifest_doi) temp_doi_ref += "(doi: <a href=\'https://doi.org/${doi_ref.replace("https://doi.org/", "").replace(" ", "")}\'>${doi_ref.replace("https://doi.org/", "").replace(" ", "")}</a>), "
+        def manifest_doi = meta.manifest_map.doi.tokenize(",")
+        manifest_doi.each { doi_ref ->
+            temp_doi_ref += "(doi: <a href=\'https://doi.org/${doi_ref.replace("https://doi.org/", "").replace(" ", "")}\'>${doi_ref.replace("https://doi.org/", "").replace(" ", "")}</a>), "
+        }
         meta["doi_text"] = temp_doi_ref.substring(0, temp_doi_ref.length() - 2)
     } else meta["doi_text"] = ""
     meta["nodoi_text"] = meta.manifest_map.doi ? "" : "<li>If available, make sure to update the text to include the Zenodo DOI of version of the pipeline used. </li>"
@@ -325,16 +358,12 @@ def dashedLine(monochrome_logs=true) {
 //
 def workflowCitation() {
     def temp_doi_ref = ""
-    String[] manifest_doi = workflow.manifest.doi.tokenize(",")
-    // Using a loop to handle multiple DOIs
+    def manifest_doi = workflow.manifest.doi.tokenize(",")
+    // Handling multiple DOIs
     // Removing `https://doi.org/` to handle pipelines using DOIs vs DOI resolvers
     // Removing ` ` since the manifest.doi is a string and not a proper list
-    for (String doi_ref: manifest_doi) temp_doi_ref += "  https://doi.org/${doi_ref.replace('https://doi.org/', '').replace(' ', '')}\n"
-    return "If you use ${workflow.manifest.name} for your analysis please cite:\n\n" +
-        "* The pipeline\n" +
-        temp_doi_ref + "\n" +
-        "* The nf-core framework\n" +
-        "  https://doi.org/10.1038/s41587-020-0439-x\n\n" +
-        "* Software dependencies\n" +
-        "  https://github.com/${workflow.manifest.name}/blob/master/CITATIONS.md"
+    manifest_doi.each { doi_ref ->
+        temp_doi_ref += "  https://doi.org/${doi_ref.replace('https://doi.org/', '').replace(' ', '')}\n"
+    }
+    return "If you use ${workflow.manifest.name} for your analysis please cite:\n\n" + "* The pipeline\n" + temp_doi_ref + "\n" + "* The nf-core framework\n" + "  https://doi.org/10.1038/s41587-020-0439-x\n\n" + "* Software dependencies\n" + "  https://github.com/${workflow.manifest.name}/blob/master/CITATIONS.md"
 }

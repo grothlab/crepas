@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
 
+"""
+===============================================================================
+check_samplesheet.py
+
+Originally created by:
+    - Jose Espinosa-Carrasco <https://github.com/JoseEspinosa>
+    - Harshil Patel <https://github.com/drpatelh>
+Source:
+    https://github.com/nf-core/chipseq/blob/76e2382b6d443db4dc2396e6831d1243256d80b0/bin/check_samplesheet.py
+
+Adapted for the grothlab/glseq pipeline by:
+    - Samuel Ruiz-Pérez <samper@cancer.dk>
+    https://github.com/grothlab/glseq/
+
+Description:
+    Validates and reformats a samplesheet for use with the grothlab/glseq pipeline.
+===============================================================================
+"""
+
+
 import os
 import sys
 import errno
