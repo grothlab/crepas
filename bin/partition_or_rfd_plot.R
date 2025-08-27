@@ -31,19 +31,25 @@ options(show.error.locations = TRUE)
 # }
 
 required.libs <- c("tidyverse","GenomicAlignments","GenomicFeatures", 
-                   "RColorBrewer","ggrepel","ggpubr","ggpmisc",
-                    "hexbin","argparse")
+           "RColorBrewer","ggrepel","ggpubr","ggpmisc",
+          "hexbin","argparse")
 
 unavailable.libs <- setdiff(required.libs, rownames(installed.packages()))
 if (length(unavailable.libs) > 0) {
-    BiocManager::install(unavailable.libs)
+  message("\n[", Sys.time(), "] Installing missing packages: ", paste(unavailable.libs, collapse = ", "))
+  BiocManager::install(unavailable.libs)
 }
 
-suppressPackageStartupMessages({
-  lapply(required.libs, FUN = function(x) {
-    do.call("require", list(x))
+message("\n[", Sys.time(), "] Loading required libraries...")
+for (lib in required.libs) {
+  message("[", Sys.time(), "] Loading library: ", lib)
+  suppressPackageStartupMessages({
+    if (!require(lib, character.only = TRUE)) {
+      stop("Failed to load library: ", lib)
+    }
   })
-})
+}
+message("[", Sys.time(), "] All libraries loaded successfully.")
 
 
 # ===============================================================================
@@ -134,7 +140,7 @@ HAS_INPUT <- FALSE
 if (!is.null(opt$scar_partition_file)) {
   for (file in opt$scar_partition_file) {
     if (!file.exists(file)) {
-      warning("Partition file not found: ", file)
+      stop("Partition file not found: ", file)
     } else {
       part_files[["SCAR"]] <- c(part_files[["SCAR"]], file)
       HAS_SCAR <- TRUE
@@ -146,7 +152,7 @@ if (!is.null(opt$scar_partition_file)) {
 if (!is.null(opt$scarminusinput_partition_file)) {
   for (file in opt$scarminusinput_partition_file) {
     if (!file.exists(file)) {
-      warning("SCAR input-correct file not found: ", file)
+      stop("SCAR input-corrected file not found: ", file)
     } else {
       part_files[["SCAR_Input_Corrected"]] <- c(part_files[["SCAR_Input_Corrected"]], file)
       HAS_SCARINPUT <- TRUE
@@ -158,7 +164,7 @@ if (!is.null(opt$scarminusinput_partition_file)) {
 if (!is.null(opt$strandedinput_partition_file)) {
   for (file in opt$strandedinput_partition_file) {
     if (!file.exists(file)) {
-      warning("Stranded input partition file not found: ", file)
+      stop("Stranded input partition file not found: ", file)
     } else {
       part_files[["strandedInput"]] <- c(part_files[["strandedInput"]], file)
       HAS_INPUT <- TRUE
@@ -233,7 +239,7 @@ if (!dir.exists(opt$outdir)) {
 
 # Check excluded chromosomes
 chrom_excl <- unique(unlist(strsplit(opt$exclude_chromosomes, ",")))
-warning("\n[", Sys.time(), "] Set to exclude the following chromosomes: ", paste(chrom_excl, collapse = ", "))
+message("\n[", Sys.time(), "] Set to exclude the following chromosomes: ", paste(chrom_excl, collapse = ", "))
 
 # Check other parameters
 PREFIX <- opt$prefix
@@ -535,7 +541,8 @@ partition_mean_df <- partition_df %>%
   ) %>%
   mutate(sample = gsub("^SCAR-seq_", "", sample))
 
-partition_mean_df
+message("\n[", Sys.time(), "] A glimpse of the partition mean data frame:")
+print(partition_mean_df)
 
 
 # ===============================================================================
@@ -565,9 +572,9 @@ raw_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smooth, color
               fill = "grey92", inherit.aes = FALSE) +
     geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
               fill = "grey92", inherit.aes = FALSE) +
-    geom_vline(xintercept = 0, color = "grey70", size = 0.3) +
-    geom_hline(yintercept = 0, color = "grey70", size = 0.3) +
-    geom_line(size = 0.3) +
+    geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_line(linewidth = 0.3) +
     scale_color_manual(values = line_colors) +
     xlab("Distance from initiation zone center (kb)") +
     ylab(ifelse(HAS_OKSEQ, "Partition or RFD", "Partition")) +
@@ -616,9 +623,9 @@ smooth_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smooth, co
               fill = "grey92", inherit.aes = FALSE) +
     geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
               fill = "grey92", inherit.aes = FALSE) +
-    geom_vline(xintercept = 0, color = "grey70", size = 0.3) +
-    geom_hline(yintercept = 0, color = "grey70", size = 0.3) +
-    geom_line(stat = "smooth", method = "gam", se = FALSE, size = 0.5) +
+    geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_line(stat = "smooth", method = "gam", se = FALSE, linewidth = 0.5) +
     scale_color_manual(values = line_colors) +
     xlab("Distance from initiation zone center (kb)") +
     ylab(ifelse(HAS_OKSEQ, "Partition or RFD", "Partition")) +
@@ -683,9 +690,9 @@ if (HAS_OKSEQ) {
     scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
     geom_vline(xintercept = 0, colour = "grey70", linewidth = 0.5) +
     geom_hline(yintercept = 0, colour = "grey70", linewidth = 0.5) +
-    geom_smooth(se = FALSE, method = "lm", size = 0.3, color = "red") +
+    geom_smooth(se = FALSE, method = "lm", linewidth = 0.3, color = "red") +
     # add correlation and p-value to the plot
-    stat_cor(aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+    stat_cor(aes(label = paste(after_stat(r.label), after_stat(p.label), sep = "~`,`~")),
              method = "spearman", size = 2.5,
              cor.coef.name = c("rho")) +
     theme_bw(base_size = 20, base_family = "Helvetica") +

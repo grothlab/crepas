@@ -454,7 +454,8 @@ workflow BAM_CREATE_PARTITIONS {
         ch_partitions_to_plot,
         ch_blacklist,
         ch_okseq_rfd_file,
-        ch_initiation_zones
+        ch_initiation_zones,
+        ch_chrom_sizes
     )
     ch_versions = ch_versions.mix(PARTITION_PLOT.out.versions.first())
 

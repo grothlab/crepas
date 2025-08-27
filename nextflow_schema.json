@@ -1070,10 +1070,10 @@
                     "description": "Radius for zero-crossing detection when defining replication initiation zones. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
                     "fa_icon": "fas fa-chart-line"
                 },
-                "partition_cpm_cutoff": {
+                "partition_rpm_cutoff": {
                     "type": "number",
                     "default": 0.3,
-                    "description": "CPM (counts per million) cutoff for bins to be included in downstream partition analysis. Bins with normalized read-counts above this threshold will be included. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
+                    "description": "RPM (reads per million) cutoff for bins to be included in downstream partition analysis. Bins with normalized read-counts above this threshold will be included. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
                     "fa_icon": "fas fa-filter"
                 },
                 "partition_plot_range": {

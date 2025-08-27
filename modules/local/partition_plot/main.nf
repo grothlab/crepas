@@ -12,14 +12,16 @@ process PARTITION_PLOT {
     tuple val(meta2), path(blacklist)
     tuple val(meta3), path(okseq_rfd_file)
     tuple val(meta4), path(initiation_zones)
+    tuple val(meta5), path(chrom_sizes)
 
     output:
-    path "*.scatter_plots.pdf",             optional:true, emit: scatter_pdf
-    path "*.partition_plots_raw.pdf",                      emit: partition_raw_pdf
-    path "*.partition_plots_raw.png",                      emit: partition_raw_png
-    path "*.partition_plots_smoothed.pdf",                 emit: partition_smoothed_pdf
-    path "*.partition_plots_smoothed.png",                 emit: partition_smoothed_png
-    path "versions.yml",                                   emit: versions
+    path "*.partition_plots_raw.pdf",       emit: partition_raw_pdf
+    path "*.partition_plots_raw.png",       emit: partition_raw_png
+    path "*.partition_plots_smoothed.pdf",  emit: partition_smoothed_pdf
+    path "*.partition_plots_smoothed.png",  emit: partition_smoothed_png
+    path "*.scatter_plots.pdf",             emit: scatter_pdf, optional:true
+    path "*.scatter_plots.png",             emit: scatter_png, optional:true
+    path "versions.yml",                    emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -42,6 +44,7 @@ process PARTITION_PLOT {
         ${okazaki_arg} \\
         ${iz_arg} \\
         ${blacklist_arg} \\
+        --chrom_sizes ${chrom_sizes} \\
         --prefix ${prefix} \\
         --outdir ./ \\
         ${args}
