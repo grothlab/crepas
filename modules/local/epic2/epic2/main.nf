@@ -53,7 +53,7 @@ process EPIC2 {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         epic2: \$(epic2 --version | sed -e "s/epic2 //g")
-        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
+        gawk: \$(echo \$(gawk --version 2>&1) | sed 's/^.*GNU Awk //; s/, .*\$//')
     END_VERSIONS
     """   
 

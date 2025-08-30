@@ -28,11 +28,74 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_HOMER {
     ch_versions = ch_versions.mix(SIZES_SORT.out.versions.first())
 
 
+    // Branch channels based on if input control is present
+    ch_bam_bai
+        .branch { meta, bam, bai ->
+            ips_with_ipcontrol: meta.input_control
+                return [meta.input_control, meta.antibody, meta, bam, bai]
+            ips_wo_ipcontrol: !meta.input_control && !meta.is_input_control
+                return [meta.id, meta.antibody, meta, bam, bai]
+            ipcontrols: !meta.input_control && meta.is_input_control
+                return [meta.id, meta, bam, bai]
+        }
+        .set { ch_bam_by_type }
+
+    // For non-downsampled files, duplicate input ipcontrols for each antibody 
+    ch_bam_by_type
+        .ipcontrols
+        .branch { id, meta, bam, bai ->
+            dsp: meta.input_control_of_antibody && meta.dSp_total_mapped_reads
+                return [id, meta.input_control_of_antibody, meta, bam, bai]
+            not_dsp: !meta.input_control_of_antibody && !meta.dSp_total_mapped_reads
+                return [id, meta, bam, bai]
+        }
+        .set { ch_bam_ipcontrols }
+    
+    ch_bam_ipcontrols
+        .not_dsp
+        .combine(ch_bam_by_type.ips_with_ipcontrol, by: 0) // combine by control id only
+        .map { ipcontrol_id, ipcontrol_meta, ipcontrol_bam, ipcontrol_bai, ip_antibody, ip_meta, ip_bam, ip_bai ->
+            def meta_clone = ipcontrol_meta.clone()
+            meta_clone.input_control_of_antibody = ip_antibody
+            [ ipcontrol_id, meta_clone.input_control_of_antibody, meta_clone, ipcontrol_bam, ipcontrol_bai ]
+        }
+        .unique()
+        .set { ch_bam_ipcontrols_not_dsp }
+    
+    // Create channel for Consenrich: [ meta, [ip_bams_merged_reps], [ip_bais_merged_reps], [ipcontrol_bams_merged_reps], [ipcontrol_bais_merged_reps] ]
+    ch_bam_by_type
+        .ips_with_ipcontrol
+        .combine(ch_bam_ipcontrols.dsp.mix(ch_bam_ipcontrols_not_dsp), by: [0, 1])
+        .map { ipcontrol_id, antibody, ip_meta, ip_bam, ip_bai, ipcontrol_meta, ipcontrol_bam, ipcontrol_bai ->
+            [ ipcontrol_id, antibody, ip_meta, ip_bam, ip_bai, ipcontrol_bam, ipcontrol_bai ]
+        }
+        .mix(ch_bam_by_type.ips_wo_ipcontrol)
+        .map { it ->
+            def meta_clone = it[2].clone()
+            meta_clone.id = meta_clone.id - ~/_bRep_.*$/
+            meta_clone.input_control = meta_clone.input_control - ~/_bRep_.*$/
+            // ips_wo_ipcontrol do not have ipcontrol_bam (it[5]) and ipcontrol_bai (it[6])
+            [meta_clone.id, it[1], meta_clone, it[3], it[4], it[5] ?: [], it[6] ?: []]
+        }
+        .groupTuple(by: [0, 1])
+        .map { id, antibody, metas, ip_bams, ip_bais, ipcontrol_bams, ipcontrol_bais ->
+            [metas[0], ip_bams.flatten(), ip_bais.flatten(), ipcontrol_bams.flatten(), ipcontrol_bais.flatten()]
+        }
+        .set { ch_ip_ipcontrol_bam_bai_merged_reps }
+
+    // TODO: Print to file for debuggin
+    ch_ip_ipcontrol_bam_bai_merged_reps
+        .map { meta, bams, bais, ipcontrol_bams, ipcontrol_bais ->
+            "${meta}\t${bams}\t${bais}\t${ipcontrol_bams}\t${ipcontrol_bais}"
+        }
+        .collectFile(name: 'ch_ip_ipcontrol_bam_bai_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_HOMER" )
+
+
     //
-    // MODULE: Integrate ChIPs and their input controls
+    // MODULE: Integrate ChIPs and their input ipcontrols
     //
     CONSENRICH (
-        ch_bam,
+        ch_ip_ipcontrol_bam_bai_merged_reps,
         ch_chrom_sizes,
         ch_blacklist,
         ch_sparsebed,
@@ -45,11 +108,11 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_HOMER {
     CONSENRICH
         .out
         .signal_track
-        .combine(ch_bam, by: 0)
-        .map { meta, ch_csr_signal, ip_bams, ip_bais, control_bams, control_bais ->
-            // TODO: check if ip_bams and control_bams should be interleaved or
+        .combine(ch_ip_ipcontrol_bam_bai_merged_reps, by: 0)
+        .map { meta, ch_csr_signal, ip_bams, ip_bais, ipcontrol_bams, ipcontrol_bais ->
+            // TODO: check if ip_bams and ipcontrol_bams should be interleaved or
             //       in the same order as in consenrich. Here we just mix them:
-            [ meta, ch_csr_signal, ip_bams + control_bams, ip_bais + control_bais ]
+            [ meta, ch_csr_signal, ip_bams + ipcontrol_bams, ip_bais + ipcontrol_bais ]
         }
         .set { ch_csr_signal_bamlist }
 

@@ -26,7 +26,7 @@ process MACS3_CONSENSUS {
     when:
     task.ext.when == null || task.ext.when
 
-    script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // This script is bundled with the pipeline
     def args         = task.ext.args   ?: ''
     def prefix       = task.ext.prefix ?: "${meta.id}"
     def peak_type    = is_narrow_peak  ? 'narrowPeak' : 'broadPeak'

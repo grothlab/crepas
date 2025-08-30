@@ -533,7 +533,7 @@ SCAR-seq BAM files are split by strand based on the corresponding `strandedness`
 <details markdown="1" open>
     <summary>Output files</summary>
 
-- `<aligner>/mergedLibrary/scarseq/1_split_by_strand/`
+- `<aligner>/mergedLibrary/SCAR-seq/1_split_by_strand/`
   - `*.forward.bam`: Forward strand alignments.
   - `*.forward.bam.bai`: Index for forward strand alignments.
   - `*.reverse.bam`: Reverse strand alignments.
@@ -547,7 +547,7 @@ Genome-wide coverage in BEDGRAPH format is generated for the forward and reverse
 <details markdown="1" open>
     <summary>Output files</summary>
 
-- `<aligner>/mergedLibrary/scarseq/2_genomecov/`
+- `<aligner>/mergedLibrary/SCAR-seq/2_genomecov/`
   - `*.forward.genomecov.bdg`: Forward strand coverage in bedGraph format.
   - `*.forward.genomecov.bw`: Forward strand coverage in bigWig format.
   - `*.reverse.genomecov.bdg`: Reverse strand coverage in bedGraph format.
@@ -564,7 +564,7 @@ First, non-overlapping genomic windows are generated. The size of the windows is
 <details markdown="1" open>
     <summary>Output files</summary>
 
-- `<aligner>/mergedLibrary/scarseq/7_bwaob/`
+- `<aligner>/mergedLibrary/SCAR-seq/7_bwaob/`
   - `*.forward.bwaob.bed`: Average coverage over windows for the forward strand.
   - `*.reverse.bwaob.bed`: Average coverage over windows for the reverse strand.
 

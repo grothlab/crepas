@@ -1,6 +1,6 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://github.com/grothlab/glseq/blob/main/assets/schema_input.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/grothlab/glseq/main/assets/schema_input.json",
     "title": "grothlab/glseq pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
     "type": "array",
@@ -10,78 +10,85 @@
             "sample": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Sample name must be provided and cannot contain spaces",
+                "errorMessage": "The sample identifier cannot contain spaces. It must be the same for all biological and technical replicates of the same sample.",
                 "meta": ["id"]
             },
-            "fastq_1": {
+            "biological_replicate": {
+                "type": ["string", "integer"],
+                "pattern": "^\\S+$",
+                "errorMessage": "The biological replicate must be provided and cannot contain spaces. If you do not have biological replicates you can set the `biological_replicate` to any number or string for each of your samples.",
+                "meta": ["brep"]
+            },
+            "technical_replicate": {
+                "type": ["string", "integer"],
+                "pattern": "^\\S+$",
+                "errorMessage": "Technical replicate cannot contain spaces.",
+                "meta": ["trep"]
+            },
+            "input_control": {
                 "type": "string",
-                "format": "file-path",
-                "exists": true,
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "pattern": "^\\S+$",
+                "errorMessage": "The input control column cannot contain spaces",
+                "meta": ["input_control"]
             },
-            "fastq_2": {
-                "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'",
-                "anyOf": [
-                    {
-                        "type": "string",
-                        "pattern": "^\\S+\\.f(ast)?q\\.gz$"
-                    },
-                    {
-                        "type": "string",
-                        "maxLength": 0
-                    }
-                ]
+            "input_control_biological_replicate": {
+                "type": ["string", "integer"],
+                "pattern": "^\\S+$",
+                "errorMessage": "Input control biological replicate",
+                "meta": ["input_brep"]
             },
-            "fastq_umi": {
-                "type": "string",
-                "format": "file-path",
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for UMI reads cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
-            },
-            "okseq_part_file": {
-                "type": "string",
-                "format": "file-path",
-                "errorMessage": "OK-seq part file or empty must be provided and cannot contain spaces"
-            },
-            "replicate": {
-                "type": "integer",
-                "errorMessage": "Replicate id not an integer!",
-                "meta": ["replicate"]
+            "input_control_technical_replicate": {
+                "type": ["string", "integer"],
+                "pattern": "^\\S+$",
+                "errorMessage": "Input control technical replicate",
+                "meta": ["input_trep"]
             },
             "exp_type": {
                 "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Experiment type must be provided and cannot contain spaces",
+                "enum": ["ChIP-seq", "ChOR-seq", "SCAR-seq", "ChIP-exo", "ATAC-seq", "OK-seq", "CUT&RUN", "CUT&Tag", "TIP-seq"],
+                "errorMessage": "Sequencing experiment type must be provided and be one of: 'ChIP-seq', 'ChOR-seq', 'SCAR-seq', 'ChIP-exo', 'ATAC-seq', 'OK-seq', 'CUT&RUN', 'CUT&Tag', 'TIP-seq'",
                 "meta": ["exp_type"]
-            },
+            },            
             "strandedness": {
                 "type": "string",
-                "pattern": "^(forward|reverse)$",
-                "errorMessage": "Strandedness must be one of empty, 'forward' or 'reverse'",
+                "enum": ["forward", "reverse"],
+                "errorMessage": "Strandedness must be 'forward' or 'reverse'",
                 "meta": ["strandedness"]
             },
             "antibody": {
                 "type": "string",
                 "pattern": "^\\S+$",
                 "errorMessage": "Antibody entry cannot contain spaces",
-                "dependentRequired": ["control"],
                 "meta": ["antibody"]
             },
-            "control": {
+            "fastq_1": {
                 "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Control entry cannot contain spaces",
-                "dependentRequired": ["antibody", "control_replicate"],
-                "meta": ["control"]
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "errorMessage": "GZIP-compressed FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
             },
-            "control_replicate": {
+            "fastq_2": {
                 "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Control entry cannot contain spaces",
-                "meta": ["control_replicate"]
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "errorMessage": "GZIP-compressed FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "fastq_umi": {
+                "type": "string",
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "errorMessage": "GZIP-compressed FastQ file for UMI reads cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
             }
         },
-        "required": ["sample", "fastq_1", "exp_type", "replicate"]
+        "required": ["sample", "fastq_1", "exp_type", "biological_replicate"],
+        "dependentRequired": {
+            "input_control": ["input_control_biological_replicate"],
+            "input_control_biological_replicate": ["input_control"],
+            "input_control_technical_replicate": ["input_control_biological_replicate", "technical_replicate"]
+
+        }
     }
 }

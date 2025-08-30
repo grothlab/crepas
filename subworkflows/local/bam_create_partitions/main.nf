@@ -1,14 +1,15 @@
 include { BAM_SPLIT_BY_STRAND                                       } from '../../../modules/local/bam_split_by_strand/main'
 include { SAMTOOLS_INDEX                                            } from '../../../modules/nf-core/samtools/index/main'
 include { BEDTOOLS_GENOMECOV                                        } from '../../../modules/nf-core/bedtools/genomecov/main'
+include { FILE_SORT as BEDGRAPH_SORT                                    } from '../../../modules/local/file_sort/main'
 include { BEDTOOLS_MAKEWINDOWS                                      } from '../../../modules/nf-core/bedtools/makewindows/main'
 include { BIGTOOLS_BIGWIGAVERAGEOVERBED                             } from '../../../modules/local/bigtools/bigwigaverageoverbed/main'
 include { BEDGRAPH_NORMALIZE                                            } from '../../../modules/local/bedgraph_normalize/main'
 include { BEDGRAPH_SIGNAL_MINUS_INPUT                                   } from '../../../modules/local/bedgraph_signal_minus_input/main'
 include { PARTITION_OR_RFD_SMOOTH                                          } from '../../../modules/local/partition_or_rfd_smooth/main'
 include { COLLECT_PARTITIONS                                          } from '../../../modules/local/collect_partitions/main'
-include { BIGTOOLS_BEDGRAPHTOBIGWIG as BIGTOOLS_BEDGRAPHTOBIGWIG_WINDOWS } from '../../../modules/local/bigtools/bedgraphtobigwig/main'
-include { BIGTOOLS_BEDGRAPHTOBIGWIG as BIGTOOLS_BEDGRAPHTOBIGWIG_PARTITIONS } from '../../../modules/local/bigtools/bedgraphtobigwig/main'
+include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_WINDOWS } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_PARTITIONS } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 include { PARTITION_PLOT                                      } from '../../../modules/local/partition_plot/main'
 
 
@@ -18,6 +19,7 @@ workflow BAM_CREATE_PARTITIONS {
     ch_bam                  // channel: [ val(meta), [ bam ] ]
     ch_chrom_sizes          // channel: [ bed ]
     ch_blacklist            // channel: [ val(meta), [ bed ] ]
+    ch_okseq_rfd_file       // channel: [ val(meta), [ bed ] ]
     ch_initiation_zones     // channel: [ val(meta), [ bed ] ]
     rpm_use_flT2_total      // string: comma-separated list of antibodies for which to use flT2_total_mapped_reads instead of flT3_total_mapped_reads for RPM normalization
     smooth_radius
@@ -122,16 +124,24 @@ workflow BAM_CREATE_PARTITIONS {
     )
     ch_versions  = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
 
+    //
+    // MODULE: Sort the bedgraph so that it works with bedgraphtobigwig
+    //
+    BEDGRAPH_SORT (
+        BEDTOOLS_GENOMECOV.out.genomecov,
+        'bedgraph'
+    )
+    ch_versions = ch_versions.mix(BEDGRAPH_SORT.out.versions.first())
 
     //
     // MODULE: Convert bedgraph to bigwig
     //
-    BIGTOOLS_BEDGRAPHTOBIGWIG_WINDOWS (
-        BEDTOOLS_GENOMECOV.out.genomecov,
-        ch_chrom_sizes
+    UCSC_BEDGRAPHTOBIGWIG_WINDOWS (
+        BEDGRAPH_SORT.out.sorted,
+        ch_chrom_sizes.map { it[1] }
     )
-    ch_bigwig = BIGTOOLS_BEDGRAPHTOBIGWIG_WINDOWS.out.bigwig
-    ch_versions = ch_versions.mix(BIGTOOLS_BEDGRAPHTOBIGWIG_WINDOWS.out.versions.first())
+    ch_bigwig = UCSC_BEDGRAPHTOBIGWIG_WINDOWS.out.bigwig
+    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_WINDOWS.out.versions.first())
 
     // TODO: print for debugging
     ch_bigwig
@@ -150,7 +160,7 @@ workflow BAM_CREATE_PARTITIONS {
     ch_windows = BEDTOOLS_MAKEWINDOWS.out.bed
     // count number of lines in the windows file
     ch_num_windows = ch_windows.map { meta, windows -> windows.countLines() }
-    ch_versions = ch_versions.mix(BEDTOOLS_MAKEWINDOWS.out.versions.first())
+    ch_versions = ch_versions.mix(BEDTOOLS_MAKEWINDOWS.out.versions)
 
     // TODO: print for debugging
     ch_num_windows
@@ -183,8 +193,8 @@ workflow BAM_CREATE_PARTITIONS {
         .combine(ch_num_windows)
         .map { meta, bwaob, num_windows ->
             def meta_clone = meta.clone()
-            // samples have meta.antibody, while input controls have meta.control_of_antibody
-            def antibody_to_use = meta.antibody ?: meta.control_of_antibody
+            // samples have meta.antibody, while input controls have meta.input_control_of_antibody
+            def antibody_to_use = meta.antibody ?: meta.input_control_of_antibody
             // If the sample was downsampled before, we want to use dSp_total_mapped_reads
             if (meta_clone.dSp_total_mapped_reads) {
                 meta_clone.norm_factor_val = 1e6 / meta_clone.dSp_total_mapped_reads
@@ -234,23 +244,23 @@ workflow BAM_CREATE_PARTITIONS {
     // for each of the strands, subtract the input from the sample
     ch_norm
         .map { meta, bdg ->
-            // samples can have meta.antibody, while controls can have meta.control_of_antibody (if downsampling was performed)
-            def antibody_to_use = meta.antibody ?: meta.control_of_antibody
+            // samples can have meta.antibody, while controls can have meta.input_control_of_antibody (if downsampling was performed)
+            def antibody_to_use = meta.antibody ?: meta.input_control_of_antibody
             [ meta, antibody_to_use, bdg ]
         }
         .branch { meta, antibody, bdg ->
-            scar_with_input: meta.control
-                return [ meta.control, antibody, meta.strand, meta, bdg ]
-            input: !meta.control && meta.is_control
+            scar_with_ipcontrol: meta.input_control
+                return [ meta.input_control, antibody, meta.strand, meta, bdg ]
+            ipcontrol: !meta.input_control && meta.is_input_control
                 return [ meta.id, antibody, meta.strand, bdg ]
         }
         .set { ch_norm_by_type }
 
     // create channel: [ val(meta), [ scar_bdg ], [ input_bdg ] ]
     ch_norm_by_type
-        .scar_with_input
-        .combine(ch_norm_by_type.input, by: [0, 1, 2]) // combine by id, antibody, and strand
-        .map { input_id, antibody, strand, scar_meta, scar_bdg, input_bdg ->
+        .scar_with_ipcontrol
+        .combine(ch_norm_by_type.ipcontrol, by: [0, 1, 2]) // combine by id, antibody, and strand
+        .map { ipcontrol_id, antibody, strand, scar_meta, scar_bdg, input_bdg ->
             def meta_clone = scar_meta.clone()
                 meta_clone.signal_minus_input = true
                 [ meta_clone, scar_bdg, input_bdg ]
@@ -316,8 +326,8 @@ workflow BAM_CREATE_PARTITIONS {
     // Create channel: [ val(meta), val(partition_or_rfd), [ f_tab ], [ r_tab ] ]
     ch_norm_and_smi
         .map { meta, bdg_fwd, bdg_rev ->
-            // 'partition' is for scarseq and 'rfd' for OK-seq
-            def partition_or_rfd = meta.exp_type == 'scarseq' ? 'partition' : meta.exp_type == 'OK-seq' ? 'RFD' : null
+            // 'partition' is for SCAR-seq and 'RFD' for OK-seq
+            def partition_or_rfd = meta.exp_type == 'SCAR-seq' ? 'partition' : meta.exp_type == 'OK-seq' ? 'RFD' : null
             [ meta, partition_or_rfd, bdg_fwd, bdg_rev ]
         }
         .set { ch_part_norm_and_smi }
@@ -407,33 +417,32 @@ workflow BAM_CREATE_PARTITIONS {
         .out
         .tsv
         .branch { meta, tsv ->
-            scar_with_input: !meta.is_control && !meta.signal_minus_input
-                return [ meta.control, meta, tsv ]
-            input: meta.is_control
+            scar_with_ipcontrol: !meta.is_input_control && !meta.signal_minus_input
+                return [ meta.input_control, meta, tsv ]
+            ipcontrol: meta.is_input_control
                 return [ meta.id, tsv ]
-            minusinput: meta.signal_minus_input
+            minusipcontrol: meta.signal_minus_input
                 return [ meta.id, tsv ]
         }
         .set { ch_partitions_by_type }
 
     ch_partitions_by_type
-        .scar_with_input
-        .combine(ch_partitions_by_type.input, by: 0) // this creates channel: [ input_id, meta_scar, scar_tsv, input_tsv ]
-        .map { input_id, meta_scar, scar_tsv, input_tsv ->
+        .scar_with_ipcontrol
+        .combine(ch_partitions_by_type.ipcontrol, by: 0)
+        .map { ipcontrol_id, meta_scar, scar_tsv, input_tsv ->
             [ meta_scar.id, meta_scar, scar_tsv, input_tsv ]
         }
-        .combine(ch_partitions_by_type.minusinput, by: 0) // this creates channel: [ scar_id, meta_scar, scar_tsv, input_tsv, minusinput_tsv ]
+        .combine(ch_partitions_by_type.minusipcontrol, by: 0)
         .map { scar_id, meta_scar, scar_tsv, input_tsv, minusinput_tsv ->
-            def okseq = meta_scar.okseq_part_file ? file(meta_scar.okseq_part_file) : null
-            [ meta_scar, scar_tsv, input_tsv, minusinput_tsv, okseq ]
+            [ meta_scar, scar_tsv, input_tsv, minusinput_tsv ]
         }
         .set { ch_partitions_to_plot }
 
 
     // TODO: print for debugging
     ch_partitions_to_plot
-        .map { meta_scar, scar_tsv, input_tsv, minusinput_tsv, okseq ->
-            "${meta_scar}\t${scar_tsv}\t${input_tsv}\t${minusinput_tsv}\t${okseq}"
+        .map { meta_scar, scar_tsv, input_tsv, minusinput_tsv ->
+            "${meta_scar}\t${scar_tsv}\t${input_tsv}\t${minusinput_tsv}"
         }
         .collectFile( name: '17_scar_ch_partitions_to_plot.txt', newLine: true, sort: false, storeDir: "${params.outdir}/debug")
 
@@ -444,18 +453,20 @@ workflow BAM_CREATE_PARTITIONS {
     PARTITION_PLOT (
         ch_partitions_to_plot,
         ch_blacklist,
-        ch_initiation_zones
+        ch_okseq_rfd_file,
+        ch_initiation_zones,
+        ch_chrom_sizes
     )
     ch_versions = ch_versions.mix(PARTITION_PLOT.out.versions.first())
 
     //
     // MODULE: Convert the final partition bedgraph to bigwig
     //
-    BIGTOOLS_BEDGRAPHTOBIGWIG_PARTITIONS (
+    UCSC_BEDGRAPHTOBIGWIG_PARTITIONS (
         COLLECT_PARTITIONS.out.bdg,
-        ch_chrom_sizes
+        ch_chrom_sizes.map { it[1] }
     )
-    ch_versions = ch_versions.mix(BIGTOOLS_BEDGRAPHTOBIGWIG_PARTITIONS.out.versions.first())
+    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_PARTITIONS.out.versions.first())
 
     emit:
     tab      = PARTITION_OR_RFD_SMOOTH.out.rfd       // channel: [ val(meta), [ tab ] ]

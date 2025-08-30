@@ -13,7 +13,7 @@ include { PLOT_HOMER_ANNOTATEPEAKS } from '../../../modules/local/plot_homer_ann
 
 workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     take:
-    ch_bam                            // channel: [ val(meta), [ ip_bam ], [ control_bam ] ]
+    ch_bam                            // channel: [ val(meta), [ ip_bam ], [ ipcontrol_bam ] ]
     ch_fasta                          // channel: [ fasta  ]
     ch_gtf                            // channel: [ gtf ]
     ch_blacklist                     // channel: [ bed ]
@@ -38,55 +38,72 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     SAMTOOLS_SORT
         .out
         .bam
-        .map { meta, bam ->
-            // samples can have meta.antibody, while controls can have meta.control_of_antibody (if downsampling was performed)
-            def antibody_to_use = meta.antibody ?: meta.control_of_antibody
-            [ meta, antibody_to_use, bam ]
-        }
-        .branch { meta, antibody, bam ->
-            ips_with_control: meta.control
-                return [ meta.control, antibody, meta, [ bam ] ]
-            ips_wo_control: !meta.control && !meta.is_control
-                return [ meta.id, antibody, meta, [ bam ] ]
-            controls: !meta.control && meta.is_control
-                return [ meta.id, antibody, [ bam ] ]
+        .branch { meta, bam ->
+            ips_with_ipcontrol: meta.input_control
+                return [meta.input_control, meta.antibody, meta, bam]
+            ips_wo_ipcontrol: !meta.input_control && !meta.is_input_control
+                return [meta.id, meta.antibody, meta, bam]
+            ipcontrols: !meta.input_control && meta.is_input_control
+                return [meta.id, meta, bam]
         }
         .set { ch_bam_by_type }
 
-    // Create channel: [ meta, [ip_bams_merged_reps], [control_bams_merged_reps] ]
-    ch_bam_by_type.ips_with_control
-        .combine(ch_bam_by_type.controls, by: [0, 1])
-        .mix(ch_bam_by_type.ips_wo_control)
-        // this is: [ control_id, antibody, ip_meta, ip_bam, control_bam ]
-        // control_bam can be empty if we only have ips_wo_control        
+        // For non-downsampled files, duplicate input ipcontrols for each antibody 
+        ch_bam_by_type
+            .ipcontrols
+            .branch { id, meta, bam ->
+                dsp: meta.input_control_of_antibody && meta.dSp_total_mapped_reads
+                    return [id, meta.input_control_of_antibody, meta, bam]
+                not_dsp: !meta.input_control_of_antibody && !meta.dSp_total_mapped_reads
+                    return [id, meta, bam]
+            }
+            .set { ch_bam_ipcontrols }
+        
+        ch_bam_ipcontrols
+            .not_dsp
+            .combine(ch_bam_by_type.ips_with_ipcontrol, by: 0) // combine by control id only
+            .map { ipcontrol_id, ipcontrol_meta, ipcontrol_bam, ip_antibody, ip_meta, ip_bam ->
+                def meta_clone = ipcontrol_meta.clone()
+                meta_clone.input_control_of_antibody = ip_antibody
+                [ ipcontrol_id, meta_clone.input_control_of_antibody, meta_clone, ipcontrol_bam ]
+            }
+            .unique()
+            .set { ch_bam_ipcontrols_not_dsp }
+
+    // Create channel: [ meta, [ip_bams_merged_reps], [ipcontrol_bams_merged_reps] ]
+    ch_bam_by_type
+        .ips_with_ipcontrol
+        .combine(ch_bam_ipcontrols.dsp.mix(ch_bam_ipcontrols_not_dsp), by: [0, 1])
+        .map { ipcontrol_id, antibody, ip_meta, ip_bam, ipcontrol_meta, ipcontrol_bam ->
+            [ ipcontrol_id, antibody, ip_meta, ip_bam, ipcontrol_bam ]
+        }
+        .mix(ch_bam_by_type.ips_wo_ipcontrol)
         .map { it ->
             def meta_clone = it[2].clone()
-            meta_clone.id = meta_clone.id - ~/_REP\d+$/
-            meta_clone.control = meta_clone.control - ~/_REP\d+$/
-            [ meta_clone.id, it[1], meta_clone, it[3], it[4] ?: [] ]
+            meta_clone.id = meta_clone.id - ~/_bRep_.*$/
+            meta_clone.input_control = meta_clone.input_control - ~/_bRep_.*$/
+            [meta_clone.id, it[1], meta_clone, it[3], it[4] ?: []]
         }
         .groupTuple(by: [0, 1])
-        .map {
-            id, antibody, metas, ip_bams, control_bams ->
-                [ metas[0], ip_bams.flatten(), control_bams.flatten() ]
+        .map { id, antibody, metas, ip_bams, ipcontrol_bams ->
+            [metas[0], ip_bams.flatten(), ipcontrol_bams.flatten()]
         }
-        .set { ch_ip_control_bam_merged_reps }
+        .set { ch_ip_ipcontrol_bam_merged_reps }
 
     // TODO: Print to file for debuggin
-    ch_ip_control_bam_merged_reps
-        .map {
-            meta, ip_bams, control_bams ->
-                "${meta}\t${ip_bams}\t${control_bams}"
+    ch_ip_ipcontrol_bam_merged_reps
+        .map { meta, ip_bams, ipcontrol_bams ->
+            "${meta}\t${ip_bams}\t${ipcontrol_bams}"
         }
-        .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}" )
+        .collectFile(name: 'ch_ip_ipcontrol_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}")
 
 
     //
     // Call peaks with Genrich
     //
     GENRICH (
-        ch_ip_control_bam_merged_reps,
-        ch_blacklist
+        ch_ip_ipcontrol_bam_merged_reps,
+        ch_blacklist.map { it[1] }
     )
     ch_versions = ch_versions.mix(GENRICH.out.versions.first())
 
@@ -105,9 +122,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     // Create channels: [ meta, ip_bam, peaks ]
     ch_bam
         .join(ch_gr_peaks, by: 0)
-        .map {
-            meta, ip_bam, control_bam, peaks ->
-                [ meta, ip_bam, peaks ]
+        .map { meta, ip_bam, ipcontrol_bam, peaks ->
+            [meta, ip_bam, peaks]
         }
         // Split channel by ip_bam
         .transpose()

@@ -26,14 +26,14 @@ workflow SAMTOOLS_STATS_SUMMARY {
     SAMTOOLS_STATS_CAT (
         ch_col_stats
     )
-    ch_versions = ch_versions.mix(SAMTOOLS_STATS_CAT.out.versions.first())
+    ch_versions = ch_versions.mix(SAMTOOLS_STATS_CAT.out.versions)
 
     FINAL_STAT_SUMMARY (
         SAMTOOLS_STATS_CAT.out.cat,
         genome,
         spikein_genome
     )
-    ch_versions = ch_versions.mix(FINAL_STAT_SUMMARY.out.versions.first())
+    ch_versions = ch_versions.mix(FINAL_STAT_SUMMARY.out.versions)
 
     emit:
 

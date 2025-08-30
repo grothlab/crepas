@@ -6,12 +6,12 @@ process GENOME_BLACKLIST_REGIONS {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0':
-        'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/26/2630bdd473cdd42149279090d3dd2a1c0e5d8a88af9346fff4c11ada3fc039ec/data':
+        'community.wave.seqera.io/library/bedtools_gawk:3b83c7920e9b7f4a' }"
 
     input:
     tuple val(meta), path(sizes)
-    path blacklist
+    tuple val(meta2), path(blacklist)
 
     output:
     tuple val(meta), path("*.bed")     , emit: bed
@@ -41,4 +41,15 @@ process GENOME_BLACKLIST_REGIONS {
         END_VERSIONS
         """
     }
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}.${sizes.simpleName}.whitelist"
+    """
+    touch ${prefix}.bed
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
+    END_VERSIONS
+    """
 }

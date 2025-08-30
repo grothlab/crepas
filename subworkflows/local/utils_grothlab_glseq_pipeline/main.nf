@@ -8,7 +8,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { UTILS_NFVALIDATION_PLUGIN } from '../../../subworkflows/nf-core/utils_nfvalidation_plugin'
+include { UTILS_NFSCHEMA_PLUGIN     } from '../../../subworkflows/nf-core/utils_nfschema_plugin'
 include { UTILS_NFCORE_PIPELINE     } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
 include { UTILS_NEXTFLOW_PIPELINE   } from '../../../subworkflows/nf-core/utils_nextflow_pipeline'
 include { completionEmail           } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -16,7 +16,7 @@ include { completionSummary         } from '../../../subworkflows/nf-core/utils_
 include { getWorkflowVersion        } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
 include { logColours                } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
 include { imNotification            } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
-include { paramsSummaryMap          } from 'plugin/nf-validation'
+include { paramsSummaryMap          } from 'plugin/nf-schema'
 
 /*
 ========================================================================================
@@ -28,13 +28,13 @@ workflow PIPELINE_INITIALISATION {
 
     take:
     version           // boolean: Display version and exit
-    help              // boolean: Display help text
     validate_params   // boolean: Boolean whether to validate parameters against the schema at runtime
-    monochrome_logs   // boolean: Do not use coloured log outputs
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
 
     main:
+
+    ch_versions = Channel.empty()
 
     //
     // Print version and exit if required and dump pipeline parameters to JSON file
@@ -49,16 +49,10 @@ workflow PIPELINE_INITIALISATION {
     //
     // Validate parameters and generate parameter summary to stdout
     //
-    pre_help_text = grothLabGlseqLogo(monochrome_logs)
-    post_help_text = '\n' + workflowCitation() + '\n' + dashedLine(monochrome_logs)
-    def String workflow_command = "nextflow run ${workflow.manifest.name} -profile <docker/singularity/.../institute> --input samplesheet.csv --genome GRCh37 --outdir <OUTDIR>"
-    UTILS_NFVALIDATION_PLUGIN (
-        help,
-        workflow_command,
-        pre_help_text,
-        post_help_text,
+    UTILS_NFSCHEMA_PLUGIN (
+        workflow,
         validate_params,
-        "nextflow_schema.json"
+        null
     )
 
     //
@@ -67,13 +61,267 @@ workflow PIPELINE_INITIALISATION {
     UTILS_NFCORE_PIPELINE (
         nextflow_cli_args
     )
+
     //
     // Custom validation for pipeline parameters
     //
-    // commenting-out this is only a temporary fix to avoid
-    // the pipeline from failing due to missing genome in igenomes
-    //validateInputParameters()
+    validateInputParameters()
 
+    emit:
+    versions = ch_versions
+
+}
+
+
+/*
+========================================================================================
+    SUBWORKFLOW FOR SAMPLESHEET CHECKING
+========================================================================================
+*/
+
+// List of cases to handle
+
+// 1. Value in `input_control` column must be present in the `sample` column
+// 2. strandedness must be specified for SCAR-seq and OK-seq samples and must not be specified for other exp_types
+// 3. Antibody must be specified for ChIP-seq and ChIP-exo samples, but must not be specified if input_control is set or if exp_type is not ChIP-seq or ChIP-exo
+// 4. TODO: check that technical replicate is not duplicated within a biological replicate
+
+workflow INPUT_CHECK {
+    take:
+    ch_fastq        // channel: [ val(meta), [ fastq_1, fastq_2, fastq_umi ] ]
+    ch_seq_center  // string: sequencing center for read group
+
+    main:
+
+
+    // TODO: print for debugging
+    ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
+        .collectFile(name: 'ch_fastq_1.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+
+    // Check if within each biological replicate all technical replicates are set
+    ch_fastq
+        .map { meta, fastqs -> [ meta.id, meta.brep, meta, fastqs ] }
+        .groupTuple(by: [0,1])
+        .map { id, brep, metas, fastq_lists ->
+            def new_metas = metas
+            if (metas.any { it.trep }) {
+                //println "There is a technical replicate set for sample group: ${sample_group}"
+                if (!metas.every { it.trep }) {
+                    error(
+                        """
+                        ERROR: If any technical replicate within a biological replicate is assigned an ID, then all the technical replicates within that biological replicate must have an ID. 
+
+                        Check biological replicate '${brep}' of sample ${id} in the samplesheet.
+
+                        """.stripIndent()
+                    )
+                }
+            } else {
+                //println "No technical replicates set for sample group: ${sample_group}"
+                // Assign a technical replicate number
+                def trep_counter = 1
+                new_metas = metas.collect { meta ->
+                    def meta_clone = meta.clone()
+                    meta_clone.trep = trep_counter
+                    meta_clone.input_trep = !meta.is_input_control ? meta_clone.trep : []
+                    trep_counter += 1
+                    return meta_clone
+                }
+            }
+            // Check that all meta.trep are unique
+            def trep_ids = new_metas.collect { it.trep }
+            if (trep_ids.size() != trep_ids.unique().size()) {
+                error(
+                    """
+                    ERROR: Technical replicate IDs must be unique within each biological replicate.
+
+                    Check biological replicate '${brep}' of sample ${id} in the samplesheet.
+
+                    """.stripIndent()
+                )
+            }
+            
+            return [ id, brep, new_metas, fastq_lists ]
+        }
+        .transpose()
+        .map { id, brep, meta, fastqs -> [ meta, fastqs ] }
+        .set { ch_fastq }
+
+    // TODO: print for debugging
+    ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
+        .collectFile(name: 'ch_fastq_2.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+    // Count technical replicates per biological replicate to avoid .groupTuple() bottlenecks downstream
+    // See: https://nextflow-io.github.io/nf-schema/latest/samplesheets/examples/#combining-a-channel
+    ch_fastq
+        .map { meta, fastqs -> 
+            def id_brep = "${meta.id}_${meta.brep}"
+            [ id_brep ]
+        }
+        .flatten() // avoid e.g., "[id_brep]:1"
+        .reduce([:]) { trep_count, id_brep ->
+            trep_count[id_brep] = (trep_count[id_brep] ?: 0) + 1
+            trep_count
+        }
+        .combine(ch_fastq)
+        .map { trep_count, meta, fastqs -> 
+            def meta_clone = meta.clone()
+            def id_brep = "${meta.id}_${meta.brep}"
+            meta_clone.trep_count = trep_count[id_brep]
+            [ meta_clone, fastqs ]
+        }
+        .set { ch_fastq }
+
+    // TODO: print for debugging
+    ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
+        .collectFile(name: 'ch_fastq_3.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+
+    ch_fastq
+        //.combine(seq_center)
+        .map { meta, fastqs -> //, seq_center ->
+            def meta_clone = meta.clone()
+            meta_clone.id = "${meta.exp_type}_${meta.id}_bRep_${meta.brep}_tRep_${meta.trep}"
+            meta_clone.original_id = meta.id
+            if (meta.input_control) {
+                meta_clone.input_control = "${meta.exp_type}_${meta.input_control}_bRep_${meta.input_brep}_tRep_${meta.input_trep}"
+            }
+
+            def read_group = "\'@RG\\tID:${meta_clone.id}\\tSM:${meta_clone.id - ~/_tRep_.*$/}\\tPL:ILLUMINA\\tLB:${meta_clone.id}\\tPU:1\'"
+            if (ch_seq_center) {
+                read_group = "\'@RG\\tID:${meta_clone.id}\\tSM:${meta_clone.id - ~/_tRep_.*$/}\\tPL:ILLUMINA\\tLB:${meta_clone.id}\\tPU:1\\tCN:${ch_seq_center}\'"
+            }
+            meta_clone.read_group = read_group
+            [ meta_clone, fastqs ]
+        }
+        .set { ch_fastq } 
+
+    
+
+    // TODO: print for debugging
+    ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
+        .collectFile(name: 'ch_fastq_4.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+    //
+    // PARSING EXTRA META FIELDS
+    //
+    // get list of input control samples
+    ch_fastq
+        .map { meta, fastqs -> meta.input_control }
+        .unique()
+        .collect()
+        .map { it -> [it] } // unflatten
+        .set { ch_ipcontrol_list }
+
+    // TODO: print for debugging
+    ch_ipcontrol_list
+        .map { ipcontrol -> "${ipcontrol}" }
+        .collectFile(name: 'ch_ipcontrol_list.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+
+    // Add meta.is_input_control to ch_fastq
+    ch_fastq
+        .combine(ch_ipcontrol_list.ifEmpty([[]]))// .ifEmpty([[]]) is to avoid empty ch_fastq if there are no input controls
+        .map { meta, fastqs, ipcontrol_list ->
+            def meta_clone = meta.clone()
+            meta_clone.is_input_control = ipcontrol_list.contains(meta.id)
+            [ meta_clone, fastqs ]
+        }
+        .set { ch_fastq }
+
+    // TODO: print for debugging
+    ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
+        .collectFile(name: 'ch_fastq_5.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+    
+    // Create list of samples
+    ch_fastq
+        .map { meta, fastqs -> meta.id }
+        .unique()
+        .collect()
+        .map { it -> [it] } // unflatten
+        .set { ch_samples }
+
+    // TODO: print for debugging
+    ch_samples
+        .map { sample_list -> "${sample_list}" }
+        .collectFile(name: 'ch_samples.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+    ch_ipcontrol_list
+        .flatten()
+        .combine(ch_samples)
+        .map { ip_control, sample_list ->
+            def ip_control_exists = sample_list.contains(ip_control)
+            if (!ip_control_exists) {
+                error(
+                """
+                ERROR:  The `input_control` sample '${ip_control}' does not exist in your sample list:
+
+                ${sample_list}
+
+                Please check your samplesheet and ensure all `input_control` values refer to an existing ID in the `sample` column.
+
+                If you specified an `input_control_biological_replicate` or `input_control_technical_replicate`, also ensure that there is an input control with those values in the `biological_replicate` and `technical_replicate` columns.
+
+                """.stripIndent()
+                )
+            }
+            return [ ip_control ]
+        }
+        .collect()
+        .map { it -> [it] } // unflatten
+        .set { ch_ipcontrols }
+
+    // TODO: print for debugging
+    ch_ipcontrols
+        .map { ip_control_list -> "${ip_control_list}" }
+        .collectFile(name: 'ch_ipcontrols.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+    
+    // filter ch_fastq to only include samples whose meta.input_control is in ch_ipcontrols 
+    ch_fastq
+        .combine(ch_ipcontrols.ifEmpty([[]]))
+        .filter { meta, fastqs, ipcontrol_list ->
+            ipcontrol_list.contains(meta.input_control) || !meta.input_control
+        }
+        // use map to check that meta.strandedness is set for SCAR-seq and OK-seq samples
+        .map { meta, fastqs, ipcontrol_list ->
+            // Input controls checks
+            if (meta.is_input_control && meta.input_control) {
+                error("ERROR: Input control samples must not have an `input_control` value set. Check sample: ${meta.id}")
+            }
+            // Strandedness checks
+            if (['SCAR-seq', 'OK-seq'].contains(meta.exp_type)) {
+                if (!meta.strandedness) {
+                    error("ERROR: Strandedness must be specified for SCAR-seq and OK-seq samples. Check sample: ${meta.id}")
+                }
+            } else if (meta.strandedness) {
+                error("ERROR: Strandedness must not be specified for samples other than SCAR-seq and OK-seq. Check sample: ${meta.id}")
+            }
+            // Antibody checks
+            if (['ChIP-seq', 'ChIP-exo', 'ChOR-seq', 'SCAR-seq'].contains(meta.exp_type)) {
+                if (!meta.antibody && !meta.is_input_control) {
+                    log.warn("Antibody should be specified for non-input ChIP-seq, ChIP-exo, ChOR-seq, and SCAR-seq samples. Check sample: ${meta.id}")
+                }
+                if (meta.antibody && meta.is_input_control) {
+                    error("ERROR: Antibody must not be specified for input control samples. Check sample: ${meta.id}")
+                }
+            } else {
+                if (meta.antibody) {
+                    error("ERROR: Antibody must not be specified for samples other than ChIP-seq, ChIP-exo, ChOR-seq, and SCAR-seq. Check sample: ${meta.id}")
+                }
+            }
+            return [ meta, fastqs ]
+        }
+        .set { ch_fastq }
+
+    // TODO: print for debugging
+    ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
+        .collectFile(name: 'ch_fastq_6.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+
+    emit:
+    fastq = ch_fastq                                    // channel: [ val(meta), [ reads ] ]
+    versions = Channel.empty() // channel: [ versions.yml ]
 }
 
 /*
@@ -102,7 +350,15 @@ workflow PIPELINE_COMPLETION {
     //
     workflow.onComplete {
         if (email || email_on_fail) {
-            completionEmail(summary_params, email, email_on_fail, plaintext_email, outdir, monochrome_logs, multiqc_report.toList())
+            completionEmail(
+                summary_params,
+                email,
+                email_on_fail,
+                plaintext_email,
+                outdir,
+                monochrome_logs,
+                multiqc_report.toList(),
+            )
         }
 
         completionSummary(monochrome_logs)
@@ -127,21 +383,34 @@ workflow PIPELINE_COMPLETION {
 //
 def validateInputParameters() {
 
-    genomeExistsError()
+    // commenting-out this is only a temporary fix to avoid
+    // the pipeline from failing due to missing genome in igenomes
+    //genomeExistsError()
 
     if (!params.fasta) {
         error("Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file.")
     }
 
-    if (!params.gtf && !params.gff) {
+    if (!params.gtf && !params.containsKey('gff')) {
         error("No GTF or GFF3 annotation specified! The pipeline requires at least one of these files.")
     }
 
-    if (params.gtf && params.gff) {
+    if (params.gtf && params.containsKey('gff')) {
         gtfGffWarn(log)
     }
 
-    if (!params.macs_gsize) {
+    if (!params.skip_flTbl) {
+        if (!params.containsKey('blacklist')) {
+            if (params.refgenie_ignore && params.igenomes_ignore) {
+                error("Blacklist filtering is enabled ('--skip_flTbl false'), a blacklist file ('--blacklist') has not been provided, and reference genomes are being ignored ('--refgenie_ignore true' and '--igenomes_ignore true'). You should set the pipeline to skip blacklist filtering ('--skip_flTbl') or provide a blacklist.")
+            } else if (!getGenomeAttribute('blacklist')) {
+                error("Blacklist filtering is enabled ('--skip_flTbl false') but no valid blacklist file has been found among reference genomes (iGenomes or Refgenie). You should set the pipeline to skip blacklist filtering ('--skip_flTbl') or provide a blacklist.")
+            }
+        error("Blacklist filtering is enabled ('--skip_flTbl false') but no valid blacklist file has been provided. You should set the pipeline to skip blacklist filtering ('--skip_flTbl') or provide a blacklist.")
+        }
+    }
+
+    if (!params.containsKey('macs_gsize')) {
         macsGsizeWarn(log)
     }
 
@@ -278,63 +547,4 @@ def macsGsizeWarn(log) {
         "  It will be auto-calculated by 'khmer unique-kmers.py' using the '--read_length' parameter.\n" +
         "  Explicitly provide '--macs_gsize macs3_genome_size' to change this behaviour.\n" +
         "==================================================================================="
-}
-
-
-def grothLabGlseqLogo(monochrome_logs = true) {
-    Map colors = logColours(monochrome_logs)
-    String.format(
-        """\n
-        ${dashedLine(monochrome_logs)}
-${colors.white}█████████████████████████████████████████████████████████████████████████████${colors.reset}
-${colors.white}█▌/////////////////////////////////////////////////////////////////////////▐█${colors.reset}
-${colors.white}█▌/////////////////////////////////////////////////////////////////////////▐█${colors.reset}
-${colors.white}█▌////██████╗/██████╗//██████╗/████████╗██╗//██╗██╗//////█████╗/██████╗////▐█${colors.reset}
-${colors.white}█▌///██╔════╝/██╔══██╗██╔═══██╗╚══██╔══╝██║//██║██║/////██╔══██╗██╔══██╗///▐█${colors.reset}
-${colors.white}█▌///██║//███╗██████╔╝██║///██║///██║///███████║██║/////███████║██████╔╝///▐█${colors.reset}
-${colors.white}█▌///██║///██║██╔══██╗██║///██║///██║///██╔══██║██║/////██╔══██║██╔══██╗///▐█${colors.reset}
-${colors.white}█▌///╚██████╔╝██║//██║╚██████╔╝///██║///██║//██║███████╗██║//██║██████╔╝///▐█${colors.reset}
-${colors.white}█▌////╚═════╝/╚═╝//╚═╝/╚═════╝////╚═╝///╚═╝//╚═╝╚══════╝╚═╝//╚═╝╚═════╝////▐█${colors.reset}
-${colors.white}█▌/////////////////////////////////////////////////////////////////////////▐█${colors.reset}
-${colors.white}█▌////////////////██████╗/██╗/////███████╗███████╗/██████╗/////////////////▐█${colors.reset}
-${colors.white}█▌///////////////██╔════╝/██║/////██╔════╝██╔════╝██╔═══██╗////////////////▐█${colors.reset}
-${colors.white}█▌///////////////██║//███╗██║/////███████╗█████╗//██║///██║////////////////▐█${colors.reset}
-${colors.white}█▌///////////////██║///██║██║/////╚════██║██╔══╝//██║▄▄/██║////////////////▐█${colors.reset}
-${colors.white}█▌///////////////╚██████╔╝███████╗███████║███████╗╚██████╔╝////////////////▐█${colors.reset}
-${colors.white}█▌////////////////╚═════╝/╚══════╝╚══════╝╚══════╝/╚══▀▀═╝/////////////////▐█${colors.reset}
-${colors.white}█▌/////////////////////////////////////////////////////////////////////////▐█${colors.reset}
-${colors.white}█▌/////////////////////////////////////////////////////////////////////////▐█${colors.reset}
-${colors.white}█████████████████████████████████████████████████████████████████████████████${colors.reset}
-
-${colors.purple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
-        ${dashedLine(monochrome_logs)}
-        """.stripIndent()
-    )
-}
-
-//
-// Return dashed line
-//
-def dashedLine(monochrome_logs=true) {
-    Map colors = logColours(monochrome_logs)
-    return "-${colors.dim}----------------------------------------------------${colors.reset}-"
-}
-
-//
-// Citation string for pipeline
-//
-def workflowCitation() {
-    def temp_doi_ref = ""
-    String[] manifest_doi = workflow.manifest.doi.tokenize(",")
-    // Using a loop to handle multiple DOIs
-    // Removing `https://doi.org/` to handle pipelines using DOIs vs DOI resolvers
-    // Removing ` ` since the manifest.doi is a string and not a proper list
-    for (String doi_ref: manifest_doi) temp_doi_ref += "  https://doi.org/${doi_ref.replace('https://doi.org/', '').replace(' ', '')}\n"
-    return "If you use ${workflow.manifest.name} for your analysis please cite:\n\n" +
-        "* The pipeline\n" +
-        temp_doi_ref + "\n" +
-        "* The nf-core framework\n" +
-        "  https://doi.org/10.1038/s41587-020-0439-x\n\n" +
-        "* Software dependencies\n" +
-        "  https://github.com/${workflow.manifest.name}/blob/master/CITATIONS.md"
 }

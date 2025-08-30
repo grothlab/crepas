@@ -19,101 +19,73 @@
 
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use the `--input` parameter to specify its location. It has to be a comma-separated (`.csv`) file with with 11 columns and a header row as explained below.
+You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use the `--input` parameter to specify its location:
 
 ```bash
 --input <path_to_samplesheet_csv>
 ```
+It has to be a comma-separated (`.csv`) file with with at least the `sample`, `biological_replicate`, `exp_type` and `fastq_1` columns, and a header row as explained below. The columns can be provided in any order:
 
-| Column   | Description |
-| -------- | ----------- |
-| `sample` |  Custom sample name. This identifier should be identical when you have multiple replicates from the same experimental group; just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be `1`. Avoid including the experiment type in this identifier, since it will be parsed from the `exp_type` column and prepended to the sample name by default. |
-| `fastq_1` | **Full path** to FASTQ file for reads 1. File has to be gzipped and have the extension `.fastq.gz` or `.fq.gz`. |
-| `fastq_2` | **Full path** to FASTQ file for reads 2. File has to be gzipped and have the extension `.fastq.gz` or `.fq.gz`. Leave empty for single-end data. |
-| `fastq_umi` | **Full path** to the corresponding UMI FASTQ file for deduplication. File has to be gzipped and have the extension `.fastq.gz` or `.fq.gz`. Leave empty if a separate UMI file is not available. |
-| `okseq_part_file` |**Full path** to the corresponding OK-seq partition file. Leave empty if OK-seq data is not available. Only for SCAR-seq data. |
-| `replicate` | Integer representing replicate number. This will be identical for re-sequenced libraries (technical replicates). Must start from `1..<number of replicates>`. |
-| `exp_type` | One of `chipseq`, `atacseq`, `scarseq`, `chorseq`, `ChIP-exo`, or `OK-seq` |
-| `strandedness` | Either `forward` or `reverse`: <br><br><ul><li>If the library was prepared using NGS indexed PentAdapter™ adapters (PentaBase ApS, Denmark), as in the [SCAR-seq paper](https://doi.org/10.1038/s41596-021-00585-3), set this to `forward`.</li><li>If the library was prepared using [xGen™ UDI-UMI Adapters](https://eu.idtdna.com/page/products/next-generation-sequencing/ngs-adapters-indexing-primers) (Integrated DNA Technologies, Inc.), the [insert strandedness is flipped](https://eu.idtdna.com/pages/support/faqs/can-the-xgen-unique-dual-index-umi-adapters-be-used-for-rna-seq), so set this to `reverse`.</li></ul><br>This field is only relevant for SCAR-seq and OK-seq; leave it empty for unstranded data (ChIP-seq, ChIP-exo, ChOR-seq, or ATAC-seq). |
-| `antibody` | This column is required to separate the downstream consensus peak merging for different antibodies. It is not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks. It should be empty in the case of input control rows. It is required when the `control` field is specified. |
-| `control` | This column should contain the `sample` identifier of the corresponding input control for the IP. It should be empty in the case of input control rows. It is required when the `antibody` field is specified. |
-| `control_replicate` | Integer representing the replicate number for the corresponding input control sample. It should be empty in the case of input control rows. |
+| Column (header)   | Description | Type | Required |
+| -------- | ----------- | --------- | -------- |
+| `sample` |  Custom sample (or condition) name. This identifier must be the same for all biological and technical replicates of the same sample; just specify a `biological_replicate` appropriately. For output file naming purposes, the sequencing experiment type is parsed from the `exp_type` column and prepended to the `sample` identifier, so you should avoid including the experiment type as part of the `sample` name. It cannot contain spaces. | `string` | true |
+| `biological_replicate` | String or integer representing the biological replicate. This identifier should be identical for re-sequenced libraries (technical replicates). If you do not have biological replicates you can set the `biological_replicate` to any number or string for each of your samples. It cannot contain spaces. | `string` or `integer` | true |
+| `technical_replicate` | Identifier representing the technical replicate. It cannot contain spaces. | `string` or `integer` |  |
+| `input_control` | This column should contain the `sample` identifier of the corresponding input control for that sample. It should be empty if an input control is not available or in the case of input control rows. | `string` |  |
+| `input_control_biological_replicate` | String or integer representing the biological replicate of the corresponding input control sample. It should be empty in the case of input control rows. | `string` or `integer` |  |
+| `input_control_technical_replicate` | String or integer representing the technical replicate of the corresponding input control sample. It should be empty in the case of input control rows. | `string` or `integer` |  |
+| `exp_type` | One of `ChIP-seq`, `ATAC-seq`, `SCAR-seq`, `ChOR-seq`, `ChIP-exo`, or `OK-seq` | `string` | true |
+| `strandedness` | Either `forward` or `reverse`: <br><br><ul><li>If the library was prepared using NGS indexed PentAdapter™ adapters (PentaBase ApS, Denmark), as in the [SCAR-seq paper](https://doi.org/10.1038/s41596-021-00585-3), set this to `forward`.</li><li>If the library was prepared using [xGen™ UDI-UMI Adapters](https://eu.idtdna.com/page/products/next-generation-sequencing/ngs-adapters-indexing-primers) (Integrated DNA Technologies, Inc.), the [insert strandedness is flipped](https://eu.idtdna.com/pages/support/faqs/can-the-xgen-unique-dual-index-umi-adapters-be-used-for-rna-seq), so set this to `reverse`.</li></ul><br>This field is only relevant for SCAR-seq and OK-seq; leave it empty for unstranded data (ChIP-seq, ChIP-exo, ChOR-seq, or ATAC-seq). | `string` |  |
+| `antibody` | This column is required to separate the downstream consensus peak merging for different antibodies. It is not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks. It should be empty in the case of input control rows. | `string` |  |
+| `fastq_1` | GZIP-compressed FastQ file for reads 1. Must have the extension `.fastq.gz` or `.fq.gz`. | `string` (`file-path`) | true |
+| `fastq_2` | GZIP-compressed FastQ file for reads 2. Must have the extension `.fastq.gz` or `.fq.gz`. Leave empty for single-end data. | `string` (`file-path`) |  |
+| `fastq_umi` | GZIP-compressed FastQ file for UMI reads. Must have the extension `.fastq.gz` or `.fq.gz`. Leave empty if a separate UMI file is not available. | `string` (`file-path`) |  |
 
 
 ### Example 1: Multiple biological replicates
 
 This is an example of a samplesheet for a ChIP-seq experiment with one condition and two biological replicates for each antibody:
 
-| sample | fastq_1 | fastq_2 | fastq_umi | okseq_part_file | replicate | exp_type | strandedness | antibody | control | control_replicate |
-| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| condition_1_H3K9me3 | condition_1_bRep1_H3K9me3_R1.fastq.gz | condition_1_bRep1_H3K9me3_R3.fastq.gz | condition_1_bRep1_H3K9me3_R2.fastq.gz | | 1 | chipseq | | H3K9me3 | condition_1_INPUT | 1 |
-| condition_1_H3K9me3 | condition_1_bRep2_H3K9me3_R1.fastq.gz | condition_1_bRep2_H3K9me3_R3.fastq.gz | condition_1_bRep2_H3K9me3_R2.fastq.gz | | 2 | chipseq | | H3K9me3 | condition_1_INPUT | 2 |
-| condition_1_H3K27ac | condition_1_bRep1_H3K27ac_R1.fastq.gz | condition_1_bRep1_H3K27ac_R3.fastq.gz | condition_1_bRep1_H3K27ac_R2.fastq.gz | | 1 | chipseq | | H3K27ac | condition_1_INPUT | 1 |
-| condition_1_H3K27ac | condition_1_bRep2_H3K27ac_R1.fastq.gz | condition_1_bRep2_H3K27ac_R3.fastq.gz | condition_1_bRep2_H3K27ac_R2.fastq.gz | | 2 | chipseq | | H3K27ac | condition_1_INPUT | 2 |
-| condition_1_INPUT | condition_1_bRep1_INPUT_R1.fastq.gz | condition_1_bRep1_INPUT_R3.fastq.gz | condition_1_bRep1_INPUT_R2.fastq.gz | | 1 | chipseq | | | | |
-condition_1_INPUT | condition_1_bRep2_INPUT_R1.fastq.gz | condition_1_bRep2_INPUT_R3.fastq.gz | condition_1_bRep2_INPUT_R2.fastq.gz | | 2 | chipseq | | | | |
+| sample | fastq_1 | fastq_2 | fastq_umi | biological_replicate | exp_type | strandedness | antibody | input_control | input_control_biological_replicate |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| condition_1_H3K9me3 | condition_1_bRep1_H3K9me3_R1.fastq.gz | condition_1_bRep1_H3K9me3_R3.fastq.gz | condition_1_bRep1_H3K9me3_R2.fastq.gz | 1 | ChIP-seq | | H3K9me3 | condition_1_INPUT | 1 |
+| condition_1_H3K9me3 | condition_1_bRep2_H3K9me3_R1.fastq.gz | condition_1_bRep2_H3K9me3_R3.fastq.gz | condition_1_bRep2_H3K9me3_R2.fastq.gz | 2 | ChIP-seq | | H3K9me3 | condition_1_INPUT | 2 |
+| condition_1_H3K27ac | condition_1_bRep1_H3K27ac_R1.fastq.gz | condition_1_bRep1_H3K27ac_R3.fastq.gz | condition_1_bRep1_H3K27ac_R2.fastq.gz | 1 | ChIP-seq | | H3K27ac | condition_1_INPUT | 1 |
+| condition_1_H3K27ac | condition_1_bRep2_H3K27ac_R1.fastq.gz | condition_1_bRep2_H3K27ac_R3.fastq.gz | condition_1_bRep2_H3K27ac_R2.fastq.gz | 2 | ChIP-seq | | H3K27ac | condition_1_INPUT | 2 |
+| condition_1_INPUT | condition_1_bRep1_INPUT_R1.fastq.gz | condition_1_bRep1_INPUT_R3.fastq.gz | condition_1_bRep1_INPUT_R2.fastq.gz | 1 | ChIP-seq | | | | |
+| condition_1_INPUT | condition_1_bRep2_INPUT_R1.fastq.gz | condition_1_bRep2_INPUT_R3.fastq.gz | condition_1_bRep2_INPUT_R2.fastq.gz | 2 | ChIP-seq | | | | |
 
 > [!NOTE]
-> You can download this example samplesheet [here](../assets/samplesheets/ex1_multiBioRep_samplesheet.csv) or copy and save the cell below:
-
-```csv
-sample,fastq_1,fastq_2,fastq_umi,okseq_part_file,replicate,exp_type,strandedness,antibody,control,control_replicate
-condition_1_H3K9me3,condition_1_bRep1_H3K9me3_R1.fastq.gz,condition_1_bRep1_H3K9me3_R3.fastq.gz,condition_1_bRep1_H3K9me3_R2.fastq.gz,,1,chipseq,,H3K9me3,condition_1_INPUT,1
-condition_1_H3K9me3,condition_1_bRep2_H3K9me3_R1.fastq.gz,condition_1_bRep2_H3K9me3_R3.fastq.gz,condition_1_bRep2_H3K9me3_R2.fastq.gz,,2,chipseq,,H3K9me3,condition_1_INPUT,2
-condition_1_H3K27ac,condition_1_bRep1_H3K27ac_R1.fastq.gz,condition_1_bRep1_H3K27ac_R3.fastq.gz,condition_1_bRep1_H3K27ac_R2.fastq.gz,,1,chipseq,,H3K27ac,condition_1_INPUT,1
-condition_1_H3K27ac,condition_1_bRep2_H3K27ac_R1.fastq.gz,condition_1_bRep2_H3K27ac_R3.fastq.gz,condition_1_bRep2_H3K27ac_R2.fastq.gz,,2,chipseq,,H3K27ac,condition_1_INPUT,2
-condition_1_INPUT,condition_1_bRep1_INPUT_R1.fastq.gz,condition_1_bRep1_INPUT_R3.fastq.gz,condition_1_bRep1_INPUT_R2.fastq.gz,,1,chipseq,,,,
-condition_1_INPUT,condition_1_bRep2_INPUT_R1.fastq.gz,condition_1_bRep2_INPUT_R3.fastq.gz,condition_1_bRep2_INPUT_R2.fastq.gz,,2,chipseq,,,,
-```
+> You can download this example samplesheet [here](../assets/samplesheets/ex1_multiBioRep_samplesheet.csv).
 
 ### Example 2: Multiple runs of the same library (technical replicates)
 
-Both the `sample` and `replicate` identifiers have to be the same when you have sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis.
+Both the `sample` and `biological_replicate` identifiers have to be the same when you have sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis.
+
+> [!NOTE]
+> As shown below, the `technical_replicate` column is optional; if not provided for any specific biological replicate, the pipeline will assign an integer indentifier [1, 2, ...] to each technical replicate of that biological replicate. On the other hand, if you do want your technical-replicate-level output files to be named with a specific identifier, you should specify the `technical_replicate` column in the samplesheet.
+
 
 This is an example of a samplesheet for a ChIP-seq experiment with one condition, two biological replicates for each antibody, and two technical replicates for each biological replicate:
 
-| sample | fastq_1 | fastq_2 | fastq_umi | okseq_part_file | replicate | exp_type | strandedness | antibody | control | control_replicate |
-| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| condition_1_H3K9me3 | condition_1_bRep1_tRep1_H3K9me3_R1.fastq.gz | condition_1_bRep1_tRep1_H3K9me3_R3.fastq.gz | condition_1_bRep1_tRep1_H3K9me3_R2.fastq.gz | | 1 | chipseq | | H3K9me3 | condition_1_INPUT | 1 |
-| condition_1_H3K9me3 | condition_1_bRep1_tRep2_H3K9me3_R1.fastq.gz | condition_1_bRep1_tRep2_H3K9me3_R3.fastq.gz | condition_1_bRep1_tRep2_H3K9me3_R2.fastq.gz | | 1 | chipseq | | H3K9me3 | condition_1_INPUT | 1 |
-| condition_1_H3K9me3 | condition_1_bRep2_tRep1_H3K9me3_R1.fastq.gz | condition_1_bRep2_tRep1_H3K9me3_R3.fastq.gz | condition_1_bRep2_tRep1_H3K9me3_R2.fastq.gz | | 2 | chipseq | | H3K9me3 | condition_1_INPUT | 2 |
-| condition_1_H3K9me3 | condition_1_bRep2_tRep2_H3K9me3_R1.fastq.gz | condition_1_bRep2_tRep2_H3K9me3_R3.fastq.gz | condition_1_bRep2_tRep2_H3K9me3_R2.fastq.gz | | 2 | chipseq | | H3K9me3 | condition_1_INPUT | 2 |
-| condition_1_H3K27ac | condition_1_bRep1_tRep1_H3K27ac_R1.fastq.gz | condition_1_bRep1_tRep1_H3K27ac_R3.fastq.gz | condition_1_bRep1_tRep1_H3K27ac_R2.fastq.gz | | 1 | chipseq | | H3K27ac | condition_1_INPUT | 1 |
-| condition_1_H3K27ac | condition_1_bRep1_tRep2_H3K27ac_R1.fastq.gz | condition_1_bRep1_tRep2_H3K27ac_R3.fastq.gz | condition_1_bRep1_tRep2_H3K27ac_R2.fastq.gz | | 1 | chipseq | | H3K27ac | condition_1_INPUT | 1 |
-| condition_1_H3K27ac | condition_1_bRep2_tRep1_H3K27ac_R1.fastq.gz | condition_1_bRep2_tRep1_H3K27ac_R3.fastq.gz | condition_1_bRep2_tRep1_H3K27ac_R2.fastq.gz | | 2 | chipseq | | H3K27ac | condition_1_INPUT | 2 |
-| condition_1_H3K27ac | condition_1_bRep2_tRep2_H3K27ac_R1.fastq.gz | condition_1_bRep2_tRep2_H3K27ac_R3.fastq.gz | condition_1_bRep2_tRep2_H3K27ac_R2.fastq.gz | | 2 | chipseq | | H3K27ac | condition_1_INPUT | 2 |
-| condition_1_INPUT | condition_1_bRep1_tRep1_INPUT_R1.fastq.gz | condition_1_bRep1_tRep1_INPUT_R3.fastq.gz | condition_1_bRep1_tRep1_INPUT_R2.fastq.gz | | 1 | chipseq | | | | |
-| condition_1_INPUT | condition_1_bRep1_tRep2_INPUT_R1.fastq.gz | condition_1_bRep1_tRep2_INPUT_R3.fastq.gz | condition_1_bRep1_tRep2_INPUT_R2.fastq.gz | | 1 | chipseq | | | | |
-| condition_1_INPUT | condition_1_bRep2_tRep1_INPUT_R1.fastq.gz | condition_1_bRep2_tRep1_INPUT_R3.fastq.gz | condition_1_bRep2_tRep1_INPUT_R2.fastq.gz | | 2 | chipseq | | | | |
-| condition_1_INPUT | condition_1_bRep2_tRep2_INPUT_R1.fastq.gz | condition_1_bRep2_tRep2_INPUT_R3.fastq.gz | condition_1_bRep2_tRep2_INPUT_R2.fastq.gz | | 2 | chipseq | | | | |
+| sample | fastq_1 | fastq_2 | fastq_umi | biological_replicate | exp_type | strandedness | antibody | input_control | input_control_biological_replicate |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| condition_1_H3K9me3 | condition_1_bRep1_tRep1_H3K9me3_R1.fastq.gz | condition_1_bRep1_tRep1_H3K9me3_R3.fastq.gz | condition_1_bRep1_tRep1_H3K9me3_R2.fastq.gz | 1 | ChIP-seq | | H3K9me3 | condition_1_INPUT | 1 |
+| condition_1_H3K9me3 | condition_1_bRep1_tRep2_H3K9me3_R1.fastq.gz | condition_1_bRep1_tRep2_H3K9me3_R3.fastq.gz | condition_1_bRep1_tRep2_H3K9me3_R2.fastq.gz | 1 | ChIP-seq | | H3K9me3 | condition_1_INPUT | 1 |
+| condition_1_H3K9me3 | condition_1_bRep2_tRep1_H3K9me3_R1.fastq.gz | condition_1_bRep2_tRep1_H3K9me3_R3.fastq.gz | condition_1_bRep2_tRep1_H3K9me3_R2.fastq.gz | 2 | ChIP-seq | | H3K9me3 | condition_1_INPUT | 2 |
+| condition_1_H3K9me3 | condition_1_bRep2_tRep2_H3K9me3_R1.fastq.gz | condition_1_bRep2_tRep2_H3K9me3_R3.fastq.gz | condition_1_bRep2_tRep2_H3K9me3_R2.fastq.gz | 2 | ChIP-seq | | H3K9me3 | condition_1_INPUT | 2 |
+| condition_1_H3K27ac | condition_1_bRep1_tRep1_H3K27ac_R1.fastq.gz | condition_1_bRep1_tRep1_H3K27ac_R3.fastq.gz | condition_1_bRep1_tRep1_H3K27ac_R2.fastq.gz | 1 | ChIP-seq | | H3K27ac | condition_1_INPUT | 1 |
+| condition_1_H3K27ac | condition_1_bRep1_tRep2_H3K27ac_R1.fastq.gz | condition_1_bRep1_tRep2_H3K27ac_R3.fastq.gz | condition_1_bRep1_tRep2_H3K27ac_R2.fastq.gz | 1 | ChIP-seq | | H3K27ac | condition_1_INPUT | 1 |
+| condition_1_H3K27ac | condition_1_bRep2_tRep1_H3K27ac_R1.fastq.gz | condition_1_bRep2_tRep1_H3K27ac_R3.fastq.gz | condition_1_bRep2_tRep1_H3K27ac_R2.fastq.gz | 2 | ChIP-seq | | H3K27ac | condition_1_INPUT | 2 |
+| condition_1_H3K27ac | condition_1_bRep2_tRep2_H3K27ac_R1.fastq.gz | condition_1_bRep2_tRep2_H3K27ac_R3.fastq.gz | condition_1_bRep2_tRep2_H3K27ac_R2.fastq.gz | 2 | ChIP-seq | | H3K27ac | condition_1_INPUT | 2 |
+| condition_1_INPUT | condition_1_bRep1_tRep1_INPUT_R1.fastq.gz | condition_1_bRep1_tRep1_INPUT_R3.fastq.gz | condition_1_bRep1_tRep1_INPUT_R2.fastq.gz | 1 | ChIP-seq | | | | |
+| condition_1_INPUT | condition_1_bRep1_tRep2_INPUT_R1.fastq.gz | condition_1_bRep1_tRep2_INPUT_R3.fastq.gz | condition_1_bRep1_tRep2_INPUT_R2.fastq.gz | 1 | ChIP-seq | | | | |
+| condition_1_INPUT | condition_1_bRep2_tRep1_INPUT_R1.fastq.gz | condition_1_bRep2_tRep1_INPUT_R3.fastq.gz | condition_1_bRep2_tRep1_INPUT_R2.fastq.gz | 2 | ChIP-seq | | | | |
+| condition_1_INPUT | condition_1_bRep2_tRep2_INPUT_R1.fastq.gz | condition_1_bRep2_tRep2_INPUT_R3.fastq.gz | condition_1_bRep2_tRep2_INPUT_R2.fastq.gz | 2 | ChIP-seq | | | | |
 
 > [!NOTE]
-> You can download this example samplesheet [here](../assets/samplesheets/ex2_multiTechRep_samplesheet.csv) or copy and save the cell below:
+> You can download this example samplesheet [here](../assets/samplesheets/ex2_multiTechRep_samplesheet.csv).
 
-```csv
-sample,fastq_1,fastq_2,fastq_umi,okseq_part_file,replicate,exp_type,strandedness,antibody,control,control_replicate
-condition_1_H3K9me3,condition_1_bRep1_tRep1_H3K9me3_R1.fastq.gz,condition_1_bRep1_tRep1_H3K9me3_R3.fastq.gz,condition_1_bRep1_tRep1_H3K9me3_R2.fastq.gz,,1,chipseq,,H3K9me3,condition_1_INPUT,1
-condition_1_H3K9me3,condition_1_bRep1_tRep2_H3K9me3_R1.fastq.gz,condition_1_bRep1_tRep2_H3K9me3_R3.fastq.gz,condition_1_bRep1_tRep2_H3K9me3_R2.fastq.gz,,1,chipseq,,H3K9me3,condition_1_INPUT,1
-condition_1_H3K9me3,condition_1_bRep2_tRep1_H3K9me3_R1.fastq.gz,condition_1_bRep2_tRep1_H3K9me3_R3.fastq.gz,condition_1_bRep2_tRep1_H3K9me3_R2.fastq.gz,,2,chipseq,,H3K9me3,condition_1_INPUT,2
-condition_1_H3K9me3,condition_1_bRep2_tRep2_H3K9me3_R1.fastq.gz,condition_1_bRep2_tRep2_H3K9me3_R3.fastq.gz,condition_1_bRep2_tRep2_H3K9me3_R2.fastq.gz,,2,chipseq,,H3K9me3,condition_1_INPUT,2
-condition_1_H3K27ac,condition_1_bRep1_tRep1_H3K27ac_R1.fastq.gz,condition_1_bRep1_tRep1_H3K27ac_R3.fastq.gz,condition_1_bRep1_tRep1_H3K27ac_R2.fastq.gz,,1,chipseq,,H3K27ac,condition_1_INPUT,1
-condition_1_H3K27ac,condition_1_bRep1_tRep2_H3K27ac_R1.fastq.gz,condition_1_bRep1_tRep2_H3K27ac_R3.fastq.gz,condition_1_bRep1_tRep2_H3K27ac_R2.fastq.gz,,1,chipseq,,H3K27ac,condition_1_INPUT,1
-condition_1_H3K27ac,condition_1_bRep2_tRep1_H3K27ac_R1.fastq.gz,condition_1_bRep2_tRep1_H3K27ac_R3.fastq.gz,condition_1_bRep2_tRep1_H3K27ac_R2.fastq.gz,,2,chipseq,,H3K27ac,condition_1_INPUT,2
-condition_1_H3K27ac,condition_1_bRep2_tRep2_H3K27ac_R1.fastq.gz,condition_1_bRep2_tRep2_H3K27ac_R3.fastq.gz,condition_1_bRep2_tRep2_H3K27ac_R2.fastq.gz,,2,chipseq,,H3K27ac,condition_1_INPUT,2
-condition_1_INPUT,condition_1_bRep1_tRep1_INPUT_R1.fastq.gz,condition_1_bRep1_tRep1_INPUT_R3.fastq.gz,condition_1_bRep1_tRep1_INPUT_R2.fastq.gz,,1,chipseq,,,,
-condition_1_INPUT,condition_1_bRep1_tRep2_INPUT_R1.fastq.gz,condition_1_bRep1_tRep2_INPUT_R3.fastq.gz,condition_1_bRep1_tRep2_INPUT_R2.fastq.gz,,1,chipseq,,,,
-condition_1_INPUT,condition_1_bRep2_tRep1_INPUT_R1.fastq.gz,condition_1_bRep2_tRep1_INPUT_R3.fastq.gz,condition_1_bRep2_tRep1_INPUT_R2.fastq.gz,,2,chipseq,,,,
-condition_1_INPUT,condition_1_bRep2_tRep2_INPUT_R1.fastq.gz,condition_1_bRep2_tRep2_INPUT_R3.fastq.gz,condition_1_bRep2_tRep2_INPUT_R2.fastq.gz,,2,chipseq,,,,
-```
-<!-- 
-### Example 3: Full design
-
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet.
-
-A final design file may look something like the one below. This is for two antibodies and associated controls, where the second replicate of the `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` samples have been sequenced twice:
-
-> [!NOTE]
-> You can download this example samplesheet [here]() or copy and save the cell below: -->
 
 ## Reference genome files
 
@@ -333,7 +305,7 @@ Options to adjust multimapper allocation criteria.
 | `save_allocation_intermeds` | Save the intermediate BAM files from the multimapper allocation step. | `boolean` | true |  |  |
 | `allocate_exogenous` | Whether to also allocate multimappers in the spike-in (exogenous) BAM files. | `boolean` | true |  |  |
 
-## Alignment shifting options
+#### Alignment shifting options
 
 Options to adjust alignment shifting criteria.
 
@@ -513,15 +485,52 @@ When you run the above command, Nextflow automatically pulls the pipeline code f
 nextflow pull grothlab/glseq
 ```
 
+
 ### Reproducibility
+
+#### Running a specific version of the pipeline (`-r`)
 
 It is a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-<!-- First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chipseq/releases) and find the latest pipeline version - numeric only (eg. `2.0.0`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 2.0.0`. Of course, you can switch to another version by changing the number after the `-r` flag. -->
+To run a specific version of the pipeline, use the [`-r` option](https://www.nextflow.io/docs/latest/reference/cli.html). For example:
 
-This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future. For example, at the bottom of the MultiQC reports.
+- With a [release tag](https://github.com/grothlab/glseq/releases) from the pipeline's repository:
 
-To further assist in reproducbility, you can use share and re-use [parameter files](#running-the-pipeline) to repeat pipeline runs with the same settings without having to write out a command with every single parameter.
+  ```bash
+  nextflow run grothlab/glseq \
+    -r 1.1.12
+  ```
+
+- With a [commit](https://github.com/grothlab/glseq/commits/dev/) ID (revision number) from the pipeline's repository:
+
+  ```bash
+  nextflow run grothlab/glseq \
+    -r a6840348453bebe2cb49384f8522bbfb20d7087b
+  ```
+
+  You can also use the short version of the commit ID:
+
+  ```bash
+  nextflow run grothlab/glseq \
+    -r a684034
+  ```
+- With a [git branch](https://github.com/grothlab/glseq/branches) from the pipeline's repository:
+
+  ```bash
+  nextflow run grothlab/glseq \
+    -r dev
+  ```
+
+> [!NOTE]
+> In this last example, the pipeline will run with the latest **cached** version of the `dev` branch. Make sure to run `nextflow pull grothlab/glseq -r dev` before if you want to update the cached version.
+
+The version number you use will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future. For example, at the bottom of the MultiQC reports.
+
+#### Sharing and reusing parameter files (`-params-file`)
+
+To further assist in reproducibility, you can use share and re-use [parameter files](#running-the-pipeline) to repeat pipeline runs with the same settings without having to write out a command with every single parameter.
+
+
 
 > [!TIP]
 > If you wish to share such profile (such as upload as supplementary material for academic publications), make sure to NOT include cluster specific paths to files, nor institutional specific profiles.
@@ -617,7 +626,37 @@ Nextflow handles job submissions and supervises the running jobs. The Nextflow p
 The Nextflow `-bg` flag launches Nextflow in the background, detached from your terminal so that the workflow does not stop if you log out of your session. The logs are saved to a file.
 
 Alternatively, you can use `screen` / `tmux` or similar tool to create a detached session which you can log back into at a later time.
-Some HPC setups also allow you to run nextflow within a cluster job submitted your job scheduler (from where it submits more jobs).
+
+Some HPC setups also allow you to run nextflow within a cluster job submitted your job scheduler (from where it submits more jobs). For example, the nextflow head job can be submitted to `SLURM` by saving the following script:
+
+```bash
+#!/bin/bash
+
+#SBATCH --job-name=GLSEQ_JOB        # specify a name for the job
+#SBATCH --mail-type=END,FAIL        # mail events (NONE, BEGIN, END, FAIL, ALL)
+#SBATCH --mail-user=NONE            # email address to receive the notifications
+#SBATCH -c 1                        # number of requested cores for the Nextflow head job
+#SBATCH --mem=4gb                   # total requested RAM for the Nextflow head job
+#SBATCH --time=2-00:00:00           # max. running time of the pipeline job, format in D-HH:MM:SS
+#SBATCH --output=glseq_job.%j.log   # standard output and error log, '%j' gives the job ID
+
+# Create an output directory for the pipeline run if it does not exist
+mkdir -p <path_to_output_directory>
+cd <path_to_output_directory>
+
+# Run the pipeline
+nextflow run grothlab/glseq \
+    -r main \
+    -profile test_scarseq \
+    --outdir <path_to_output_directory>
+```
+And then, submitting the job to the queue with:
+
+```bash
+sbatch glseq_job.sh
+```
+> [!TIP]
+> We recommend providing 4 GB of RAM for the Nextflow head job. In the case of an `sbatch` script, this is specified with the `#SBATCH --mem=4gb` line. See [Optimizing Nextflow for HPC and cloud at scale](https://seqera.io/blog/optimizing-nextflow-for-hpc-and-cloud-at-scale/) for more details.
 
 ### Nextflow memory requirements
 
@@ -627,3 +666,72 @@ We recommend adding the following line to your environment to limit this (typica
 ```bash
 NXF_OPTS='-Xms1g -Xmx4g'
 ```
+
+## Examples
+
+### Setting the environment
+
+Before analyzing any kind of data, we need to install or load Nextflow and a container runtime, as explained in the [Quick start section of the README](../README.md#quick-start).
+
+> [!NOTE]
+> In this case, we will use [*tmux*](https://github.com/tmux/tmux/wiki/Getting-Started) to run a persistent terminal
+> session, [*slurm*](https://slurm.schedmd.com/documentation.html) to schedule jobs,
+> [*modules*](https://modules.readthedocs.io/en/latest/) to load Nextflow, and [*singularity*](https://sylabs.io/guides/3.0/user-guide/) to run the containerized software in the pipeline. However, these choices
+> may vary depending on your specific computing environment, so should check your local documentation.
+
+First, we start a [*tmux*](https://github.com/tmux/tmux/wiki/Getting-Started) session:
+
+  ```bash
+  tmux new-session -s glseq_example
+  ```
+
+Then we launch an interactive [*slurm*](https://slurm.schedmd.com/documentation.html) job session:
+
+  ```bash
+  srun -c 1 --mem=4gb --time=0-08:00:00 --pty bash
+  ```
+
+Finally, we load the Nextflow and Singularity [*modules*](https://modules.readthedocs.io/en/latest/):
+
+```bash
+module load openjdk/20.0.0 nextflow/25.04.4 singularity/3.8.7
+```
+
+### Analyzing ChIP-seq data
+
+For this example, we will analyze a subset of the ChIP-seq data from the following article:
+
+> Flury, V., Reverón-Gómez, N., Alcaraz, N., Stewart-Morgan, K. R., Wenger, A., Klose, R. J., & Groth, A. (2023). Recycling of modified H2A-H2B provides short-term memory of chromatin states. Cell, 186(5), 1050-1065.e19. https://doi.org/10.1016/j.cell.2023.01.007
+
+
+#### Downloading the data
+
+Now we need to download the ChIP-seq data. We will do so using the [nf-core/fetchngs](https://nf-co.re/fetchngs/latest) pipeline, which works very well to fetch metadata and raw FastQ files from public databases.
+
+#### Running *glseq*
+
+
+
+#### Relevant parameters
+
+WIP
+
+### Analyzing ChOR-seq data
+
+WIP
+
+### Analyzing SCAR-seq data
+
+WIP
+
+### Analyzing ATAC-seq data
+
+WIP
+
+### Analyzing OK-seq data
+
+WIP
+
+### Analyzing ChIP-exo data
+
+WIP

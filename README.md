@@ -2,7 +2,7 @@
 [![GitHub Actions Linting Status](https://github.com/grothlab/glseq/actions/workflows/linting.yml/badge.svg)](https://github.com/grothlab/glseq/actions/workflows/linting.yml)[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.XXXXXXX-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.XXXXXXX)
 [![nf-test](https://img.shields.io/badge/unit_tests-nf--test-337ab7.svg)](https://www.nf-test.com)
 
-[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A523.04.0-23aa62.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A524.10.0-23aa62.svg)](https://www.nextflow.io/)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
@@ -10,7 +10,16 @@
 
 ## Introduction
 
-**grothlab/glseq** is a bioinformatics pipeline for the analysis of chromatin sequencing data ([ChIP-seq](https://doi.org/10.1038/nmeth1068), [ATAC-seq](https://doi.org/10.1002/0471142727.mb2129s109), [SCAR-seq](https://doi.org/10.1038/s41596-021-00585-3), [ChOR-seq](https://doi.org/10.1038/s41596-021-00585-3), etc.).
+**grothlab/glseq** is a bioinformatics pipeline for comprehensive analysis of bulk chromatin sequencing data. It supports multiple experimental techniques, including:
+ - [ChIP-seq](https://doi.org/10.1038/nmeth1068)
+ - [ChOR-seq](https://doi.org/10.1038/s41596-021-00585-3)
+ - [ChIP-exo](https://doi.org/10.1016/j.cell.2011.11.013)
+ - [SCAR-seq](https://doi.org/10.1038/s41596-021-00585-3)
+ - [OK-seq](https://doi.org/10.1038/ncomms10208)
+ - [ATAC-seq](https://doi.org/10.1002/0471142727.mb2129s109)
+ - [CUT&RUN](https://doi.org/10.7554/eLife.46314)
+ - [CUT&Tag](https://doi.org/10.1038/s41467-019-09982-5)
+ - [TIP-seq](https://doi.org/10.1083/jcb.202103078)
 
 <!-- On release, automated continuous integration tests run the pipeline on a [full-sized dataset](https://github.com/nf-core/test-datasets/tree/chipseq#full-test-dataset-origin) on the AWS cloud infrastructure. The dataset consists of FoxA1 (transcription factor) and EZH2 (histone,mark) IP experiments from _Franco et al. 2015_ ([GEO: GSE59530](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59530), [PMID: 25752574](https://pubmed.ncbi.nlm.nih.gov/25752574/)) and _Popovic et al. 2014_ ([GEO: GSE57632](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57632), [PMID: 25188243](https://pubmed.ncbi.nlm.nih.gov/25188243/)), respectively. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from running the full-sized tests can be viewed on the [nf-core website](https://nf-co.re/chipseq/results). -->
 
@@ -30,49 +39,55 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 6. Estimation of library complexity ([`Preseq`](http://smithlabresearch.org/software/preseq/))
 
-7. UMI-based deduplication ([`UMI-tools`](https://github.com/CGATOxford/UMI-tools))
+7. UMI-based deduplication ([`UMI-tools`](https://github.com/CGATOxford/UMI-tools) or [`UMICollapse`](https://github.com/Daniel-Liu-c0deb0t/UMICollapse)) or marking of duplicates ([`picard`](https://broadinstitute.github.io/picard/))
 
-8. Marking of duplicates ([`picard`](https://broadinstitute.github.io/picard/))
-
-9. BAM filtering to remove ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/))
+8. BAM filtering to remove ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/))
     - unmapped or improperly paired reads
     - reads marked as duplicates
 
-10. BAM splitting by genome (into endogenous and exogenous/spike-in alignments) ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/))
+9. BAM splitting by genome (into endogenous and exogenous/spike-in alignments) ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/))
 
-11. Multimapping read allocation ([`Chromap`](https://github.com/haowenz/chromap), [`MMR`](https://github.com/ratschlab/mmr) or [`Allo`](https://github.com/seqcode/allo))
+10. Multimapping read allocation ([`Chromap`](https://github.com/haowenz/chromap), [`MMR`](https://github.com/ratschlab/mmr) or [`Allo`](https://github.com/seqcode/allo))
+
+
+
+11. Shifting of aligned reads (only for ATAC-seq) ([`deepTools`](https://deeptools.readthedocs.io/en/latest/content/tools/alignmentSieve.html#alignmentsieve))
 
 12. BAM filtering to remove ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/)):
     - unmapped or improperly paired reads
     - reads with low mapping quality (depending on the aligner used)
     - secondary alignments
 
-13. Collection of alignment quality control metrics ([`picard`](https://broadinstitute.github.io/picard/))
+13. BAM filtering to remove:
+    - reads mapped within blacklisted regions ([`SAMBAMBA`](https://lomereiter.github.io/sambamba/))
+    - orphan reads (singletons) ([`bampe_rm_orphan.py`](./bin/bampe_rm_orphan.py))
 
-14. Shifting of aligned reads (only for ATAC-seq) ([`deepTools`](https://deeptools.readthedocs.io/en/latest/content/tools/alignmentSieve.html#alignmentsieve))
+14. Collection of alignment quality control metrics ([`picard`](https://broadinstitute.github.io/picard/))
 
 15. Calculation of strand cross-correlation, peak and ChIP-seq quality measures including NSC and RSC ([`phantompeakqualtools`](https://github.com/kundajelab/phantompeakqualtools))
 
-16. Creation of coverage tracks (with a specified bin size) ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html)) and applying multiple [normalization methods](./docs/output.md#normalized-bigwig-files) accounting for spike-in.
+16. BAM downsampling considering sample type (IP or input control) and genome (endogenous or spike-in) ([`picard`](https://gatk.broadinstitute.org/hc/en-us/articles/360037056792-DownsampleSam-Picard))
 
-17. Generating gene-body meta-profile from coverage files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
+17. Creation of coverage tracks (with a specified bin size) and applying multiple [normalization methods](./docs/output.md#normalized-bigwig-files) accounting for spike-in ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html))
 
-18. Downsampling of alignments to the minimum number of reads across IPs or input controls ([`picard`](https://gatk.broadinstitute.org/hc/en-us/articles/360037056792-DownsampleSam-Picard))
+18. Generating gene-body meta-profile from coverage files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
 
-19. Calculating genome-wide IP enrichment relative to control ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
+19. Counting of reads mapping on transposable elements instances ([`TElocal`](https://github.com/mhammell-laboratory/TElocal)) and subfamilies ([`TEcount`](https://github.com/mhammell-laboratory/TEtranscripts?tab=readme-ov-file#tecount))
+
+20. Calculating genome-wide IP enrichment relative to input control ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
 
 <details>
-<summary>20. ChIP-seq, ChOR-seq and ATAC-seq downstream analyses</summary>
+<summary><b>21. ChIP-seq, ChOR-seq and ATAC-seq downstream analyses</b></summary>
 
-  - Call megabase domains of enrichment ([`EDD`](https://github.com/CollasLab/edd))
+  - Call megabase domains of enrichment ([`EDD`](https://github.com/CollasLab/edd)), annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html)), and create consensus peakset ([`BEDTools`](https://github.com/arq5x/bedtools2/))
 
-  - Call broad/narrow peaks ([`MACS3`](https://github.com/macs3-project/MACS) or [`Genrich`](https://github.com/jsh58/Genrich))
+  - Call broad/narrow peaks ([`MACS3`](https://github.com/macs3-project/MACS)), annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html)), and create consensus peakset ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+  
+  - Call peaks ([`Genrich`](https://github.com/jsh58/Genrich)), annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html)), and create consensus peakset ([`BEDTools`](https://github.com/arq5x/bedtools2/))
 
-  - Call diffuse peaks ([`epic2`](https://github.com/biocore-ntnu/epic2))
+  - Call diffuse peaks ([`epic2`](https://github.com/biocore-ntnu/epic2)), annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html)), and create consensus peakset ([`BEDTools`](https://github.com/arq5x/bedtools2/))
 
-  - Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
-
-  - Create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+  - Extract genome-wide uncertainty-moderated signal from multi-sample datasets ([`Consenrich`](https://github.com/nolan-h-hamilton/Consenrich)), call consensus peaks ([`ROCCO`](https://github.com/nolan-h-hamilton/ROCCO)) and annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
 
   - Count reads in consensus peaks ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
 
@@ -82,7 +97,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 <br>
 
 <details>
-<summary>21. SCAR-seq downstream analyses</summary>
+<summary><b>22. SCAR-seq and OK-seq downstream analyses</b></summary>
 
   - Splitting BAM files by forward and reverse strands.
 
@@ -90,29 +105,44 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
   - Creating BigWig files from BEDGRAPH files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
 
-  - Splitting chromosome windows
-
   - Computing the average coverage per window ([`bigWigAverageOverBed`](http://hgdownload.soe.ucsc.edu/admin/exe/))
 
-  - Normalizing per strand and chromosome with counts per million (CPM)
-
-  - Calculating replication fork directionality (RFD) ([`partition_smooth.pl`]())
+  - Calculating partition score or replication fork directionality (RFD) ([`partition_or_rfd_smooth.pl`](./bin/partition_or_rfd_smooth.pl))
 
   - Generating partition files for samples, stranded inputs and input-corrected samples.
 
-  - Plotting partition files and scatter-correlation plots against OK-seq if provided.
+  - Plotting partition files and scatter-correlation plots against OK-seq if provided ([`partition_or_rfd_plot.R`](./bin/partition_or_rfd_plot.R))
 
 </details>
 
 <br>
 
-22. Create IGV session file containing coverage tracks and peaks for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
+<details>
+<summary><b>23. ChIP-exo downstream analyses</b></summary>
 
-23. Present QC for raw read, alignment and peak-calling ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
+  - Call peaks ([`MACE`](https://chipexo.sourceforge.net/)), annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html)), and create consensus peakset ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+
+</details>
+
+<br>
+
+<details>
+
+<summary><b>24. CUT&RUN, CUT&Tag and TIP-seq downstream analyses</b></summary>
+
+  - Call peaks ([`SEACR`](https://github.com/FredHutch/SEACR)), annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html)), and create consensus peakset ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+
+</details>
+
+<br>
+
+25. Create IGV session file containing coverage tracks and peaks for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
+
+26. Present QC and stats for raw reads, alignments and peak-calling ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
 ## Quick start
 
-1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=21.10.3`)
+1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=24.10.0`)
 
 2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/) (you can follow [this tutorial](https://singularity-tutorial.github.io/01-installation/)), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(you can use [`Conda`](https://conda.io/miniconda.html) both to install Nextflow itself and also to manage software within pipelines. Please only use it within pipelines as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_.
 
@@ -166,13 +196,13 @@ Several scripts in this pipeline are based on [nf-core/chipseq](https://github.c
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
 
 <!-- TODO: -->
-For further information or help, don't hesitate to get in touch through #######
+For further information or help, don't hesitate to get in touch through the pipeline's [GitHub Discussions](https://github.com/grothlab/glseq/discussions) or directly with Samuel Ruiz-Pérez ([samper@cancer.dk](mailto:samper@cancer.dk))
 
 ## Citations
 
 If you use [grothlab/glseq](https://github.com/grothlab/glseq) for your analysis, please cite it as below:
 
-> Ruiz-Pérez, S., Alcaraz, N., & Groth, A. (2025). grothlab/glseq: A bioinformatics pipeline for the analysis of chromatin sequencing data (ChIP-seq, ATAC-seq, SCAR-seq, ChOR-seq) (Version 0.0.1) [Computer software]. https://github.com/grothlab/glseq
+> Ruiz-Pérez, S., Alcaraz, N., & Groth, A. (2025). grothlab/glseq: A bioinformatics pipeline for the analysis of chromatin sequencing data (Version dev) [Computer software]. https://github.com/grothlab/glseq
 
 This pipeline uses code developed and maintained by the [nf-core](https://nf-co.re) initative, and reused here under the [MIT license](https://github.com/nf-core/tools/blob/master/LICENSE).
 

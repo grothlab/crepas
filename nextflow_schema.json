@@ -1,10 +1,10 @@
 {
-    "$schema": "https://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/grothlab/glseq/master/nextflow_schema.json",
     "title": "grothlab/glseq pipeline parameters",
     "description": "grothlab/glseq is a bioinformatics pipeline for the analysis of chromatin sequencing data (ChIP-seq, ATAC-seq, SCAR-seq, ChOR-seq, etc.).",
     "type": "object",
-    "definitions": {
+    "$defs": {
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -16,8 +16,9 @@
                     "type": "string",
                     "format": "file-path",
                     "mimetype": "text/csv",
-                    "pattern": "^\\S+\\.csv$",
+                    "pattern": "^\\S+\\.(csv|tsv|yaml|json)$",
                     "schema": "assets/schema_input.json",
+                    "exists": true,
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
                     "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row. See [usage docs](https://github.com/grothlab/glseq/blob/main/docs/usage.md).",
                     "fa_icon": "fas fa-file-csv"
@@ -82,6 +83,7 @@
                     "format": "file-path",
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
+                    "exists": true,
                     "description": "Path to FASTA genome file.",
                     "help_text": "If you don't have the appropriate alignment index available this will be generated for you automatically based on this file. Combine with `--save_reference` to save alignment index for future runs.",
                     "fa_icon": "far fa-file-code"
@@ -90,6 +92,7 @@
                     "type": "string",
                     "format": "file-path",
                     "mimetype": "text/plain",
+                    "exists": true,
                     "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to GTF annotation file.",
                     "fa_icon": "fas fa-code-branch"
@@ -98,9 +101,11 @@
                     "type": "string",
                     "format": "file-path",
                     "mimetype": "text/plain",
+                    "exists": true,
                     "pattern": "^\\S+\\.gff3?(\\.gz)?$",
                     "fa_icon": "fas fa-code-branch",
-                    "description": "Path to GFF3 annotation file."                },
+                    "description": "Path to GFF3 annotation file."
+                },
                 "bwa_index": {
                     "type": "string",
                     "description": "Path to directory or tar.gz archive for pre-built BWA index.",
@@ -134,6 +139,7 @@
                     "type": "string",
                     "format": "file-path",
                     "mimetype": "text/plain",
+                    "exists": true,
                     "pattern": "^\\S+\\.bed(\\.gz)?$",
                     "fa_icon": "fas fa-procedures",
                     "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
@@ -142,8 +148,18 @@
                     "type": "string",
                     "format": "file-path",
                     "mimetype": "text/plain",
+                    "exists": true,
                     "fa_icon": "fas fa-procedures",
                     "description": "Path to BED file containing initiation zones for SCAR-seq analysis."
+                },
+                "okseq_rfd_file": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "exists": true,
+                    "pattern": "^\\S+\\.(txt|tsv|bed)\\.gz$",
+                    "fa_icon": "fas fa-procedures",
+                    "description": "Path to GZIP-compressed OK-seq RFD text file. The path cannot contain spaces and must have extension '.txt.gz', '.tsv.gz' or '.bed.gz'"
                 },
                 "macs_gsize": {
                     "type": "number",
@@ -154,6 +170,8 @@
                 "blacklist": {
                     "type": "string",
                     "format": "file-path",
+                    "mimetype": "text/plain",
+                    "exists": true,
                     "description": "Path to blacklist regions in BED format, used for filtering alignments.",
                     "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format.",
                     "fa_icon": "fas fa-book-dead"
@@ -161,6 +179,8 @@
                 "sparsebed": {
                     "type": "string",
                     "format": "file-path",
+                    "mimetype": "text/plain",
+                    "exists": true,
                     "description": "Path to BED file with sparse segments for Consenrich.",
                     "fa_icon": "fas fa-book-dead",
                     "help_text": "Defines the annotation file of 'sparse segments' (genomic regions) from the complement of an 'inflated' BED file of known active regions. See https://github.com/nolan-h-hamilton/Consenrich/blob/5e7f287d81ac4a9bc098ae29e825a5ded07af3b8/consenrich/consenrich.py#L58C54-L58C174"
@@ -168,6 +188,8 @@
                 "active_regions": {
                     "type": "string",
                     "format": "file-path",
+                    "mimetype": "text/plain",
+                    "exists": true,
                     "description": "Path to BED file with active regions for Consenrich.",
                     "fa_icon": "fas fa-book-dead",
                     "help_text": "Defines the annotation file of 'active regions' (genomic regions) for Consenrich. See https://github.com/nolan-h-hamilton/Consenrich/blob/5e7f287d81ac4a9bc098ae29e825a5ded07af3b8/consenrich/consenrich.py#L67"
@@ -175,6 +197,7 @@
                 "rocco_params": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "description": "Path to ROCCO parameters file.",
                     "fa_icon": "fas fa-file-alt",
                     "help_text": "CSV file containing chromosome-specific optimization parameters. Each supported genome has a custom `--params` file packaged with ROCCO, but a custom file has to be manually passed to ROCCO within this pipeline. Consider using this argument to set chromosome-specific budget and gamma values custom to your data and preferences. See the [ROCCO documentation](https://nolan-h-hamilton.github.io/ROCCO/#rocco-constants) for more details."
@@ -182,6 +205,7 @@
                 "splicesites": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "description": "Path to splice sites file for HISAT2.",
                     "help_text": "If using HISAT2 as the aligner, you can provide a list of known splice sites, which HISAT2 makes use of to align reads with small anchors. If this file is not provided, it will be generated from the GTF file.",
                     "fa_icon": "fas fa-code-branch"
@@ -285,7 +309,8 @@
                 "save_dedup_intermeds": {
                     "type": "boolean",
                     "description": "Save intermediate files from the UMI deduplication step.",
-                    "fa_icon": "fas fa-save"
+                    "fa_icon": "fas fa-save",
+                    "default": true
                 }
             }
         },
@@ -765,7 +790,8 @@
                 "skip_genrich": {
                     "type": "boolean",
                     "description": "Skip Genrich peak calling.",
-                    "fa_icon": "fas fa-fast-forward"
+                    "fa_icon": "fas fa-fast-forward",
+                    "default": true
                 },
                 "epic2_binsize": {
                     "type": "integer",
@@ -788,7 +814,8 @@
                 "skip_consenrich": {
                     "type": "boolean",
                     "description": "Skip Consenrich (Genome-wide 'consensus' epigenomic state estimates and uncertainty metrics).",
-                    "fa_icon": "fas fa-fast-forward"
+                    "fa_icon": "fas fa-fast-forward",
+                    "default": true
                 },
                 "skip_mace": {
                     "type": "boolean",
@@ -813,12 +840,12 @@
                 },
                 "mace_qcut": {
                     "type": "number",
-                    "description": "phred scaled mapping quality threshhold to determine “uniqueness” of alignments. default=30. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "description": "phred scaled mapping quality threshhold to determine \u201cuniqueness\u201d of alignments. default=30. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
                     "fa_icon": "fas fa-dna"
                 },
                 "mace_norm_method": {
                     "type": "string",
-                    "description": "methods (“EM”, “AM”, “GM”, or “SNR”) used to consolidate replicates and reduce noise. “EM” = Entropy weighted mean, “AM”=Arithmetic mean, “GM”=Geometric mean, “SNR”=Signal-to-noise ratio. default=EM. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "description": "methods (\u201cEM\u201d, \u201cAM\u201d, \u201cGM\u201d, or \u201cSNR\u201d) used to consolidate replicates and reduce noise. \u201cEM\u201d = Entropy weighted mean, \u201cAM\u201d=Arithmetic mean, \u201cGM\u201d=Geometric mean, \u201cSNR\u201d=Signal-to-noise ratio. default=EM. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
                     "fa_icon": "fas fa-dna",
                     "enum": ["EM", "AM", "GM", "SNR"]
                 },
@@ -947,9 +974,11 @@
                     "type": "integer",
                     "default": 1
                 },
-                "partition_cpm_cutoff": {
+                "partition_rpm_cutoff": {
                     "type": "number",
-                    "default": 0.3
+                    "default": 0.3,
+                    "description": "RPM (reads per million) cutoff for bins to be included in downstream partition analysis. Bins with normalized read-counts above this threshold will be included. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
+                    "fa_icon": "fas fa-filter"
                 },
                 "partition_plot_range": {
                     "type": "integer",
@@ -1087,55 +1116,58 @@
     },
     "allOf": [
         {
-            "$ref": "#/definitions/input_output_options"
+            "$ref": "#/$defs/input_output_options"
         },
         {
-            "$ref": "#/definitions/reference_genome_options"
+            "$ref": "#/$defs/reference_genome_options"
         },
         {
-            "$ref": "#/definitions/umi_extraction_and_deduplication_options"
+            "$ref": "#/$defs/umi_extraction_and_deduplication_options"
         },
         {
-            "$ref": "#/definitions/adapter_trimming_options"
+            "$ref": "#/$defs/adapter_trimming_options"
         },
         {
-            "$ref": "#/definitions/hard_trimming_options"
+            "$ref": "#/$defs/hard_trimming_options"
         },
         {
-            "$ref": "#/definitions/alignment_options"
+            "$ref": "#/$defs/alignment_options"
         },
         {
-            "$ref": "#/definitions/spikein_options"
+            "$ref": "#/$defs/spikein_options"
         },
         {
-            "$ref": "#/definitions/multimapper_allocation_options"
+            "$ref": "#/$defs/multimapper_allocation_options"
         },
         {
-            "$ref": "#/definitions/alignment_shifting_options"
+            "$ref": "#/$defs/alignment_shifting_options"
         },
         {
-            "$ref": "#/definitions/filtering_options"
+            "$ref": "#/$defs/filtering_options"
         },
         {
-            "$ref": "#/definitions/coverage_and_normalization_options"
+            "$ref": "#/$defs/coverage_and_normalization_options"
         },
         {
-            "$ref": "#/definitions/downsampling_options"
+            "$ref": "#/$defs/downsampling_options"
         },
         {
-            "$ref": "#/definitions/peak_calling_options"
+            "$ref": "#/$defs/tecounting_options"
         },
         {
-            "$ref": "#/definitions/process_skipping_options"
+            "$ref": "#/$defs/peak_calling_options"
         },
         {
-            "$ref": "#/definitions/partition_and_rfd_analysis_options"
+            "$ref": "#/$defs/process_skipping_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/$defs/partition_and_rfd_analysis_options"
         },
         {
-            "$ref": "#/definitions/generic_options"
+            "$ref": "#/$defs/institutional_config_options"
+        },
+        {
+            "$ref": "#/$defs/generic_options"
         }
     ],
     "properties": {
@@ -1159,14 +1191,9 @@
             "type": "string",
             "default": "/maps/projects/dan1/data/Groth_group/SRP/glseq_testdata/"
         },
-        "validationFailUnrecognisedParams": {
-            "type": "boolean"
-        },
-        "validationLenientMode": {
-            "type": "boolean"
-        },
-        "validationShowHiddenParams": {
-            "type": "boolean"
+        "trace_report_suffix": {
+            "type": "string",
+            "default": "2025-08-03_12-45-27"
         }
     }
 }

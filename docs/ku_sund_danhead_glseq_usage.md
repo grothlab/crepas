@@ -127,7 +127,7 @@
 4. Load the required [*modules*](https://modules.readthedocs.io/en/latest/):
 
     ```bash
-    module load openjdk/20.0.0 nextflow/24.04.4 singularity/3.8.7
+    module load openjdk/20.0.0 nextflow/25.04.4 singularity/3.8.7
     ```
 
 5. Create an output directory for your pipeline run if it does not exist and move into it:
@@ -187,7 +187,7 @@ If you would prefer to submit the pipeline job to the queue rather than run an i
 source ~/.bashrc
 
 # Load the required modules
-module load openjdk/20.0.0 nextflow/24.04.4 singularity/3.8.7
+module load openjdk/20.0.0 nextflow/25.04.4 singularity/3.8.7
 
 # Create an output directory for the pipeline run if it does not exist
 mkdir -p <path_to_output_directory>
@@ -322,7 +322,7 @@ Initiation zone BED files are inputted using the `--initiation_zones` parameter,
 
 ### OK-seq partitions
 
-Okazaki fragment sequencing (OK-seq) partition BED files are inputted for each SCAR-seq sample through the [`okseq_part_file` column](#samplesheet-input) in the samplesheet, and can be found at:
+Okazaki fragment sequencing (OK-seq) partition BED files are inputted using the `--okseq_rfd_file` parameter, and can be found at:
 
 ```bash
 /maps/projects/dan1/data/Groth_group/shared/references/<organism>/<genome_version>/external_data/Replication/Okasaki_seq/rfd_files/OKseq_RFD_*.bed.gz

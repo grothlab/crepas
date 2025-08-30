@@ -24,15 +24,12 @@ process ALLO {
     def args    = task.ext.args ?: ''
     def prefix  = task.ext.prefix ?: "${meta.id}"
     def seq     = meta.single_end ? '-seq "se"' : '-seq "pe"'
-    def random  = meta.control ? '--random' : ''
-
     """
     allo \\
-        $args \\
-        $bam \\
-        $seq \\
-        $random \\
-        -p $task.cpus \\
+        ${args} \\
+        ${bam} \\
+        ${seq} \\
+        -p ${task.cpus} \\
         -o ${prefix}.sam \\
         &> >(tee ${prefix}.log >&2)
 

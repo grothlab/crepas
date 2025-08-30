@@ -17,71 +17,85 @@ options(show.error.locations = TRUE)
 #     install.packages("BiocManager", lib = Sys.getenv("R_LIBS_USER"))
 # }
 
-required.libs <- c("GenomicAlignments","GenomicFeatures", "RColorBrewer",
-                    "dplyr","ggplot2","ggrepel","ggpubr","ggpmisc","reshape2",
-                    "hexbin","latex2exp","argparse")
+required.libs <- c("tidyverse","GenomicAlignments","GenomicFeatures", 
+           "RColorBrewer","ggrepel","ggpubr","ggpmisc",
+          "hexbin","argparse")
 
 unavailable.libs <- setdiff(required.libs, rownames(installed.packages()))
 if (length(unavailable.libs) > 0) {
-    BiocManager::install(unavailable.libs)
+  message("\n[", Sys.time(), "] Installing missing packages: ", paste(unavailable.libs, collapse = ", "))
+  BiocManager::install(unavailable.libs)
 }
 
-suppressPackageStartupMessages({
-  lapply(required.libs, FUN = function(x) {
-    do.call("require", list(x))
+message("\n[", Sys.time(), "] Loading required libraries...")
+for (lib in required.libs) {
+  message("[", Sys.time(), "] Loading library: ", lib)
+  suppressPackageStartupMessages({
+    if (!require(lib, character.only = TRUE)) {
+      stop("Failed to load library: ", lib)
+    }
   })
-})
+}
+message("[", Sys.time(), "] All libraries loaded successfully.")
 
+
+# ===============================================================================
+# Argument parsing
+# ===============================================================================
 
 parser <- ArgumentParser()
 
-
-parser$add_argument("-a","--scar_partition_file", action = "store",
-                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/H3K9me3_bias/SCAR_seq/MAPPING_mm10/rfd_files/AWEMCM2_SCAR_H3K27ac_442_DMSO_T1_r4_t1_R1.srt.nodup.mm10_PE_smooth_results_w1000_s30_d30_z1.txt.gz",
+parser$add_argument("-a","--scar_partition_file",
+                    action = "store",
                     type = "character",
-                    help = "Partition file from SCAR-seq [required]")
-
+                    nargs = '+',
+                    help = "Partition file(s) from SCAR-seq [required]. It can be a single file path or a space-separated list of quoted file paths. If multiple files are provided, they will be plotted in the same figure.")
 
 parser$add_argument("-d","--scarminusinput_partition_file", action = "store",
-                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/H3K9me3_bias/SCAR_seq/MAPPING_mm10/rfd_files/AWEMCM2_SCAR_H3K27ac_442_DMSO_T1_r4_t1_R1.srt.nodup.mm10_PE_SCARminusinput_smooth_results_w1000_s30_d30_z1.txt.gz",
                     type = "character",
-                    help = "Partition file from input corrected SCAR-seq [required]")
+                    nargs = '+',
+                    help = "Partition file(s) from input corrected SCAR-seq [required]. It can be a single file path or a space-separated list of quoted file paths. If multiple files are provided, they will be plotted in the same figure.")
 
 parser$add_argument("-f","--strandedinput_partition_file", action = "store",
-                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/H3K9me3_bias/SCAR_seq/MAPPING_mm10/rfd_files/AWEMCM2_strandedInput_H3K27ac_442_DMSO_T1_r4_t1_R1.srt.nodup.mm10_PE_smooth_results_w1000_s30_d30_z1.txt.gz",
                     type = "character",
-                    help = "Partition file from stranded input  [required]")
+                    nargs = '+',
+                    help = "Partition file(s) from stranded input  [required]. It can be a single file path or a space-separated list of quoted file paths. If multiple files are provided, they will be plotted in the same figure.")
 
 parser$add_argument("-k", "--okazaki_file", action = "store",
-                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/rep_chromatin_TC/publication/Wenger_et_al_2023/data/external/Okazaki_mm10_r1_smooth_results_w1000_s30_d30_z1.txt.gz",
-                    default = "",
                     type = "character",
                     help = "Okazaki file from OK-seq [optional, required for scatter plot]")
 
 parser$add_argument("-i", "--initiation_zones", action = "store",
                     type = "character",
-                    #default = "/maps/projects/dan1/people/ngl887/Projects/KU/rep_chromatin_TC/publication/Wenger_et_al_2023/data/external/Initiation_Zones_mm10_mESC.bed",
                     help = "Bed file with known initiation-zones. Must be provided if no Okazaki partition file is given")
 
 parser$add_argument("-b", "--blacklist", action = "store",
-                    #default = "/maps/projects/dan1/people/ngl887/scripts/scar_example/data/mm10.blacklist.bed",
                     type = "character",
                     help = "Blacklist bed file with regions to exclude [optional but strongly recommended]")
+
+parser$add_argument("-s", "--chrom_sizes", action = "store",
+                    type = "character",
+                    help = "Chromosome sizes file [required]")
 
 parser$add_argument("-n", "--prefix", action = "store",
                     default = "SCAR",
                     type = "character",
-                    help = "Prefix for output files and plot title")
+                    help = "Prefix for output files and plot title [default: SCAR]")
 
 parser$add_argument("-o", "--outdir", action = "store",
                     default = "plots",
                     type = "character",
-                    help = "Path to output directory for plots")
+                    help = "Path to output directory for plots [default: ./plots]")
 
-parser$add_argument("-c", "--cpm_cutoff", action = "store",
+parser$add_argument("-c", "--rpm_cutoff", action = "store",
                     default = 0.3,
                     type = "double",
-                    help = "CPM cutoff for noisy bins [default: 0.3]")
+                    help = "RPM cutoff for noisy bins [default: 0.3]")
+
+parser$add_argument("-z", "--zero_deriv_quantile", action = "store",
+                    default = 0.9,
+                    type = "double",
+                    help = "Quantile for zero derivative filtering [default: 0.9]")
 
 parser$add_argument("-r", "--plot_range", action = "store",
                     default = 100,
@@ -93,473 +107,666 @@ parser$add_argument("-e", "--exclude_chromosomes", action = "store",
                     type = "character",
                     help = "Chromosomes to exclude from analyses, must be provided comma separated [default: chrX,chrY,chrM]")
 
+parser$add_argument("-", "--exclude_scaffolds", action = "store",
+                    default = FALSE,
+                    type = "logical",
+                    help = "Whether to exclude scaffolds from analyses. Chromosomes containing a dot ('.') in their name are considered scaffolds [default: FALSE]")
+
+parser$add_argument("-", "--only_plot_wholly_within_iz", action = "store",
+                    default = FALSE,
+                    type = "logical",
+                    help = "When calculating the distance from each partition/RFD bin to the start of initiation zones, only consider bins that are wholly contained within the initiation zones [default: FALSE]")
 
 opt <- parser$parse_args()
 
-
-plt.width = 19.3
-plt.height = 6.52
-part.files <- c()
-HAS.SCAR <- FALSE
-if (is.null(opt$scar_partition_file)) {
-} else if (!file.exists(opt$scar_partition_file)) {
-  warning("Partition file not found")
-} else {
-  part.files <- c(part.files, "SCAR" = opt$scar_partition_file)
-  HAS.SCAR <- TRUE
-}
-
-HAS.SCARINPUT <- FALSE
-if (is.null(opt$scarminusinput_partition_file)) {
-} else if (!file.exists(opt$scarminusinput_partition_file)) {
-  warning("SCAR input-correct file not found")
-} else {
-  part.files <- c(part.files, "SCAR_Input_Corrected" = opt$scarminusinput_partition_file)
-  HAS.SCARINPUT <- TRUE
-}
-
-HAS.INPUT <- FALSE
-if (is.null(opt$strandedinput_partition_file)) {
-} else if (!file.exists(opt$strandedinput_partition_file)) {
-  warning("stranded input partition file not found")
-} else {
-  part.files <- c(part.files, "strandedInput" = opt$strandedinput_partition_file)
-  HAS.INPUT <- TRUE
-}
-
-if (length(part.files) == 0) {
-  stop("Please provide at least one partition file to create plots")
-} else if (length(part.files) == 1) {
-  plt.width <- 8.7
-} else if (length(part.files) == 2) {
-  plt.width <- 13
-} else if (length(part.files) == 3) {
-  plt.width = 19.3
-}
-
-HAS.OKSEQ <- FALSE
-if (is.null(opt$okazaki_file)) {
-  HAS.OKSEQ <- FALSE
-} else if (!file.exists(opt$okazaki_file)) {
-  HAS.OKSEQ <- FALSE
-} else {
-  HAS.OKSEQ <- TRUE
-}
-
-HAS.IZ <- FALSE
-if (is.null(opt$initiation_zones)) {
-  HAS.IZ <- FALSE
-} else if (!file.exists(opt$initiation_zones)) {
-  HAS.IZ <- FALSE
-} else {
-  HAS.IZ <- TRUE
-}
-
-HAS.BLACKLIST <- FALSE
-if (is.null(opt$blacklist)) {
-  HAS.BLACKLIST <- FALSE
-} else if (!file.exists(opt$blacklist)) {
-  HAS.BLACKLIST <- FALSE
-} else {
-  HAS.BLACKLIST <- TRUE
-}
+opt_scar_partition_file <- opt$scar_partition_file
+opt_scarminusinput_partition_file <- opt$scarminusinput_partition_file
+opt_strandedinput_partition_file <- opt$strandedinput_partition_file
+opt_okazaki_file <- opt$okazaki_file
+opt_initiation_zones <- opt$initiation_zones
+opt_blacklist <- opt$blacklist
+opt_chrom_sizes <- opt$chrom_sizes
+opt_prefix <- opt$prefix
+opt_outdir <- opt$outdir
+opt_rpm_cutoff <- opt$rpm_cutoff
+opt_zero_deriv_quantile <- opt$zero_deriv_quantile
+opt_plot_range <- opt$plot_range
+opt_exclude_chromosomes <- opt$exclude_chromosomes
+opt_exclude_scaffolds <- opt$exclude_scaffolds
+opt_only_plot_within_iz <- opt$only_plot_wholly_within_iz
 
 
-if (!HAS.OKSEQ) {
-  if (!HAS.IZ) {
-    stop("Please provide either valid Okazaki RFD file or Initiation Zone bed file")
-  } else {
-    print("Okazaki file not found, using provided Initiation Zones")
-    IZ.file <- opt$initiation_zones
-  }
-} else {
-  OK.file <- opt$okazaki_file
-}
+# ===============================================================================
+# Initialize partition files and flags
+# ===============================================================================
 
-if (!HAS.BLACKLIST) {
-  warning("Blacklist file not provided or non-existant, it's recommended to use a blacklist")
-}
+part_files <- list("SCAR" = c(), "SCAR_Input_Corrected" = c(), "strandedInput" = c())
+HAS_SCAR <- FALSE
+HAS_SCARINPUT <- FALSE
+HAS_INPUT <- FALSE
 
-
-PREFIX <- opt$prefix
-CPM.cutoff <- opt$cpm_cutoff
-KB.RANGE <- opt$plot_range
-IZ.LIMITS <- KB.RANGE * 1000
-plots.dir <- opt$outdir
-if (!dir.exists(plots.dir)) {
-  dir.create(plots.dir, recursive = TRUE)
-}
-chrom.excl <- unique(unlist(strsplit(opt$exclude_chromosomes, ",")))
-
-
-print(paste("CPM cutoff:",opt$cpm_cutoff))
-
-
-## =================== Load SCAR partiion file =================================
-
-
-
-cls <- c("seqnames","start","end", # Coordinates of bin
-         "F","R", # Forward (F) and Reverse (R) raw counts in bin
-         "F.cpm","R.cpm", # Forward (F.cpm) and Reverse (R.cpm) CPMs in bin
-         "RFD.raw","RFD", # Partition scores computed with raw (RFD.raw) and smoothed (RFD) CPMs
-         "RFD.deriv", # Value of the derivative of the partition at this bin
-         "score", # not used
-         "zero.deriv") # second derivative at this bin
-
-
-
-blacklist.gr <- GRanges()
-if (HAS.BLACKLIST) {
-  blacklist.df <- read.csv(opt$blacklist, header = FALSE, sep = "\t")[,1:3]
-  colnames(blacklist.df) <- c("seqnames","start","end")
-  blacklist.gr <- makeGRangesFromDataFrame(blacklist.df)
-}
-
-if (HAS.OKSEQ) {
-  OK.df <- read.csv(OK.file,
-                      sep="\t",header=FALSE)
-  if (ncol(OK.df) != 12) {
-    HAS.OKSEQ <- FALSE
-    warning("The okazaki RFD file is not in the correct format, it will not be used")
-  }
-}
-
-if (!(HAS.IZ) & !(HAS.OKSEQ)) {
-  stop("ERROR: To create partition plots, please provide Initiation Zones and/or OK-seq partition file for your species, genome version and cell-type")
-}
-
-if (HAS.OKSEQ) {
-  colnames(OK.df) <- cls
-  OK.df <- dplyr::filter(OK.df, !seqnames %in% chrom.excl)
-  OK.df$names <- paste(OK.df$seqnames,OK.df$start,sep=":") %>% paste(.,OK.df$end,sep="-") # genomic identifier
-  OK.df$exprs <- OK.df[,"F"] + OK.df[,"R"] # total raw counts
-  OK.df$CPM <- OK.df$F.cpm + OK.df$R.cpm # total counts pr. million
-  OK.gr <- makeGRangesFromDataFrame(OK.df, keep.extra.columns = TRUE)
-  OK.gr <- OK.gr[!overlapsAny(OK.gr, blacklist.gr, minoverlap = 1)]
-  OK.gr.tmp <- subset(OK.gr, CPM >= CPM.cutoff)
-
-  ids <- which(OK.gr.tmp$zero.deriv > quantile(OK.gr.tmp$RFD.deriv, probs=0.9,
-                                               na.rm=TRUE))
-  OK.gr.tmp <- OK.gr.tmp[ids]
-  names(ids) <- OK.gr.tmp$names
-  OK.BIN.SIZE <- as.integer(trimws(OK.df$end[1])) - as.integer(trimws(OK.df$start[1]))
-  OK.red.gr <- GenomicRanges::reduce(OK.gr.tmp, min.gapwidth=OK.BIN.SIZE * 3, with.revmap = TRUE)
-  filtered.data <- OK.gr.tmp[sapply(OK.red.gr$revmap, function(x) {
-    x[which.max(OK.gr.tmp$RFD.deriv[x])]
-  })]
-
-  OK.gr$IZ <- ifelse(OK.gr$names %in% filtered.data$names, TRUE, FALSE)
-  OK.gr$sample <- "OK-seq"
-}
-
-
-
-
-line.colors <- c("SCAR_Input_Corrected" = "darkgreen",
-                 "SCAR" = "darkblue",
-                 "strandedInput" = "orange")
-line.colors <- line.colors[names(part.files)]
-sample.labels <-  c("SCAR_Input_Corrected" =  "SCAR (Input-corrected)",
-                    "SCAR" = "SCAR", "strandedInput" = "Stranded input")
-
-sample.labels <- sample.labels[names(part.files)]
-
-if (HAS.OKSEQ) {
- line.colors <- c("OK-seq" = "darkgray", line.colors)
- RFD.cor.melt.df <- c()
- RFD.spear.df <- c()
-}
-
-
-RFD.mean.df <- c()
-
-for (pf in names(part.files)) {
-  print(pf)
-  SCAR.df <- read.csv(part.files[pf], header = FALSE, sep = "\t")
-  if (ncol(SCAR.df) != 12) {
-    stop(paste("ERROR:", basename(part.files[pf]), "is not a partition file format"))
-  }
-
-  colnames(SCAR.df) <- cls
-  SCAR.df <- filter(SCAR.df, !seqnames %in% chrom.excl)
-  BIN.SIZE <- as.integer(trimws(SCAR.df$end[1])) - as.integer(trimws(SCAR.df$start[1]))
-  print(paste("SCAR bin size", BIN.SIZE))
-
-  if (HAS.OKSEQ) {
-    if (OK.BIN.SIZE != BIN.SIZE) {
-      HAS.OKSEQ <- FALSE
-      warning(paste("Bin size of", basename(part.files[pf]), "doesn't correspond to the same bin size as in the partition file, Okazaki won't be used"))
+# Check SCAR partition files
+if (!is.null(opt_scar_partition_file)) {
+  for (file in opt_scar_partition_file) {
+    if (!file.exists(file)) {
+      stop("Partition file not found: ", file)
+    } else {
+      part_files[["SCAR"]] <- c(part_files[["SCAR"]], file)
+      HAS_SCAR <- TRUE
     }
   }
+}
 
-  SCAR.df$names <- paste(SCAR.df$seqnames,SCAR.df$start,sep=":") %>% paste(.,SCAR.df$end,sep="-")
-  SCAR.df$IZ <- NA
-  SCAR.df$strand <- "*"
-  SCAR.df$exprs <- SCAR.df[,"F"] + SCAR.df[,"R"]
-  SCAR.df$CPM <- SCAR.df[,"F.cpm"] + SCAR.df[,"R.cpm"]
-  SCAR.df$type <- pf
-  SCAR.df$sample <- pf
-
-
-  if (HAS.OKSEQ) {
-    Okazaki.df <- as.data.frame(OK.gr)
-    Okazaki.df$type <- pf
-    Okazaki.df$sample <- "OK-seq"
-
-    Okazaki.df <- Okazaki.df[,colnames(SCAR.df)]
-    RFD.gr <- makeGRangesFromDataFrame(rbind(Okazaki.df, SCAR.df),
-                                       keep.extra.columns = TRUE)
-
-    OK.ext.gr <- subset(RFD.gr, IZ & sample == "OK-seq")
-
-  } else {
-    RFD.gr <- makeGRangesFromDataFrame(SCAR.df,
-                                       keep.extra.columns = TRUE)
-
-    IZ.df <- read.csv(opt$initiation_zones, sep = "\t", header = FALSE)[,1:3]
-    colnames(IZ.df) <- c("seqnames","start","end")
-    print("loadin IZs")
-    IZ.df <-  IZ.df[!IZ.df$seqnames %in% chrom.excl,]
-    IZ.gr <- makeGRangesFromDataFrame(IZ.df)
-
-    IZ.gr$sample <- "OK-seq"
-    OK.ext.gr <- IZ.gr
-
+# Check input-corrected SCAR partition files
+if (!is.null(opt_scarminusinput_partition_file)) {
+  for (file in opt_scarminusinput_partition_file) {
+    if (!file.exists(file)) {
+      stop("SCAR input-corrected file not found: ", file)
+    } else {
+      part_files[["SCAR_Input_Corrected"]] <- c(part_files[["SCAR_Input_Corrected"]], file)
+      HAS_SCARINPUT <- TRUE
+    }
   }
-  OK.ext.gr$break_start <- start(OK.ext.gr)
-  # exclude overlapping initiation zone (within 200000 bp).
-  # subset to data within search-space (ok.ext.gr)
-  OK.ext.gr <- resize(OK.ext.gr,IZ.LIMITS * 2,fix="center")
+}
 
-  OK.dist <- distanceToNearest(OK.ext.gr)
-  OK.ext.gr <- OK.ext.gr[-queryHits(subset(OK.dist,
-                                           OK.dist@elementMetadata$distance==0))]
-  RFD.gr <- RFD.gr[!overlapsAny(RFD.gr, blacklist.gr, minoverlap = 1)]
+# Check stranded input partition files
+if (!is.null(opt_strandedinput_partition_file)) {
+  for (file in opt_strandedinput_partition_file) {
+    if (!file.exists(file)) {
+      stop("Stranded input partition file not found: ", file)
+    } else {
+      part_files[["strandedInput"]] <- c(part_files[["strandedInput"]], file)
+      HAS_INPUT <- TRUE
+    }
+  }
+}
 
-  n.izs <- length(OK.ext.gr)
-  overlap.pairs <- findOverlaps(OK.ext.gr, RFD.gr)
-  RFD.break.all.gr <- RFD.gr[subjectHits(overlap.pairs)]
-  RFD.break.all.gr$break_ID <- OK.ext.gr$names[queryHits(overlap.pairs)]
-  RFD.break.all.gr$dist <- start(RFD.break.all.gr) - OK.ext.gr$break_start[queryHits(overlap.pairs)]
+# Count how many types have at least one file
+num_types_with_files <- sum(sapply(part_files, function(x) length(x) > 0))
 
-  tmp.mean.df <- RFD.break.all.gr %>% as.data.frame() %>%
-    dplyr::filter(F.cpm >= CPM.cutoff | R.cpm >= CPM.cutoff) %>%
-    dplyr::group_by(dist,sample, type) %>%  # rank, enh_active
-    # TODO: modified this so column RFD is numeric ("" are replaced with NA too)
-    dplyr::mutate(RFD = as.numeric(RFD)) %>%
-    dplyr::summarise(#RFD_sd = sd(RFD,na.rm = T),
-      RFD.raw = mean(RFD.raw, na.rm = T),
-      RFD = mean(RFD,na.rm = T)) %>% as.data.frame()
+if (num_types_with_files == 0) {
+  stop("[", Sys.time(), "] ERROR: Please provide at least one partition file to create plots.")
+} else if (num_types_with_files == 1) {
+  plot_width <- 6
+} else if (num_types_with_files == 2) {
+  plot_width <- 7
+} else if (num_types_with_files == 3) {
+  plot_width <- 8
+}
 
-  RFD.mean.df <- rbind(RFD.mean.df, tmp.mean.df)
+# Check OK-seq RFD file
+HAS_OKSEQ <- FALSE
+if (is.null(opt_okazaki_file)) {
+  warning("\n[", Sys.time(), "] OK-seq file not provided.")
+} else if (!file.exists(opt_okazaki_file)) {
+  warning("\n[", Sys.time(), "] OK-seq file not found: ", opt_okazaki_file)
+} else {
+  HAS_OKSEQ <- TRUE
+}
 
-  if (HAS.OKSEQ) {
-    print("Computing correlations with OK-seq...")
+# Check initiation zones file
+HAS_IZ <- FALSE
+if (is.null(opt_initiation_zones)) {
+  warning("\n[", Sys.time(), "] Initiation zones file not provided.")
+} else if (!file.exists(opt_initiation_zones)) {
+  warning("\n[", Sys.time(), "] Initiation zones file not found: ", opt_initiation_zones)
+} else {
+  HAS_IZ <- TRUE
+}
 
-    RFD.cor.mat <- as.data.frame(RFD.gr) %>%
-      filter((F.cpm + R.cpm) >= CPM.cutoff) %>%
-      group_by(names, sample) %>%
-      # TODO: modified this so column RFD is numeric ("" are replaced with NA too)
-      dplyr::mutate(RFD = as.numeric(RFD)) %>%
-      summarise(RFD = mean(RFD, na.rm = TRUE)) %>% as.data.frame()
+if (!HAS_OKSEQ) {
+  if (!HAS_IZ) {
+    stop("[", Sys.time(), "] Please provide either valid Okazaki RFD file or Initiation Zone bed file")
+  }
+}
 
-    RFD.cor.df  <- reshape2::dcast(RFD.cor.mat, names ~ sample, value.var = "RFD", fun.aggregate = mean)
-    colnames(RFD.cor.df) <- c("names","OKseq", pf)
+# Check blacklist file
+HAS_BLACKLIST <- FALSE
+if (is.null(opt_blacklist)) {
+  warning("\n[", Sys.time(), "] Blacklist file not provided, it is recommended to use a blacklist")
+} else if (!file.exists(opt_blacklist)) {
+  warning("\n[", Sys.time(), "] Blacklist file not found: ", opt_blacklist, ". It is recommended to use a blacklist.")
+} else {
+  HAS_BLACKLIST <- TRUE
+}
 
-    cor.comp <- colnames(RFD.cor.df)[-1]
-    cor.comp <- cor.comp[order(cor.comp)]
-    cor.df <- c()
-    for (i in 1:(length(cor.comp)-1)) {
-      for (j in (i+1):length(cor.comp)) {
-        comp.x <- cor.comp[i]
-        comp.y <- cor.comp[j]
-        cor.obj <- cor.test(RFD.cor.df[,comp.x], RFD.cor.df[,comp.y], method = "spearman",
-                            use = "pairwise.complete.obs")
-        tmp.df <- data.frame(cor.x = comp.x, cor.y = comp.y,
-                             spearman.cor = cor.obj$estimate,
-                             cor.pvalue = cor.obj$p.value,
-                             stringsAsFactors = FALSE)
-        cor.df <- rbind(cor.df, tmp.df)
+# Check chromosome sizes file
+HAS_CHROM_SIZES <- FALSE
+if (is.null(opt_chrom_sizes)) {
+  stop("[", Sys.time(), "] Chromosome sizes file not provided.")
+} else if (!file.exists(opt_chrom_sizes)) {
+  stop("\n[", Sys.time(), "] Chromosome sizes file not found: ", opt_chrom_sizes)
+} else {
+  HAS_CHROM_SIZES <- TRUE
+}
+
+# Check output directory
+if (!dir.exists(opt_outdir)) {
+  warning("\n[", Sys.time(), "] Output directory not found, creating: ", opt_outdir)
+  dir.create(opt_outdir, recursive = TRUE)
+}
+
+# Check other parameters
+IZ_LIMITS <- opt_plot_range * 1000
+
+
+# ===============================================================================
+# Reading blacklist and chromosome sizes
+# ===============================================================================
+
+cls <- c("seqnames","start","end", # Coordinates of bin
+         "fwd_counts","rev_counts",# Forward (fwd_counts) and Reverse (rev_counts) raw counts in bin
+         "fwd_RPM","rev_RPM",      # Forward (fwd_RPM) and Reverse (rev_RPM) RPMs in bin
+         "RFD_raw","RFD_smooth",   # Partition scores computed with raw (RFD_raw) and smoothed (RFD_smooth) RPMs
+         "RFD_deriv",              # Value of the derivative of the partition at this bin
+         "score",                  # not used
+         "zero_deriv")             # second derivative at this bin
+# 
+blacklist_gr <- GRanges()
+if (HAS_BLACKLIST) {
+  blacklist_df <- read_tsv(opt_blacklist, col_select = c(1:3), col_names = c("seqnames","start","end"), show_col_types = FALSE)
+  blacklist_gr <- makeGRangesFromDataFrame(blacklist_df, starts.in.df.are.0based = TRUE)
+  rm(blacklist_df)
+}
+
+if (HAS_CHROM_SIZES) {
+
+  chrom_sizes_df <- read_tsv(opt_chrom_sizes, col_select = c(1:2), col_names = c("chr", "sizes"), show_col_types = FALSE)
+
+  # Remove excluded chromosomes
+  chrom_excl <- unique(unlist(strsplit(opt_exclude_chromosomes, ",")))
+  message("\n[", Sys.time(), "] Excluding the following chromosomes: ", paste(chrom_excl, collapse = ", "))
+  chrom_sizes_df <- chrom_sizes_df[!chrom_sizes_df$chr %in% chrom_excl, ]
+
+  # Remove scaffolds from chrom_sizes if needed
+  if (opt_exclude_scaffolds) {
+    message("\n[", Sys.time(), "] Removing scaffolds from chromosome sizes...")
+    chrom_sizes_df <- chrom_sizes_df[!grepl("\\.", chrom_sizes_df$chr), ]
+  }
+
+  chrom_sizes <- deframe(chrom_sizes_df)
+
+  rm(chrom_sizes_df)
+}
+
+
+if (HAS_OKSEQ) {
+
+  message("\n# ===============================================================================")
+  message("# STEP 1-A. Extracting initiation zones from OK-seq RFD file...")
+  message("# ===============================================================================")
+
+  ok_base_name <- sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(opt_okazaki_file))
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Reading OK-seq RFD file...")
+  OK_df <- read_tsv(opt_okazaki_file, col_names = cls, show_col_types = FALSE)
+
+  if (ncol(OK_df) != 12) {
+    stop("[", Sys.time(), "] (", ok_base_name, ") ERROR: The OK-seq RFD file is not in the correct format (ncol != 12)")
+  }
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Removing OK-seq bins within excluded chromosomes or outside of chrom_sizes...")
+  OK_df <- OK_df %>%
+    dplyr::filter(seqnames %in% names(chrom_sizes)) %>%
+    mutate(total_counts = fwd_counts + rev_counts, # total raw counts
+           RPM = fwd_RPM + rev_RPM,                 # total counts per million
+           sample = "OK-seq",
+           sample_type = "OK-seq")
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Converting the start positions of the OK-seq bins to 1-based...")
+  OK_gr <- makeGRangesFromDataFrame(OK_df,
+                                    seqinfo = chrom_sizes,
+                                    keep.extra.columns = TRUE,
+                                    starts.in.df.are.0based = TRUE)
+  
+  # We copy the interval now and not before with dplyr because the start
+  # coordinates are now 1-based thanks to starts.in.df.are.0based = TRUE
+  OK_gr$interval <- paste0(seqnames(OK_gr), ":", start(OK_gr), "-", end(OK_gr))
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Removing OK-seq bins that overlap a blacklisted region...")
+  OK_gr <- OK_gr[!overlapsAny(OK_gr, blacklist_gr, minoverlap = 1)]
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Keeping only OK-seq bins with sufficient coverage...")
+  OK_gr_tmp <- subset(OK_gr, RPM >= opt_rpm_cutoff)
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Keeping only OK-seq bins with a RFD zero derivative above the set quantile threshold (", opt_zero_deriv_quantile, ")...")
+  OK_gr_tmp <- OK_gr_tmp[which(OK_gr_tmp$zero_deriv > quantile(OK_gr_tmp$RFD_deriv,
+                                               probs = opt_zero_deriv_quantile,
+                                               na.rm = TRUE))]
+  
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Calculating OK-seq bin size...")
+
+  OK_BIN_SIZE <- width(OK_gr)[1]
+  
+  # As in Petryk et al. (2018; https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials),
+  # for initiation zones less than 3 bins apart, the bin with the highest RFD derivative is selected:
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Merging overlapping/adjacent OK-seq bins with a gap smaller than 3x bin size...")
+  OK_reduced_gr <- GenomicRanges::reduce(OK_gr_tmp,
+                                     min.gapwidth = OK_BIN_SIZE * 3,
+                                     with.revmap = TRUE)
+
+  # For each set of merged bins,
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Keeping the OK-seq bin with the highest RFD derivative...")
+  filtered_data <- OK_gr_tmp[sapply(OK_reduced_gr$revmap, 
+    function(x) { x[which.max(OK_gr_tmp$RFD_deriv[x])] })]
+
+  # Set these bins as initiation zones
+  OK_gr$IZ <- ifelse(OK_gr$interval %in% filtered_data$interval, TRUE, FALSE)
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") The number of initiation zones after preprocessing is ", sum(OK_gr$IZ), ".")
+  IZ_gr <- subset(OK_gr, IZ)
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Removing overlapping initiation zones (within 100 kb upstream and 100 kb downstream of another initiation zone)...")
+  
+  # Get original start coordinate for each initiation zone 
+  IZ_gr$break_start <- start(IZ_gr)
+  
+  # Resizing initiation zones to cover 100 kb upstream and 100 kb downstream
+  IZ_gr <- resize(IZ_gr, IZ_LIMITS * 2, fix = "center")
+  
+  # Resizing can generate bins with negative start positions (out-of-bound), so we trim them
+  IZ_gr <- trim(IZ_gr)
+  
+  # Finding the nearest resized initiation zone to each resized initiation zone
+  IZ_dist <- distanceToNearest(IZ_gr)
+  
+  # Removing overlapping resized initiation zones
+  IZ_gr <- IZ_gr[-queryHits(subset(IZ_dist, IZ_dist@elementMetadata$distance == 0))]
+  
+  message("\n[", Sys.time(), "] (", ok_base_name, ") The number of initiation zones after removing overlaps is: ", length(IZ_gr), ".")
+  
+  rm(OK_df, OK_gr_tmp, OK_reduced_gr, filtered_data, IZ_dist)
+
+} else {
+
+  message("\n# ===============================================================================")
+  message("# STEP 1-B. Extracting initiation zones from provided BED file...")
+  message("# ===============================================================================")
+
+  iz_base_name <- sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(opt_initiation_zones))
+  message("\n[", Sys.time(), "] (", iz_base_name, ") Reading initiation zones file...")
+  IZ_df <- read_tsv(opt_initiation_zones,
+                    col_select = c(1:3),
+                    col_names = c("seqnames", "start", "end"),
+                    show_col_types = FALSE)
+
+  message("\n[", Sys.time(), "] (", iz_base_name, ") Removing initiation zones within excluded chromosomes or outside of chrom_sizes...")
+  IZ_gr <- IZ_df %>%
+    filter(seqnames %in% names(chrom_sizes)) %>%
+    mutate(sample = "OK-seq",
+           sample_type = "OK-seq") %>%
+    makeGRangesFromDataFrame(seqinfo = chrom_sizes,
+                             keep.extra.columns = TRUE,
+                             starts.in.df.are.0based = TRUE)
+
+  # We copy the interval now and not before with dplyr because the start
+  # coordinates are now 1-based thanks to starts.in.df.are.0based = TRUE
+  IZ_gr$interval <- paste0(seqnames(IZ_gr), ":", start(IZ_gr), "-", end(IZ_gr))
+
+  message("\n[", Sys.time(), "] (", iz_base_name, ") Removing overlapping initiation zones (within 100 kb upstream and 100 kb downstream of another initiation zone)...")
+  
+  # Get original start coordinate for each initiation zone 
+  IZ_gr$break_start <- start(IZ_gr)
+  
+  # Resizing initiation zones to cover 100 kb upstream and 100 kb downstream
+  IZ_gr <- resize(IZ_gr, IZ_LIMITS * 2, fix = "center")
+
+  # Resizing can generate bins with negative start positions (out-of-bound), so we trim them
+  IZ_gr <- trim(IZ_gr)
+  
+  # Finding the nearest resized initiation zone to each resized initiation zone
+  IZ_dist <- distanceToNearest(IZ_gr)
+  
+  # Removing overlapping resized initiation zones
+  IZ_gr <- IZ_gr[-queryHits(subset(IZ_dist, IZ_dist@elementMetadata$distance == 0))]
+  
+  message("\n[", Sys.time(), "] (", iz_base_name, ") The number of initiation zones after removing overlaps is: ", length(IZ_gr), ".")  
+  
+  # Remove temporary variables
+  rm(IZ_dist)
+  
+}
+
+if (HAS_OKSEQ) {
+
+  message("\n# ===============================================================================")
+  message("# STEP 2. Preprocessing of OK-seq (RFD) file...")
+  message("# ===============================================================================")
+
+  # As in Petryk et al. (2018; https://www-science.org/doi/10.1126/science.aau0294#supplementary-materials):
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Calculating RFD rates around initiation zones (100 kb upstream and 100 kb
+  downstream of each IZ) by averaging values within each bin position...")
+  
+  # Finding out which initiation zones overlap which OK-seq bins
+  if (opt_only_plot_within_iz) {
+    overlap_pairs <- findOverlaps(query = OK_gr, subject = IZ_gr, type = "within")
+  } else {
+    overlap_pairs <- findOverlaps(query = OK_gr, subject = IZ_gr)
+  }
+
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Extracting the OK-seq bins that overlap with an initiation zone...")
+  RFD_gr <- OK_gr[queryHits(overlap_pairs)]
+  
+  # Adding to each OK-seq bin the interval of the initiation zone with which it overlaps
+  RFD_gr$break_ID <- IZ_gr$interval[subjectHits(overlap_pairs)]
+  
+  message("\n[", Sys.time(), "] (", ok_base_name, ") Calculating the distance from each OK-seq bin to the initiation zone with which it overlaps...")
+  RFD_gr$dist <- start(RFD_gr) - IZ_gr$break_start[subjectHits(overlap_pairs)]
+  
+  # Remove temporary variables
+  rm(OK_gr, overlap_pairs)
+
+} else {
+
+  message("\n# ===============================================================================")
+  message("# STEP 2. SKIPPED (No OK-seq file)")
+  message("# ===============================================================================")
+
+}
+
+message("\n# ===============================================================================")
+message("# STEP 3. Preprocessing of partition files...")
+message("# ===============================================================================")
+
+partition_df <- c()
+
+for (type in names(part_files)) {
+
+  message("\n[", Sys.time(), "] Processing partition files of type: ", type, "...")
+  
+  for (file in part_files[[type]]) {
+
+    base_name <- sub(pattern = "(.*?)\\..*$", replacement = "\\1", basename(file))
+
+    message("\n[", Sys.time(), "] (", base_name, ") Reading partition file...")
+    SCAR_df <- read_tsv(file, col_names = cls, show_col_types = FALSE)
+    
+    if (ncol(SCAR_df) != 12) {
+      stop("[", Sys.time(), "] ERROR:", base_name, "is not a partition file format (ncol != 12)")
+    }
+
+    message("\n[", Sys.time(), "] (", base_name, ") Removing partition bins within excluded chromosomes or outside of chromosome sizes...")
+    SCAR_df <- SCAR_df %>%
+      dplyr::filter(seqnames %in% names(chrom_sizes)) %>%
+      mutate(IZ = NA,
+            strand = "*",
+            total_counts = fwd_counts + rev_counts, # total raw counts
+            RPM = fwd_RPM + rev_RPM,                # total counts pr. million
+            sample = base_name,
+            sample_type = type,
+            sample_facet = type)
+    
+    SCAR_gr <- makeGRangesFromDataFrame(SCAR_df,
+                                        seqinfo = chrom_sizes,
+                                        keep.extra.columns = TRUE,
+                                        starts.in.df.are.0based = TRUE)
+
+    # We copy the interval now and not before with dplyr because the start
+    # coordinates are now 1-based thanks to starts.in.df.are.0based = TRUE
+    SCAR_gr$interval <- paste0(seqnames(SCAR_gr), ":", start(SCAR_gr), "-", end(SCAR_gr))    
+      
+    message("\n[", Sys.time(), "] (", base_name, ") Removing partition bins that overlap a blacklisted region...")
+    SCAR_gr <- SCAR_gr[!overlapsAny(SCAR_gr, blacklist_gr, minoverlap = 1)]
+      
+    PART_BIN_SIZE <- width(SCAR_gr)[1]
+    message("\n[", Sys.time(), "] (", base_name, ") This partition's bin size is ", PART_BIN_SIZE, " bp.")
+
+    if (HAS_OKSEQ) {
+      if (OK_BIN_SIZE != PART_BIN_SIZE) {
+        stop("\n[", Sys.time(), "] ERROR: Bin size of ", base_name,
+             "(", PART_BIN_SIZE, " bp) is not the same bin size as in the provided OK-seq partition file (", OK_BIN_SIZE, " bp).\n")
       }
     }
 
-    RFD.spear.df <- rbind(RFD.spear.df, cor.df)
-
-    tmp.cor.melt.df <- melt(RFD.cor.df, id.vars = c("names","OKseq"),
-                            variable.name = "sample", value.name = "RFD") %>%
-      filter(!is.nan(RFD) & !is.nan(OKseq))
-
-
-    colnames(tmp.cor.melt.df) <- c("names", "RFD", "sample", "Partition")
-    tmp.cor.melt.df$sample <- as.character(tmp.cor.melt.df$sample)
-    RFD.cor.melt.df <- rbind(RFD.cor.melt.df, tmp.cor.melt.df)
+  # As in Petryk et al. (2018; https://www-science.org/doi/10.1126/science.aau0294#supplementary-materials):
+  message("\n[", Sys.time(), "] (", base_name, ") Calculating partition rates around initiation zones (100 kb upstream and 100 kb downstream of each IZ) by averaging values within each bin position...")
+  
+  # Finding out which initiation zones overlap which partition bins...
+  if (opt_only_plot_within_iz) {
+    overlap_pairs <- findOverlaps(query = SCAR_gr, subject = IZ_gr, type = "within")
+  } else {
+    overlap_pairs <- findOverlaps(query = SCAR_gr, subject = IZ_gr)
   }
+
+  message("\n[", Sys.time(), "] (", base_name, ") Extracting the partition bins that overlap with an initiation zone...")
+  partition_gr <- SCAR_gr[queryHits(overlap_pairs)]
+  
+  # Adding to each partition bin the interval of the initiation zone with which it overlaps
+  partition_gr$break_ID <- IZ_gr$interval[subjectHits(overlap_pairs)]
+  
+  message("\n[", Sys.time(), "] (", base_name, ") Calculating the distance from each partition bin to the initiation zone with which it overlaps...")
+  partition_gr$dist <- start(partition_gr) - IZ_gr$break_start[subjectHits(overlap_pairs)]
+
+  partition_df <- partition_df %>%
+    bind_rows(as_tibble(partition_gr))
+  
+  message("\n[", Sys.time(), "] (", base_name, ") Finished processing partition file.")
+
+  }
+
 }
 
-if (HAS.OKSEQ) {
-  colnames(RFD.spear.df) <- c("OKseq","sample","spearman.cor","cor.pvalue")
-  RFD.spear.df$tex.label <- paste0("$\\rho = ", sprintf("%0.4f",RFD.spear.df$spearman.cor), "$")
-  RFD.spear.df$tex.label <- paste0("rho == ", sprintf("%0.4f",RFD.spear.df$spearman.cor))
-  RFD.cor.melt.df$sample <- factor(RFD.cor.melt.df$sample,
-                                   levels =  names(sample.labels))
-  RFD.spear.df$sample <- factor(RFD.spear.df$sample,
-                                levels = names(sample.labels))
+if (HAS_OKSEQ) {
+
+  message("\n[", Sys.time(), "] Expanding OK-seq RFD data for each partition (plotting purposes)...")
+  # Expand RFD_gr for each unique sample_facet in partition_mean_df
+  sample_facets <- unique(partition_df$sample_facet)
+  # if sample_facets is empty (there are no SCAR partitions, just OK-seq):
+  if (is.null(sample_facets)) {
+    sample_facets <- "OK-seq"
+  } else {
+    sample_facets <- sample_facets
+  }
+  
+  expanded_RFD <- tidyr::expand_grid(
+    as_tibble(RFD_gr),
+    sample_facet = sample_facets
+  )
+  
+  partition_df <- partition_df %>%
+    bind_rows(expanded_RFD)
+
 }
 
+message("\n# ===============================================================================")
+message("# STEP 4. Calculating mean partition rates around initiation zones...")
+message("# ===============================================================================")
+
+# get a summary table with the number of unique break_ID per sample and sample_type
+partition_summary <- partition_df %>%
+  dplyr::group_by(sample, sample_type, sample_facet) %>%
+  dplyr::summarise(N_IZ = n_distinct(break_ID), .groups = "drop")
+
+partition_mean_df <- partition_df %>%
+  dplyr::filter(RPM >= opt_rpm_cutoff) %>%
+  dplyr::group_by(dist, sample, sample_type, sample_facet) %>%
+  dplyr::summarise(
+    RFD_raw = mean(RFD_raw, na.rm = TRUE),
+    RFD_smooth = mean(RFD_smooth, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(sample = gsub("^SCAR-seq_", "", sample))
+
+message("\n[", Sys.time(), "] A glimpse of the partition mean data frame:")
+print(partition_mean_df)
 
 
-RFD.mean.df$sample <- factor(RFD.mean.df$sample,
-                             levels = names(line.colors))
-
-RFD.mean.df$type <- factor(RFD.mean.df$type,
-                             levels = names(sample.labels))
+message("\n# ===============================================================================")
+message("# STEP 5. Plotting")
+message("# ===============================================================================")
 
 
-if (HAS.OKSEQ) {
-  smooth.plt <- ggplot(RFD.mean.df,aes(x = dist / 1000, y = RFD, colour=sample)) +
-    geom_line(stat = "smooth", linewidth = 1.3, aes(x = dist / 1000, y = RFD,
-                                                    colour=sample),
-              method = "gam",se=F, inherit.aes = TRUE) +
-    xlab(paste0("Distance (kb) from initiation zone center")) +
-    ylab("Partition or RFD") +
-    ggtitle(PREFIX) +
-    geom_vline(xintercept = 0, colour = "grey70", linewidth = 0.5) +
-    geom_hline(yintercept = 0, colour = "grey70", linewidth = 0.5) +
-    scale_colour_manual(values = line.colors,
-                        breaks = "OK-seq") +
-    guides(guides(colour = guide_legend(order = 1))) +
-    theme_bw(base_size = 20, base_family = "Helvetica") +
+# ===============================================================================
+# Partition plots labels and colors
+# ===============================================================================
+
+message("\n[", Sys.time(), "] Setting sample labels and colors...")
+sample_labels <-  c("SCAR_Input_Corrected" =  "SCAR (Input-corrected)",
+                    "SCAR" = "SCAR", "strandedInput" = "Stranded input")
+sample_labels <- sample_labels[names(part_files)]
+
+# set a color in Dark2 palette for each sample, but set OK-seq to dark gray
+dark2_colors <- RColorBrewer::brewer.pal(length(unique(partition_mean_df$sample)), "Paired")
+sample_names <- unique(partition_mean_df$sample)
+sample_colors <- setNames(dark2_colors[seq_along(sample_names)], sample_names)
+sample_colors["OK-seq"] <- "grey60"
+line_colors <- sample_colors
+
+
+# ===============================================================================
+# Raw partition plot(s)
+# ===============================================================================
+
+message("\n[", Sys.time(), "] Creating raw partition plot(s)...")
+
+raw_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smooth, color = sample)) +
+    geom_rect(xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
+              fill = "grey92", inherit.aes = FALSE) +
+    geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
+              fill = "grey92", inherit.aes = FALSE) +
+    geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_line(linewidth = 0.3) +
+    scale_color_manual(values = line_colors) +
+    xlab("Distance from initiation zone center (kb)") +
+    ylab(ifelse(HAS_OKSEQ, "Partition or RFD", "Partition")) +
+    labs(caption = paste("N =", length(IZ_gr))) +
+    theme_bw(base_family = "Helvetica") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          #legend.position = "none",
           legend.title = element_blank(),
-          axis.title = element_text(size = 7 * .pt),
-          axis.text = element_text(size = 5 * .pt),
-          legend.text = element_text(size = 6 * .pt)) +
-    facet_wrap(~type, nrow = 1, labeller = labeller(.cols = sample.labels)) +
-    labs(caption = TeX(paste0("$N =",n.izs, "$")),
-         family = "Helvetica", size = 5)
+          axis.title = element_text(size = 6),
+          axis.text = element_text(size = 6),
+          legend.text = element_text(size = 6),
+          legend.key.size = unit(0.3, "cm"),
+          legend.key = element_rect(color = NA, fill = NA),
+          strip.background = element_blank(),
+          aspect.ratio = 1,
+          plot.caption = element_text(size = 6)) +
+    guides(color = guide_legend(order = 1)) +
+    facet_wrap(~ sample_facet, nrow = 1, labeller = labeller(.cols = sample_labels)) +
+    scale_y_continuous(expand = expansion(mult = c(0.11, 0.11))) +
+    annotate(geom = 'text', label = 'Lagging', x = -Inf, y = Inf, hjust = -0.13,
+            vjust = 2, size = 2) +
+    annotate(geom = 'text', label = 'Leading', x = -Inf, y = -Inf, hjust = -0.13,
+            vjust = -1.5, size = 2) +
+    annotate(geom = 'text', label = 'Lagging', x = Inf, y = -Inf, hjust = 1.13,
+            vjust = -1.5, size = 2) +
+    annotate(geom = 'text', label = 'Leading', x = Inf, y = Inf, hjust = 1.13,
+            vjust = 2, size = 2)
+
+message("\n[", Sys.time(), "] Saving raw partition plot(s)...")
+ggsave(filename = file.path(opt_outdir,paste0(opt_prefix,".partition_plots_raw.pdf")),
+       plot = raw_plot, width = plot_width, height = 2.5, units = "in")
+
+ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".partition_plots_raw.png")),
+       plot = raw_plot, width = plot_width, height = 2.5, units = "in",
+       dpi = 600)
 
 
-  raw.plt <- ggplot(RFD.mean.df,aes(x = dist / 1000, y = RFD, colour = sample)) +
-    geom_line(linewidth = 1) +
-    xlab(paste0("Distance (kb) from initiation zone center")) +
-    ylab("Partition or RFD") +
-    ggtitle(PREFIX) +
-    geom_vline(xintercept = 0, colour = "grey70", linewidth = 0.5) +
-    geom_hline(yintercept = 0, colour = "grey70", linewidth = 0.5) +
-    scale_colour_manual(values = line.colors,
-                        breaks = "OK-seq") +
-    guides(guides(colour = guide_legend(order = 1))) +
-    theme_bw(base_size = 20, base_family = "Helvetica") +
+# ===============================================================================
+# Smoothed partition plot(s)
+# ===============================================================================
+
+message("\n[", Sys.time(), "] Creating smoothed partition plot(s)...")
+
+smooth_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smooth, color = sample)) +
+    geom_rect(xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
+              fill = "grey92", inherit.aes = FALSE) +
+    geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
+              fill = "grey92", inherit.aes = FALSE) +
+    geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_line(stat = "smooth", method = "gam", se = FALSE, linewidth = 0.5) +
+    scale_color_manual(values = line_colors) +
+    xlab("Distance from initiation zone center (kb)") +
+    ylab(ifelse(HAS_OKSEQ, "Partition or RFD", "Partition")) +
+    labs(caption = paste("N =", length(IZ_gr))) +
+    theme_bw(base_family = "Helvetica") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          #legend.position = "none",
           legend.title = element_blank(),
-          axis.title = element_text(size = 7 * .pt),
-          axis.text = element_text(size = 5 * .pt),
-          legend.text = element_text(size = 6 * .pt)) +
-    facet_wrap(~type, nrow = 1, labeller = labeller(.cols = sample.labels)) +
-    labs(caption = TeX(paste0("$N =",n.izs, "$")),
-         family = "Helvetica", size = 5)
+          axis.title = element_text(size = 6),
+          axis.text = element_text(size = 6),
+          legend.text = element_text(size = 6),
+          legend.key.size = unit(0.3, "cm"),
+          legend.key = element_rect(color = NA, fill = NA),
+          strip.background = element_blank(),
+          aspect.ratio = 1,
+          plot.caption = element_text(size = 6)) +
+    guides(color = guide_legend(order = 1)) +
+    facet_wrap(~ sample_facet, nrow = 1, labeller = labeller(.cols = sample_labels)) +
+    scale_y_continuous(expand = expansion(mult = c(0.11, 0.11))) +
+    annotate(geom = 'text', label = 'Lagging', x = -Inf, y = Inf, hjust = -0.13,
+            vjust = 2, size = 2) +
+    annotate(geom = 'text', label = 'Leading', x = -Inf, y = -Inf, hjust = -0.13,
+            vjust = -1.5, size = 2) +
+    annotate(geom = 'text', label = 'Lagging', x = Inf, y = -Inf, hjust = 1.13,
+            vjust = -1.5, size = 2) +
+    annotate(geom = 'text', label = 'Leading', x = Inf, y = Inf, hjust = 1.13,
+            vjust = 2, size = 2)
 
-  max.part <- max(c(RFD.cor.melt.df$RFD, RFD.cor.melt.df$Partition), na.rm = TRUE)
+message("\n[", Sys.time(), "] Saving smoothed partition plot(s)...")
+ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".partition_plots_smoothed.pdf")),
+       plot = smooth_plot, width = plot_width, height = 2.5, units = "in")
 
-  partition.scatter.plt <- RFD.cor.melt.df %>%
+ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".partition_plots_smoothed.png")),
+       plot = smooth_plot, width = plot_width, height = 2.5, units = "in",
+       dpi = 600)
+
+
+# ===============================================================================
+# Scatter plots: RFD (OK-seq) vs partition
+# ===============================================================================
+
+if (HAS_OKSEQ) {
+
+  message("\n[", Sys.time(), "] Creating scatter plot(s) (OK-seq vs partitions)...")
+
+  partition_df_flt <- partition_df %>%
+    filter(RPM >= opt_rpm_cutoff,
+           !is.na(RFD_smooth)) %>%
+    dplyr::select(interval,  sample, sample_type, sample_facet, RFD_smooth)
+  
+  RFD_plot_df <- partition_df_flt %>%
+    group_by(interval, sample, sample_facet) %>%
+    summarise(RFD_smooth = mean(RFD_smooth, na.rm = TRUE), .groups = "drop") %>%
+    pivot_wider(names_from = sample, values_from = RFD_smooth) %>%
+    pivot_longer(cols = -c(interval, "OK-seq", sample_facet), names_to = "sample", values_to = "Partition") %>%
+    dplyr::rename(RFD = "OK-seq") %>%
+    mutate(sample = gsub("^SCAR-seq_", "", sample))
+  
+  partition_scatter_plot <- RFD_plot_df %>%
     ggplot(aes(x = RFD, y = Partition)) +
-    geom_hex(bins=120) +
-    ggtitle(PREFIX) +
-    scale_fill_gradientn(colours = (brewer.pal(n=9,name="Blues")[2:8])) +
+    geom_hex(bins = 100) +
+    scale_fill_gradientn(colours = (brewer.pal(n = 9, name = "Blues")[2:8])) +
     geom_vline(xintercept = 0, colour = "grey70", linewidth = 0.5) +
     geom_hline(yintercept = 0, colour = "grey70", linewidth = 0.5) +
-    scale_y_continuous(breaks=c(-0.6, 0, 0.6),
-                       limits = c(-max.part,max.part)) +
-    scale_x_continuous(breaks=c(-0.6, 0, 0.6),
-                       limits =  c(-max.part,max.part)) +
-    geom_smooth(se=F,method="lm",size=0.3,colour="red") +
+    geom_smooth(se = FALSE, method = "lm", linewidth = 0.3, color = "red") +
+    # add correlation and p-value to the plot
+    stat_cor(aes(label = paste(after_stat(r.label), after_stat(p.label), sep = "~`,`~")),
+             method = "spearman", size = 2.5,
+             cor.coef.name = c("rho")) +
     theme_bw(base_size = 20, base_family = "Helvetica") +
-    geom_text(data = RFD.spear.df,
-              aes(x = -0.4, y = 0.5,
-                  label = tex.label),
-              parse = TRUE, size = 5) +
-    facet_wrap(~ sample, labeller = labeller(.cols = sample.labels)) +
-    theme(panel.spacing = unit(0.3, "lines"),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.title = element_text(size = 7 * .pt),
-          axis.text = element_text(size = 6 * .pt),
-          legend.text = element_text(size = 6 * .pt),
-          strip.text.x = element_text(size = 5 * .pt),
-          strip.text.y = element_text(size = 5 * .pt),
-          strip.background = element_rect(colour="black", fill="#e3e3e3"))
-
-  ggsave(filename = file.path(plots.dir,paste0(PREFIX,".scatter_plots.pdf")),
-         plot = partition.scatter.plt, width = plt.width, height = plt.height,
-         device = cairo_pdf,
-         dpi = 300)
-
-
-
-} else {
-  smooth.plt <- ggplot(RFD.mean.df,aes(x = dist / 1000, y = RFD, colour=sample)) +
-    geom_line(stat = "smooth", linewidth = 1.3, aes(x = dist / 1000, y = RFD,
-                                                    colour=sample),
-              method = "gam",se=F, inherit.aes = TRUE) +
-    xlab(paste0("Distance (kb) from initiation zone center")) +
-    ylab("Partition or RFD") +
-    ggtitle(PREFIX) +
-    geom_vline(xintercept = 0, colour = "grey70", size = 0.5) +
-    geom_hline(yintercept = 0, colour = "grey70", size = 0.5) +
-    scale_colour_manual(values = line.colors) +
-    guides(guides(colour = guide_legend(order = 1))) +
-    theme_bw(base_size = 20, base_family = "Helvetica") +
+    facet_grid(sample ~ sample_facet, scales = "free", labeller = labeller(.cols = sample_labels)) +
+    theme_bw(base_family = "Helvetica") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          legend.position = "none",
           legend.title = element_blank(),
-          axis.title = element_text(size = 7 * .pt),
-          axis.text = element_text(size = 5 * .pt),
-          legend.text = element_text(size = 6 * .pt)) +
-    facet_wrap(~type, nrow = 1, labeller = labeller(.cols = sample.labels)) +
-    labs(caption = TeX(paste0("$N =",n.izs, "$")),
-         family = "Helvetica", size = 5)
+          axis.title = element_text(size = 6),
+          axis.text = element_text(size = 6),
+          legend.text = element_text(size = 6),
+          strip.background = element_blank(),
+          aspect.ratio = 1)
 
+  message("\n[", Sys.time(), "] Saving scatter plot(s) (OK-seq vs partitions)...")
+  ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".scatter_plots.pdf")),
+         plot = partition_scatter_plot, width = plot_width, height = 6.52, units = "in")
 
-  raw.plt <- ggplot(RFD.mean.df,aes(x = dist / 1000, y = RFD, colour = sample)) +
-    geom_line(linewidth = 1) +
-    xlab(paste0("Distance (kb) from initiation zone center")) +
-    ylab("Partition or RFD") +
-    ggtitle(PREFIX) +
-    geom_vline(xintercept = 0, colour = "grey70", size = 0.5) +
-    geom_hline(yintercept = 0, colour = "grey70", size = 0.5) +
-    scale_colour_manual(values = line.colors) +
-    guides(guides(colour = guide_legend(order = 1))) +
-    theme_bw(base_size = 20, base_family = "Helvetica") +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          legend.position = "none",
-          legend.title = element_blank(),
-          axis.title = element_text(size = 7 * .pt),
-          axis.text = element_text(size = 5 * .pt),
-          legend.text = element_text(size = 6 * .pt)) +
-    facet_wrap(~type, nrow = 1, labeller = labeller(.cols = sample.labels)) +
-    labs(caption = TeX(paste0("$N =",n.izs, "$")),
-         family = "Helvetica", size = 5)
-
+  ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".scatter_plots.png")),
+         plot = partition_scatter_plot, width = plot_width, height = 6.52, units = "in",
+         dpi = 600)
 
 }
 
-
-
-ggsave(filename = file.path(plots.dir,paste0(PREFIX,".partition_plots_raw.pdf")),
-       plot = raw.plt, width = plt.width, height = plt.height,
-       device = cairo_pdf,
-       dpi = 300)
-
-ggsave(filename = file.path(plots.dir,paste0(PREFIX,".partition_plots_smoothed.pdf")),
-       plot = smooth.plt, width = plt.width, height = plt.height,
-       device = cairo_pdf,
-       dpi = 300)
-
-
+message("\n[", Sys.time(), "] All processing and plotting complete.")

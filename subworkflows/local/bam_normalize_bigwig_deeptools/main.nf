@@ -53,6 +53,13 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
     ch_bdg_raw = DEEPTOOLS_BAMCOVERAGE_BINS.out.bedgraph
     ch_versions = ch_versions.mix(DEEPTOOLS_BAMCOVERAGE_BINS.out.versions.first())
 
+    // TODO: print for debugging
+    ch_bdg_raw
+        .map { meta, bdg ->
+            "${meta}\t${bdg}"
+        }
+        .collectFile( name: 'ch_bdg_raw.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
+
     // bamCoverage merges contiguous bins with the same coverage and there is no option to disable this.
     // See https://github.com/deeptools/deepTools/issues/907#issuecomment-576729674
     // Therefore, to get bins of equal size across the whole genome,
@@ -66,7 +73,7 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
         ch_chrom_sizes_endo
     )
     ch_windows_endo = BEDTOOLS_MAKEWINDOWS_ENDO.out.bed
-    ch_versions = ch_versions.mix(BEDTOOLS_MAKEWINDOWS_ENDO.out.versions.first())
+    ch_versions = ch_versions.mix(BEDTOOLS_MAKEWINDOWS_ENDO.out.versions)
 
     // Create channel: [ val(meta_bdg_raw), windows, bdg_raw ]
     ch_bdg_raw
@@ -97,7 +104,7 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
             ch_chrom_sizes_exo
         )
         ch_windows_exo = BEDTOOLS_MAKEWINDOWS_EXO.out.bed
-        ch_versions = ch_versions.mix(BEDTOOLS_MAKEWINDOWS_EXO.out.versions.first())
+        ch_versions = ch_versions.mix(BEDTOOLS_MAKEWINDOWS_EXO.out.versions)
 
         // Create channel: [ val(meta_bdg_raw), windows, bdg_raw ]
         ch_bdg_raw
@@ -131,42 +138,68 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
         }
         .collectFile( name: 'ch_bdg_map.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
 
-    // Split into ChIP and control channels because inputs' norm_factor_val_used should depend on meta.antibody
+    // Split into ChIP and ipcontrol channels because inputs' norm_factor_val_used should depend on meta.antibody
     // from its corresponding ChIP. Thus, for inputs, we need the info of both ChIP and input in the if statements below
     ch_bdg_map
         .branch { meta, bdg ->
-            ip: !meta.is_control
-            control: meta.is_control
+            ip: !meta.is_input_control
+                return [ meta.input_control, meta.antibody, meta, bdg ]
+            ipcontrol: meta.is_input_control
         }
         .set { ch_bdg_map_type }
 
     ch_bdg_map_type
-        // First, modify the controls' metas to add their corresponding ChIP's antibody
-        .control
-        // Downsampled files already have control_of_antibody, so we use it here to combine accordingly
-        .map { meta, bdg -> [ meta.id, meta.control_of_antibody, meta, bdg ]}
-        .combine(ch_bdg_map_type.ip.map { meta, bdg -> [ meta.control, meta.antibody, meta, bdg ] }, by: [0,1])
-        // If files were not dowsampled, now we copy the meta.antibody to the control_of_antibody, otherwise,
-        // this has no effect:
-        .map { control_id, antibody, control_meta, control_bdg, ip_meta, ip_bdg ->
-                def meta_clone = control_meta.clone()
-                meta_clone.control_of_antibody = ip_meta.antibody
-                [ meta_clone, control_bdg ]
+        .ipcontrol
+        .branch { meta, bdg ->
+            dsp: meta.input_control_of_antibody && meta.dSp_total_mapped_reads
+                return [ meta, bdg ] // [ meta.id, meta.input_control_of_antibody, meta, bdg ]
+            not_dsp: !meta.input_control_of_antibody && !meta.dSp_total_mapped_reads
+                return [ meta.id, meta, bdg ]
+        }
+        .set { ch_bdg_map_ipcontrols }
+
+    // Probably not needed, but just in case:
+    // For downsampled files, use existing control_of_antibody
+    //  ch_bdg_map_ipcontrols
+    //     .dsp
+    //     .combine(ch_bdg_map_type.ip, by: [0,1]) // combine by ipcontrol_id and antibody
+    //     .map { ipcontrol_id, antibody, ipcontrol_meta, ipcontrol_bdg, ip_meta, ip_bdg ->
+    //         [ ipcontrol_meta, ipcontrol_bdg ]
+    //     }
+    //     .set { ch_controls_dsp }
+
+    ch_bdg_map_ipcontrols
+        .not_dsp
+        .combine(ch_bdg_map_type.ip, by: 0) // combine by ipcontrol_id only
+        .map { ipcontrol_id, ipcontrol_meta, ipcontrol_bdg, ip_antibody, ip_meta, ip_bdg ->
+            def meta_clone = ipcontrol_meta.clone()
+            meta_clone.input_control_of_antibody = ip_antibody
+            [ meta_clone, ipcontrol_bdg ]
         }
         // remove duplicates based on meta_clone and filename (basically the meta_clone.control_of_antibody we added above)
         // Because we don't need the same input normalized in the same way several times
         .unique()
-        // Now we mix the control and ip channels to evaluate them together below
-        .mix(ch_bdg_map_type.ip)
+        .set { ch_ipcontrols_not_dsp }
+
+    ch_bdg_map_ipcontrols.dsp
+        .mix(ch_ipcontrols_not_dsp)
+        .mix(ch_bdg_map_type.ip.map { ipcontrol_id, antibody, meta, bdg -> [ meta, bdg ] })
         .set { ch_bdg_map_mod }
+
+    // TODO: print for debugging
+    ch_bdg_map_mod
+        .map { meta, bdg ->
+            "${meta}\t${bdg}"
+        }
+        .collectFile( name: 'ch_bdg_map_mod.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
 
     // RPM normalization factors
     ch_bdg_rpm = Channel.empty()
     ch_bdg_map_mod
         .map { meta, bdg ->
             def meta_clone = meta.clone()
-            // samples have meta.antibody, while input controls have meta.control_of_antibody
-            def antibody_to_use = meta.antibody ?: meta.control_of_antibody
+            // samples have meta.antibody, while input controls have meta.input_control_of_antibody
+            def antibody_to_use = meta.antibody ?: meta.input_control_of_antibody
             // If it was downsampled before, we want to use dSp_total_mapped_reads
             if (meta_clone.dSp_total_mapped_reads) {
                 meta_clone.norm_factor_val = 1e6 / meta_clone.dSp_total_mapped_reads
@@ -203,27 +236,50 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
     if (!skip_srpm) {
         ch_bdg_map_mod
             .map { meta, bdg ->
-                // samples have meta.antibody, while input controls have meta.control_of_antibody
-                def antibody_to_use = meta.antibody ?: meta.control_of_antibody
+                // samples have meta.antibody, while input controls have meta.input_control_of_antibody
+                def antibody_to_use = meta.antibody ?: meta.input_control_of_antibody
                 [ meta.id, antibody_to_use, meta, bdg ]
             }
+            .tap { ch_tmp_debug0 }
             .branch { id, antibody, meta, bdg ->
                 endo: meta.genome == genome
                 exo: meta.genome == spikein_genome
             }
             .set { ch_bdg_genome }
 
+        // TODO: print for debugging
+        ch_tmp_debug0
+            .map { it ->
+                "${it}"
+            }
+            .collectFile( name: 'ch_tmp_debug0.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
+
+        // TODO: print for debugging
+        ch_bdg_genome.endo
+            .map { it ->
+                "${it}"
+            }
+            .collectFile( name: 'ch_bdg_srpm_genome_endo.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
+
+        // TODO: print for debugging
+        ch_bdg_genome.exo
+            .map { it ->
+                "${it}"
+            }
+            .collectFile( name: 'ch_bdg_srpm_genome_exo.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
+
+
         ch_bdg_genome.endo
             .combine(ch_bdg_genome.exo, by: [0,1])
+            .tap { ch_tmp_debug1 }
             .map { id, antibody, endo_meta, endo_bdg, exo_meta, exo_bdg ->
                 def meta_clone = endo_meta.clone()
-                def antibody_to_use = meta_clone.antibody ?: meta_clone.control_of_antibody
                 // If it was downsampled before, we want to use dSp_total_mapped_reads
                 if (exo_meta.dSp_total_mapped_reads) {
                     meta_clone.norm_factor_val = 1e6 / exo_meta.dSp_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'dSp_total_mapped_reads'
-                // if antibody_to_use is in the list of antibodies or there is no flT3, use flT2_total_mapped_reads or flT1_total_mapped_reads, otherwise use flT3_total_mapped_reads
-                } else if (srpm_use_flT2_total && antibody_to_use in srpm_use_flT2_total.split(',').collect { it.trim() } || !exo_meta.flT3_total_mapped_reads) {
+                // if antibody is in the list of antibodies or there is no flTbl or flT3, use flT2 or flT1, otherwise use flTbl or flT3
+                } else if (srpm_use_flT2_total && antibody in srpm_use_flT2_total.split(',').collect { it.trim() } || !exo_meta.flT3_total_mapped_reads && !exo_meta.flTbl_total_mapped_reads) {
                     meta_clone.norm_factor_val = 1e6 / exo_meta.flT2_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
                 } else {
@@ -234,13 +290,22 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 [ meta_clone, endo_bdg ]
             }
             .set { ch_bdg_srpm }
+
+    // TODO: print for debugging
+    ch_tmp_debug1
+        .map { it ->
+                "${it}"
+        }
+        .collectFile( name: 'ch_tmp_debug1.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
+
+
     }
+
 
     // TODO: print for debugging
     ch_bdg_srpm
-        .map {
-            meta, bdg ->
-                "${meta}\t${bdg}"
+        .map { it ->
+            "${it}"
         }
         .collectFile( name: 'ch_bdg_srpm.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
 
@@ -248,25 +313,25 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
     // Copy and modify channel meta to add CISRPM normalization factors
     ch_bdg_genome_type = Channel.empty()
     ch_bdg_genome_ip = Channel.empty()
-    ch_bdg_genome_control = Channel.empty()
+    ch_bdg_genome_ipcontrol = Channel.empty()
     ch_bdg_ip_cisrpm = Channel.empty()
-    ch_bdg_control_cisrpm = Channel.empty()
+    ch_bdg_ipcontrol_cisrpm = Channel.empty()
     ch_bdg_cisrpm = Channel.empty()
     // "if (spikein_genome)" is needed, otherwise cisrpm will be attempted for
     // controls, and this will fail, since there is no flT2_total_mapped_reads
     if (spikein_genome && !skip_cisrpm) {
-        // Split BAMs by genome (endo and exo) and by type (ip and control)
+        // Split BAMs by genome (endo and exo) and by type (ip and ipcontrol)
         ch_bdg_map_mod
             .map { meta, bdg ->
-                // samples have meta.antibody, while input controls have meta.control_of_antibody
-                def antibody_to_use = meta.antibody ?: meta.control_of_antibody
+                // samples have meta.antibody, while input controls have meta.input_control_of_antibody
+                def antibody_to_use = meta.antibody ?: meta.input_control_of_antibody
                 [ meta.id, antibody_to_use, meta, bdg ]
             }
             .branch { id, antibody, meta, bdg ->
-                endo_ip: meta.genome == genome && !meta.is_control
-                endo_control: meta.genome == genome && meta.is_control
-                exo_ip: meta.genome == spikein_genome && !meta.is_control
-                exo_control: meta.genome == spikein_genome && meta.is_control
+                endo_ip: meta.genome == genome && !meta.is_input_control
+                endo_ipcontrol: meta.genome == genome && meta.is_input_control
+                exo_ip: meta.genome == spikein_genome && !meta.is_input_control
+                exo_ipcontrol: meta.genome == spikein_genome && meta.is_input_control
             }
             .set { ch_bdg_genome_type }
 
@@ -274,49 +339,52 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
         ch_bdg_genome_type.endo_ip
             .combine(ch_bdg_genome_type.exo_ip, by: [0,1])
             .map { ip_id, ip_antibody, endo_ip_meta, endo_ip_bdg, exo_ip_meta, exo_ip_bdg ->
-                    [ endo_ip_meta.control, endo_ip_meta.antibody, endo_ip_meta, endo_ip_bdg, exo_ip_meta, exo_ip_bdg ]
+                    [ endo_ip_meta.input_control, endo_ip_meta.antibody, endo_ip_meta, endo_ip_bdg, exo_ip_meta, exo_ip_bdg ]
             }
             .set { ch_bdg_genome_ip }
 
         // TODO: print for debugging
         ch_bdg_genome_ip
             .map {
-                control_id, ip_antibody, endo_ip_meta, endo_ip_bdg, exo_ip_meta, exo_ip_bdg ->
-                    "${control_id}\t${ip_antibody}\t${endo_ip_meta}\t${endo_ip_bdg}\t${exo_ip_meta}\t${exo_ip_bdg}"
+                ipcontrol_id, ip_antibody, endo_ip_meta, endo_ip_bdg, exo_ip_meta, exo_ip_bdg ->
+                    "${ipcontrol_id}\t${ip_antibody}\t${endo_ip_meta}\t${endo_ip_bdg}\t${exo_ip_meta}\t${exo_ip_bdg}"
             }
             .collectFile( name: 'ch_bdg_genome_ip.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
 
         // Combine the endo and exo BAMs (inputs)
-        ch_bdg_genome_type.endo_control
-            .combine(ch_bdg_genome_type.exo_control, by: [0,1])
-            .map { control_id, control_antibody, endo_control_meta, endo_control_bdg, exo_control_meta, exo_control_bdg ->
-                [ endo_control_meta.id, endo_control_meta.control_of_antibody, endo_control_meta, endo_control_bdg, exo_control_meta, exo_control_bdg ]
+        ch_bdg_genome_type.endo_ipcontrol
+            .combine(ch_bdg_genome_type.exo_ipcontrol, by: [0,1])
+            .map { ipcontrol_id, ipcontrol_antibody, endo_ipcontrol_meta, endo_ipcontrol_bdg, exo_ipcontrol_meta, exo_ipcontrol_bdg ->
+                [ endo_ipcontrol_meta.id, endo_ipcontrol_meta.input_control_of_antibody, endo_ipcontrol_meta, endo_ipcontrol_bdg, exo_ipcontrol_meta, exo_ipcontrol_bdg ]
             }
-            .set { ch_bdg_genome_control }
+            .set { ch_bdg_genome_ipcontrol }
         
         // TODO: print for debugging
-        ch_bdg_genome_control
+        ch_bdg_genome_ipcontrol
             .map {
-                control_id, control_antibody, endo_control_meta, endo_control_bdg, exo_control_meta, exo_control_bdg ->
-                    "${control_id}\t${control_antibody}\t${endo_control_meta}\t${endo_control_bdg}\t${exo_control_meta}\t${exo_control_bdg}"
+                ipcontrol_id, ipcontrol_antibody, endo_ipcontrol_meta, endo_ipcontrol_bdg, exo_ipcontrol_meta, exo_ipcontrol_bdg ->
+                    "${ipcontrol_id}\t${ipcontrol_antibody}\t${endo_ipcontrol_meta}\t${endo_ipcontrol_bdg}\t${exo_ipcontrol_meta}\t${exo_ipcontrol_bdg}"
             }
-            .collectFile( name: 'ch_bdg_genome_control.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
+            .collectFile( name: 'ch_bdg_genome_ipcontrol.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
 
         // Combine the combined ChIPs with the combined inputs
         ch_bdg_genome_ip
-            .combine(ch_bdg_genome_control, by: [0,1])
-            .map { id, antibody, endo_ip_meta, endo_ip_bdg, exo_ip_meta, exo_ip_bdg, endo_control_meta, endo_control_bdg, exo_control_meta, exo_control_bdg ->
+            .combine(ch_bdg_genome_ipcontrol, by: [0,1])
+            .map { id, antibody, endo_ip_meta, endo_ip_bdg, exo_ip_meta, exo_ip_bdg, endo_ipcontrol_meta, endo_ipcontrol_bdg, exo_ipcontrol_meta, exo_ipcontrol_bdg ->
                     def meta_clone = endo_ip_meta.clone()
                     // If it was downsampled before, we want to use dSp_total_mapped_reads
                     if (exo_ip_meta.dSp_total_mapped_reads) {
-                        meta_clone.norm_factor_val = (1e6 / exo_ip_meta.dSp_total_mapped_reads) * (exo_control_meta.dSp_total_mapped_reads / endo_control_meta.dSp_total_mapped_reads)
+                        meta_clone.norm_factor_val = (1e6 / exo_ip_meta.dSp_total_mapped_reads) * (exo_ipcontrol_meta.dSp_total_mapped_reads / endo_ipcontrol_meta.dSp_total_mapped_reads)
                         meta_clone.norm_factor_val_used = 'dSp_total_mapped_reads'
-                    // if meta.antibody is in the list of antibodies or there is no flT3, use flT2_total_mapped_reads or flT1_total_mapped_reads, otherwise use flT3_total_mapped_reads
-                    } else if (cisrpm_use_flT2_total && meta_clone.antibody in cisrpm_use_flT2_total.split(',').collect { it.trim() } || !exo_ip_meta.flT3_total_mapped_reads) {
-                        meta_clone.norm_factor_val = (1e6 / exo_ip_meta.flT2_total_mapped_reads) * (exo_control_meta.flT2_total_mapped_reads / endo_control_meta.flT2_total_mapped_reads)
+                    // if meta.antibody is in the list of antibodies or there is no flTbl or flT3, use flT2 or flT1, otherwise use flTbl or flT3
+                    } else if (cisrpm_use_flT2_total && meta_clone.antibody in cisrpm_use_flT2_total.split(',').collect { it.trim() } || !exo_ip_meta.flT3_total_mapped_reads && !exo_ip_meta.flTbl_total_mapped_reads) {
+                        meta_clone.norm_factor_val = (1e6 / exo_ip_meta.flT2_total_mapped_reads) * (exo_ipcontrol_meta.flT2_total_mapped_reads / endo_ipcontrol_meta.flT2_total_mapped_reads)
                         meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
+                    } else if (exo_ip_meta.flTbl_total_mapped_reads) {
+                        meta_clone.norm_factor_val = (1e6 / exo_ip_meta.flTbl_total_mapped_reads) * (exo_ipcontrol_meta.flTbl_total_mapped_reads / endo_ipcontrol_meta.flTbl_total_mapped_reads)
+                        meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
                     } else {
-                        meta_clone.norm_factor_val = (1e6 / exo_ip_meta.flT3_total_mapped_reads) * (exo_control_meta.flT3_total_mapped_reads / endo_control_meta.flT3_total_mapped_reads)
+                        meta_clone.norm_factor_val = (1e6 / exo_ip_meta.flT3_total_mapped_reads) * (exo_ipcontrol_meta.flT3_total_mapped_reads / endo_ipcontrol_meta.flT3_total_mapped_reads)
                         meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'
                     }
                     meta_clone.norm_factor_type = 'cisrpm'
@@ -338,7 +406,7 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
         // can be different than rpm_use_flT2_total
         ch_bdg_map_mod
             .filter { meta, bdg ->
-                meta.genome == genome && meta.is_control
+                meta.genome == genome && meta.is_input_control
             }
             .map { meta, bdg ->
                 def meta_clone = meta.clone()
@@ -346,8 +414,8 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 if (meta_clone.dSp_total_mapped_reads) {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.dSp_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'dSp_total_mapped_reads'
-                // if meta.control_of_antibody is in the list of antibodies or there is no flT3, use flT2_total_mapped_reads or flT1_total_mapped_reads, otherwise use flT3_total_mapped_reads
-                } else if (cisrpm_use_flT2_total && meta.control_of_antibody in cisrpm_use_flT2_total.split(',').collect { it.trim() } || !meta_clone.flT3_total_mapped_reads) {
+                // if meta.input_control_of_antibody is in the list of antibodies or there is no flTbl or flT3, use flT2 or flT1, otherwise use flTbl or flT3
+                } else if (cisrpm_use_flT2_total && meta.input_control_of_antibody in cisrpm_use_flT2_total.split(',').collect { it.trim() } || (!meta_clone.flT3_total_mapped_reads && !meta_clone.flTbl_total_mapped_reads)) {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT2_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
                 } else {
@@ -357,18 +425,18 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 meta_clone.norm_factor_type = 'cisrpm'
                 [ meta_clone, bdg ]
             }
-            .set { ch_bdg_control_cisrpm }
+            .set { ch_bdg_ipcontrol_cisrpm }
 
 
         // TODO: print for debugging
-        ch_bdg_control_cisrpm
+        ch_bdg_ipcontrol_cisrpm
             .map {
                 meta, bdg ->
                     "${meta}\t${bdg}"
             }
-            .collectFile( name: 'ch_bdg_control_cisrpm.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
+            .collectFile( name: 'ch_bdg_ipcontrol_cisrpm.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_NORMALIZE_BIGWIG_DEEPTOOLS" )
 
-        ch_bdg_cisrpm = ch_bdg_ip_cisrpm.mix(ch_bdg_control_cisrpm)
+        ch_bdg_cisrpm = ch_bdg_ip_cisrpm.mix(ch_bdg_ipcontrol_cisrpm)
     }
 
     ch_bdg_rpm
@@ -395,7 +463,8 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
 
     ch_bdg_map_norm = ch_bdg_map.mix(BEDGRAPH_NORMALIZE.out.bedgraph)
 
-    // Create channel: [ val(meta), [ ip_bdg ], [ control_bdg ] ]
+    // Create channel: [ val(meta), [ ip_bdg ], [ ipcontrol_bdg ] ]
+    ch_bdg_all = ch_bdg_map_norm
     ch_bdg_ip_control_cisrpm = Channel.empty()
     if (!skip_cisrpmsoi) {
         ch_bdg_map_norm
@@ -403,23 +472,23 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 meta.norm_factor_type == 'cisrpm'
             }
             .branch { meta, bdg ->
-                ips_with_control: meta.control
-                    return [ meta.control, meta.antibody, meta, bdg ]
+                ips_with_ipcontrol: meta.input_control
+                    return [ meta.input_control, meta.antibody, meta, bdg ]
                 // Cannot calculate CISRPM-SOI for ChIPs without inputs
-                // ips_without_control: !meta.control && !meta.is_control
+                // ips_without_ipcontrol: !meta.input_control && !meta.is_input_control
                 //     return [ meta, bdg ]
-                controls: !meta.control && meta.is_control
-                    return [ meta.id, meta.control_of_antibody, bdg ]
+                ipcontrols: !meta.input_control && meta.is_input_control
+                    return [ meta.id, meta.input_control_of_antibody, bdg ]
             }
             .set { ch_bdg_ip_control_cisrpm }
 
         ch_bdg_ip_control_cisrpm
-            .ips_with_control
-            .combine(ch_bdg_ip_control_cisrpm.controls, by: [0,1])
-            .map { control_id, ip_antibody, ip_meta, ip_bdg, control_bdg ->
+            .ips_with_ipcontrol
+            .combine(ch_bdg_ip_control_cisrpm.ipcontrols, by: [0,1])
+            .map { ipcontrol_id, ip_antibody, ip_meta, ip_bdg, ipcontrol_bdg ->
                 def meta_clone = ip_meta.clone()
                     meta_clone.signal_over_input = true
-                    [ meta_clone, ip_bdg, control_bdg ]
+                    [ meta_clone, ip_bdg, ipcontrol_bdg ]
             }
             .set { ch_bdg_ip_control_cisrpm }
 
@@ -490,26 +559,26 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
 
         ch_bam_bai
             .branch { meta, bam, bai ->
-                ip: !meta.is_control
-                control: meta.is_control
+                ip: !meta.is_input_control
+                ipcontrol: meta.is_input_control
             }
             .set { ch_bam_bai_type }
 
         ch_bam_bai_type
             // First, modify the controls' metas to add their corresponding ChIP's antibody
-            .control
+            .ipcontrol
             .map { meta, bam, bai -> [ meta.id, meta, bam, bai ] }
-            .combine(ch_bam_bai_type.ip.map { meta, bam, bai -> [ meta.control, meta, bam, bai ] }, by: 0)
-            // Temporarily put the meta.antibody in the control meta
-            .map { control_id, control_meta, control_bam, control_bai, ip_meta, ip_bam, ip_bai ->
-                    def meta_clone = control_meta.clone()
-                    meta_clone.control_of_antibody = ip_meta.antibody
-                    [ meta_clone, control_bam, control_bai ]
+            .combine(ch_bam_bai_type.ip.map { meta, bam, bai -> [ meta.input_control, meta, bam, bai ] }, by: 0)
+            // Temporarily put the meta.antibody in the ipcontrol meta
+            .map { ipcontrol_id, ipcontrol_meta, ipcontrol_bam, ipcontrol_bai, ip_meta, ip_bam, ip_bai ->
+                    def meta_clone = ipcontrol_meta.clone()
+                    meta_clone.input_control_of_antibody = ip_meta.antibody
+                    [ meta_clone, ipcontrol_bam, ipcontrol_bai ]
             }
-            // remove duplicates based on control_meta and filename (basically the control_meta.antibody we added above)
+            // remove duplicates based on ipcontrol_meta and filename (basically the ipcontrol_meta.antibody we added above)
             // Because we don't need the same input normalized in the same way several times
             .unique()
-            // Now we mix the control and ip channels to evaluate them together below
+            // Now we mix the ipcontrol and ip channels to evaluate them together below
             .mix(ch_bam_bai_type.ip)
             .set { ch_bam_bai_mod }
 
@@ -520,8 +589,8 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
             }
             .map { meta, bam, bai ->
                 def meta_clone = meta.clone()
-                // samples have meta.antibody, while input controls have meta.control_of_antibody
-                def antibody_to_use = meta.antibody ?: meta.control_of_antibody
+                // samples have meta.antibody, while input controls have meta.input_control_of_antibody
+                def antibody_to_use = meta.antibody ?: meta.input_control_of_antibody
                 // If it was downsampled before, we want to use dSp_total_mapped_reads
                 if (meta_clone.dSp_total_mapped_reads) {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.dSp_total_mapped_reads
