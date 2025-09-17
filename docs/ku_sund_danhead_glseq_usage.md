@@ -9,7 +9,6 @@
 
 1. [Before running the pipeline for the first time](#before-running-the-pipeline-for-the-first-time)
 2. [Running the pipeline](#running-the-pipeline)
-    - [Running the pipeline interactively (*tmux* and *srun*)](#running-the-pipeline-interactively-tmux-and-srun)
     - [Running the pipeline through an *SBATCH* job](#running-the-pipeline-through-an-sbatch-job)
     - [Running a pipeline test](#running-a-pipeline-test)
 3. [Reference genome files](#reference-genome-files)
@@ -41,13 +40,13 @@
 
     - Go to [GitHub](https://github.com/) and log in to your account.
 
-    - Make sure you are part of the [Groth Lab GitHub organization](https://github.com/grothlab). If not, please contact Samuel Ruiz-Pérez ([samper@cancer.dk](samper@cancer.dk)) to request access.
+    - Make sure you are part of the [Groth Lab GitHub organization](https://github.com/orgs/grothlab/people). If not, please contact Samuel Ruiz-Pérez ([samper@cancer.dk](samper@cancer.dk)) to request access.
 
     - Click on your profile picture in the right-hand menu, then ***Settings*** > ***Developer settings*** > ***Personal access tokens*** > [***Fine-grained tokens***](https://github.com/settings/personal-access-tokens).
 
     - Click on the [***Generate new token***](https://github.com/settings/personal-access-tokens/new) button on the upper right.
 
-    - Under ***Token name***, provide a meaningful name to identify its purpose (e.g. `glseq_pat`).
+    - Under ***Token name***, provide any name to identify its purpose (e.g. `glseq_pat`).
 
     - Under ***Resource owner***, select the `grothlab` organization.
 
@@ -65,7 +64,7 @@
 >
 > Remember that PATs are sensitive and should be treated like passwords. Do not share them with anyone or store them in a public repository.
 
-5. Create a [source code management (SCM) file](https://www.nextflow.io/docs/latest/git.html#git-page) by running the following code. Just replace `<your_github_username>` with your GitHub username and `<your_github_token>` with the PAT you copied in the previous step:
+5. Create a [source code management (SCM) file](https://www.nextflow.io/docs/latest/git.html#git-page) by running the following code. Just replace `<your_github_username>` with your GitHub username and `<your_github_token>` with the PAT you copied in the previous step (keep the single quotes):
 
     ```bash
     # This line removes any existing SCM file
@@ -102,75 +101,136 @@
     ```
 ## Running the pipeline
 
-### Running the pipeline interactively (*tmux* and *srun*)
-
-1. Start a [*tmux*](https://github.com/tmux/tmux/wiki/Getting-Started) session:
-
-    ```bash
-    tmux new-session -s <session_name>
-    ```
-
-2. Launch a minimal interactive [*slurm*](https://slurm.schedmd.com/documentation.html) job session:
-
-    ```bash
-    srun -c 1 --mem=4gb --time=2-00:00:00 --pty bash
-    ```
-> [!NOTE]  
-> Adjust `--time` as necessary, the command above keeps the slurm job active for two days (enough for most pipeline runs).
-
-3. Source your `.bashrc` file to load the environment variables:
-
-    ```bash
-    source ~/.bashrc
-    ```
-
-4. Load the required [*modules*](https://modules.readthedocs.io/en/latest/):
-
-    ```bash
-    module load openjdk/20.0.0 nextflow/25.04.4 singularity/3.8.7
-    ```
-
-5. Create an output directory for your pipeline run if it does not exist and move into it:
-
-    ```bash
-    mkdir -p <path_to_output_directory>
-    cd <path_to_output_directory>
-    ```
-
-6. Now you can run your own own analysis under the modified institution profile ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)). For example:
-
-    ```bash
-    nextflow run grothlab/glseq \
-      -r main \
-      -profile ku_sund_danhead_mod \
-      --input <path_to_input_samplesheet_csv> \
-      --with_umi \
-      --skip_umi_extract false \
-      --genome mm10 \
-      --spikein_genome dm6 \
-      ...
-      --outdir <path_to_output_directory> \
-      -work-dir <path_to_output_directory>/work/
-    ```
-
-> [!TIP]
->  Include the `-work-dir` option if you want to save the work/temporary files in a specific directory to inspect them later. Otherwise, these files are saved in `/scratch/temp/${USER}/nxf/work` by default.
-
-> [!WARNING]
-> When using the `-work-dir` option, make sure that the specified path is different from the `--outdir` path to prevent overwriting issues. Note that the work directory can nonetheless be a subdirectory within the output directory (e.g., `<path_to_output_directory>/work/`).
-
-7. You can now detach from the *tmux* session by pressing `Ctrl+b` and then `d`. You can reattach to the session later by running:
-
-    ```bash
-    tmux attach-session -t <session_name>
-    ```
-
-> [!TIP]
-> To be able to scroll through the output on the terminal inside *tmux*, press `Ctrl+b` and then `[` to enter copy mode. Now, you can scroll up and down using the arrow keys or `PgUp` and `PgDn`. To exit copy mode, press `q`. See the [*tmux* documentation](https://github.com/tmux/tmux/wiki/Getting-Started) for more information.
+The recommended way to run the pipeline on the DAN System is through an *SBATCH* job:
 
 ### Running the pipeline through an *SBATCH* job
 
-If you would prefer to submit the pipeline job to the queue rather than run an interactive session, then you do not need to start *tmux* or launch *srun*. Instead, you can create an *SBATCH* script file (e.g., `glseq_job.sh`) like the following:
+1. First, to keep things tidy, create a dedicated **project directory** if you haven't already. For example, create a directory called `project1` inside your group directory:
+
+    ```bash
+    mkdir -p /maps/projects/dan1/data/Groth_group/<your_initials>/project1/
+    ```
+
+2. **Optionally**, you can copy your raw FASTQ files to your project directory. For example, to copy from the `BigData` directory, you can run:
+
+    ```bash
+    rsync -av /maps/groupdir/${USER}$/SUN-CPR-Groth-Group-BigData/NGS/RUNS/completed/<run_id>/fastq/* <path_to_project_directory>/fastq/
+    ```
+> [!TIP]  
+> This is not mandatory, you can source your FASTQ files from wherever you want (except the UCPH drives) as long as you provide the correct path in the input samplesheet file (see next step).
+
+3. Now, create a subdirectory for the pipeline's input and output files:
+
+    ```bash
+    mkdir -p /maps/projects/dan1/data/Groth_group/<your_initials>/project1/glseq/output/
+    ```
+
+4. Create an **input samplesheet** formatted as described in the [Samplesheet input](../docs/usage.md#samplesheet-input) section of the usage documentation. You can use any text editor or Excel to do this.
+
+    Then place your input samplesheet file in your glseq directory. For example, run:
+
+    ```bash
+    rsync -av <source_path>/project1_glseq_samplesheet.csv <path_to_project_directory>/glseq/
+    ```
+
+5. Create a **parameter file** as described in the [Inputting parameters](#inputting-parameters) section of this document. Then place your parameter file in your glseq directory. For example, run:
+
+    ```bash
+    rsync -av <source_path>/project1_glseq_params.yaml <path_to_project_directory>/glseq/
+    ```
+
+6. Choose the **version** of the pipeline you want to run; you will need it in the next step. You can read the examples in the [Reproducibility](../docs/usage.md#reproducibility) section of the usage documentation or ask Samuel Ruiz-Pérez ([<samper@cancer.dk>](mailto:samper@cancer.dk)) for advice.
+
+7. Create an **SBATCH script** to submit the job to the DAN System queue. Use the following template, but remember to replace the placeholders (`<...>`) with your own paths and filenames (you should not need to change anything else):
+
+    ```bash
+    #!/bin/bash
+
+    #SBATCH --job-name=GLSEQ_JOB        # specify a name for the job
+    #SBATCH --mail-type=END,FAIL        # mail events (NONE, BEGIN, END, FAIL, ALL)
+    #SBATCH --mail-user=NONE            # email address to receive the notifications
+    #SBATCH -c 1                        # number of requested cores for the Nextflow head job
+    #SBATCH --mem=4gb                   # total requested RAM for the Nextflow head job
+    #SBATCH --time=2-00:00:00           # max. running time of the pipeline job, format in D-HH:MM:SS
+    #SBATCH --output=glseq_job.%j.log   # standard output and error log, '%j' gives the job ID
+
+    # Source the bashrc file to load the environment variables
+    source ~/.bashrc
+
+    # Load the required modules
+    module load openjdk/20.0.0 nextflow/25.04.4 singularity/3.8.7
+
+    # Create an output directory for the pipeline run if it does not exist
+    mkdir -p <path_to_project_directory>/output/
+    cd <path_to_project_directory>/output/
+
+    # Run the pipeline
+    nextflow run grothlab/glseq \
+        -r <version> \
+        -profile ku_sund_danhead_mod \
+        -params-file <path_to_project_directory>/<params_file_yaml> \
+        -work-dir <path_to_project_directory>/output/work/
+    ```
+
+    Then save the script to your project directory. For example, run:
+
+    ```bash
+    rsync -av <source_path>/project1_glseq_sbatch.sh <path_to_project_directory>/glseq/project1_glseq_sbatch.sh
+    ```
+
+7. Now run `ls -alh <path_to_project_directory>` to see your project directory structure, which should look something like this:
+
+    ```console
+    ../Groth_group/<your_initials>/project1/        # Project directory
+    ├── fastq/                                      # (Optional) Directory with raw FASTQ files
+    └── glseq/                                      # Directory for the glseq pipeline
+        ├── project1_glseq_samplesheet.csv          # Input samplesheet file (CSV)
+        ├── project1_glseq_params.yaml              # Parameter file (YAML)
+        ├── project1_glseq_sbatch.sh                # SBATCH script to submit the job
+        └── output/                                 # Output directory for the pipeline
+    ```
+ 
+8. Now, you are ready to run the pipeline! Submit it to the queue by running:
+
+    ```bash
+    cd <path_to_project_directory>/glseq/
+
+    sbatch project1_glseq_sbatch.sh
+    ```
+
+9. You can always check the status of the pipeline run in the `.nextflow.log` file located in the output directory:
+
+    ```bash
+    tail -f <path_to_project_directory>/glseq/output/.nextflow.log
+    ```
+> [!TIP]
+> The `.nextflow.log` can be very verbose. If there is an error with the pipeline run, sometimes you might not be able
+> to see it in the last lines of the log. In that case, it is better to download the log file and explore it locally or
+> use `less`to scroll through it within the terminal:
+> ```bash
+> less <path_to_project_directory>/output/.nextflow.log
+> ```
+
+### Running a pipeline test
+
+You can test the correct functioning of any pipeline version (`-r <version>`) by running one of the following pipeline tests, also under the modified institution profile ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)):
+
+  - `local_test_chipseq`
+  - `local_test_chipexo`
+  - `local_test_chorseq`
+  - `local_test_scarseq`
+  - `local_test_atacseq`
+
+Now, you should follow similar steps as in the [Running the pipeline through an *SBATCH* job](#running-the-pipeline-through-an-sbatch-job) section, but this time we do not need to copy any FASTQ files or create an input samplesheet or parameter file, as the test data and parameters are already included in the pipeline profiles.
+
+Instead, just create the project, glseq, and output directories as described before:
+
+```bash
+mkdir -p /maps/projects/dan1/data/Groth_group/<your_initials>/project_test1/glseq/output/
+```
+
+Then create an SBATCH script to submit the job to the DAN System queue. Use the following template, but remember to replace the placeholders (`<...>`) with your own paths and filenames (you should not need to change anything else):
+
 
 ```bash
 #!/bin/bash
@@ -190,56 +250,23 @@ source ~/.bashrc
 module load openjdk/20.0.0 nextflow/25.04.4 singularity/3.8.7
 
 # Create an output directory for the pipeline run if it does not exist
-mkdir -p <path_to_output_directory>
-cd <path_to_output_directory>
+mkdir -p <path_to_test_project_directory>/glseq/output/
+cd <path_to_test_project_directory>/glseq/output/
 
 # Run the pipeline
 nextflow run grothlab/glseq \
-    -r main \
-    -profile ku_sund_danhead_mod \
-    --input <path_to_input_samplesheet_csv> \
-    --with_umi \
-    --skip_umi_extract false \
-    --genome mm10 \
-    --spikein_genome dm6 \
-    --outdir <path_to_output_directory> \
-    -work-dir <path_to_output_directory>/work/
+    -r <version> \
+    -profile ku_sund_danhead_mod,local_test_chipseq \
+    --outdir <path_to_test_project_directory>/glseq/output/ \
+    -work-dir <path_to_test_project_directory>/glseq/output/work/
 ```
 
-Then, submit the job to the queue with:
+Then, submit the job to the queue by running:
 
 ```bash
-sbatch glseq_job.sh
+cd <path_to_test_project_directory>/glseq/
+sbatch project_test1_glseq_sbatch.sh
 ```
-
-### Running a pipeline test
-
-You can test the correct functioning of any pipeline version (`-r <version>`) by running one of the following pipeline tests, also under the modified institution profile ([`ku_sund_danhead_mod`](../conf/ku_sund_danhead_mod.config)):
-
-  - `local_test_chipseq`
-  - `local_test_chipexo`
-  - `local_test_chorseq`
-  - `local_test_scarseq`
-  - `local_test_atacseq`
-
-To do so, you have two options:
-
-- Start a ***tmux*** session, launch a minimal interactive ***slurm*** job session, source your `.bashrc` file to load the environment variables, load the required ***modules***, and create an ***output directory*** for the test run as described in [Running the pipeline interactively (*tmux* and *srun*)](#running-the-pipeline-interactively-tmux-and-srun). Finally, run a test by executing a command like the following:
-
-    ```bash
-    nextflow run grothlab/glseq \
-    -r main \
-    -profile ku_sund_danhead_mod,local_test_scarseq \
-    --outdir <path_to_output_directory> \
-    -work-dir <path_to_output_directory>/work/
-    ```
-
-- Or you can create an ***SBATCH*** script file (e.g., `glseq_test_job.sh`) like the one shown in [Running the pipeline through a *SBATCH* job](#running-the-pipeline-through-an-sbatch-job). Just replace the `nextflow run` command accordingly, and submit the job to the queue with:
-
-    ```bash
-    sbatch glseq_test_job.sh
-    ```
-
 
 
 ## Reference genome files
@@ -360,14 +387,7 @@ nextflow run /user/datadir/software/glseq \
 Parameters specified on the command line [can be also specified in a params file using the `-params-file` option](https://www.nextflow.io/docs/latest/cli.html#pipeline-parameters). This is useful for saving a set of parameters that you use frequently, or for sharing parameters with others.
 
 
-Parameters can be represented in YAML (`.yml`) format:
-
-```bash
-nextflow run /user/datadir/software/glseq \
-      -profile ku_sund_danhead_mod \
-      --params-file /user/datadir/projects/project1/project1_glseq_params.yml
-```
-`project1_glseq_params.yml` would look like this:
+Parameters can be represented in YAML (`.yml`) format. For example, `project1_glseq_params.yml` would look like this:
 
 ```yaml title="project1_glseq_params.yml"
 input: /user/datadir/projects/project1/project1_glseq_samplesheet.csv
@@ -387,14 +407,15 @@ save_align_intermeds: true
 save_spikein_intermeds: true
 ```
 
-Or in JSON (`.json`) format:
+Then you can run the pipeline like this:
 
 ```bash
 nextflow run /user/datadir/software/glseq \
       -profile ku_sund_danhead_mod \
-      --params-file /user/datadir/projects/project1/project1_glseq_params.json
+      --params-file /user/datadir/projects/project1/project1_glseq_params.yml
 ```
-`project1_glseq_params.json` would look like this:
+
+Or in JSON (`.json`) format. For example, `project1_glseq_params.json` would look like this:
 
 ```json title="project1_glseq_params.json"
 {
@@ -414,6 +435,13 @@ nextflow run /user/datadir/software/glseq \
   "save_align_intermeds": true,
   "save_spikein_intermeds": true
 }
+```
+Then you can run the pipeline like this:
+
+```bash
+nextflow run /user/datadir/software/glseq \
+      -profile ku_sund_danhead_mod \
+      --params-file /user/datadir/projects/project1/project1_glseq_params.json
 ```
 
 ### Opening the IGV session generated by the pipeline

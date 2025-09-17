@@ -10,16 +10,9 @@
 
 ## Introduction
 
-**grothlab/glseq** is a bioinformatics pipeline for comprehensive analysis of bulk chromatin sequencing data. It supports multiple experimental techniques, including:
- - [ChIP-seq](https://doi.org/10.1038/nmeth1068)
- - [ChOR-seq](https://doi.org/10.1038/s41596-021-00585-3)
- - [ChIP-exo](https://doi.org/10.1016/j.cell.2011.11.013)
- - [SCAR-seq](https://doi.org/10.1038/s41596-021-00585-3)
- - [OK-seq](https://doi.org/10.1038/ncomms10208)
- - [ATAC-seq](https://doi.org/10.1002/0471142727.mb2129s109)
- - [CUT&RUN](https://doi.org/10.7554/eLife.46314)
- - [CUT&Tag](https://doi.org/10.1038/s41467-019-09982-5)
- - [TIP-seq](https://doi.org/10.1083/jcb.202103078)
+**grothlab/glseq** is a bioinformatics pipeline for comprehensive analysis of bulk chromatin sequencing data. It supports multiple experimental techniques, including [ChIP-seq](https://doi.org/10.1038/nmeth1068), [ChOR-seq](https://doi.org/10.1038/s41596-021-00585-3), [ChIP-exo](https://doi.org/10.1016/j.cell.2011.11.013), [SCAR-seq](https://doi.org/10.1038/s41596-021-00585-3), [OK-seq](https://doi.org/10.1038/ncomms10208), [ATAC-seq](https://doi.org/10.1002/0471142727.mb2129s109), [CUT&RUN](https://doi.org/10.7554/eLife.46314), [CUT&Tag](https://doi.org/10.1038/s41467-019-09982-5) and [TIP-seq](https://doi.org/10.1083/jcb.202103078):
+
+ ![grothlab/glseq metro map](./docs/images/grothlab-glseq_metro_map.png)
 
 <!-- On release, automated continuous integration tests run the pipeline on a [full-sized dataset](https://github.com/nf-core/test-datasets/tree/chipseq#full-test-dataset-origin) on the AWS cloud infrastructure. The dataset consists of FoxA1 (transcription factor) and EZH2 (histone,mark) IP experiments from _Franco et al. 2015_ ([GEO: GSE59530](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59530), [PMID: 25752574](https://pubmed.ncbi.nlm.nih.gov/25752574/)) and _Popovic et al. 2014_ ([GEO: GSE57632](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57632), [PMID: 25188243](https://pubmed.ncbi.nlm.nih.gov/25188243/)), respectively. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from running the full-sized tests can be viewed on the [nf-core website](https://nf-co.re/chipseq/results). -->
 

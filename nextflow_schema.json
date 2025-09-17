@@ -1088,6 +1088,12 @@
                     "description": "Plot range for partition analysis visualization.",
                     "fa_icon": "fas fa-chart-area"
                 },
+                "partition_exclude_scaffolds": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to exclude scaffolds from partition plots. Scaffolds are defined as chromosomes whose name begins with 'chrUn' or contains a dot ('.').",
+                    "fa_icon": "fas fa-ban"
+                },
                 "partition_exclude_chromosomes": {
                     "type": "string",
                     "default": "chrX,chrY,chrM",
