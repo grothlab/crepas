@@ -823,6 +823,12 @@
                     "description": "Skip MACE peak calling.",
                     "fa_icon": "fas fa-fast-forward"
                 },
+                "skip_macs3": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip MACS3 peak calling.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
                 "mace_kmer_size": {
                     "type": "integer",
                     "description": "Set the k-mer size for MACE peak calling. Kmer size [6,12] to correct nucleotide composition bias. kmerSize < 0.5*read_length. Larger KmerSize might make program slower. Set kmerSize = 0 to turn off nucleotide compsition bias correction. default=6. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
@@ -983,6 +989,12 @@
                 "partition_plot_range": {
                     "type": "integer",
                     "default": 100
+                },
+                "partition_exclude_scaffolds": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to exclude scaffolds from partition plots. Scaffolds are defined as chromosomes whose name begins with 'chrUn' or contains a dot ('.').",
+                    "fa_icon": "fas fa-ban"
                 },
                 "partition_exclude_chromosomes": {
                     "type": "string",
