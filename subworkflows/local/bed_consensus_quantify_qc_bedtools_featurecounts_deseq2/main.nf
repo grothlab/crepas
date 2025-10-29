@@ -42,9 +42,10 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             meta, peak ->
                 [ meta.antibody, meta.exp_type, meta.genome, meta.id - ~/_REP\d+$/, peak ]
         }
+        .tap { ch_antibody_peaks0 }
         .groupTuple(by: [0, 1, 2])
-        .map {
-            antibody, exp_type, genome, groups, peaks ->
+            .map {
+                antibody, exp_type, genome, groups, peaks ->
                 [
                     antibody,
                     exp_type,
@@ -52,12 +53,21 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
                     groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
                     peaks
                 ]
-        }
-        .map {
-            antibody, exp_type, genome, groups, peaks ->
+            }
+            .tap { ch_antibody_peaks1 }
+            .map {
+                antibody, exp_type, genome, groups, peaks ->
                 def meta_new = [:]
-                // if exp_type is atacseq, then id = exp_type, else id = exp_type + antibody
-                meta_new.id = exp_type == 'ATAC-seq' ? exp_type : exp_type + '_' + antibody
+                // Set meta_new.id based on exp_type and antibody presence
+                if (antibody) {
+                    if (exp_type == 'ATAC-seq') {
+                    meta_new.id = exp_type
+                    } else {
+                    meta_new.id = exp_type + '_' + antibody
+                    }
+                } else {
+                    meta_new.id = exp_type + '_no_antibody_'
+                }
                 meta_new.antibody = antibody
                 meta_new.exp_type = exp_type
                 meta_new.genome = genome
@@ -71,10 +81,28 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     //TODO: print to fiule for debugging
     ch_antibody_peaks
         .map {
-            meta, peaks ->
-                "${meta}\t${peaks}"
+            it ->
+                "${it}"
         }
         .collectFile( name: 'antibody_peaks.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2" )
+
+    //TODO: print to fiule for debugging
+    ch_antibody_peaks1
+        .map {
+            it ->
+                "${it}"
+        }
+        .collectFile( name: 'ch_antibody_peaks0.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2" )
+
+    //TODO: print to fiule for debugging
+    ch_antibody_peaks0
+        .map {
+            it ->
+                "${it}"
+        }
+        .collectFile( name: 'ch_antibody_peaks1.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2" )
+
+
 
     //
     // Generate consensus peaks across samples

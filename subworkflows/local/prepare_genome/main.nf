@@ -168,7 +168,7 @@ workflow PREPARE_GENOME {
         }
     }
 
-    ch_okseq_rfd_file = Channel.empty()
+    ch_okseq_rfd_file = Channel.empty().first() // .first() ensures it is a value channel
     if (okseq_rfd_file) {
         if (okseq_rfd_file.endsWith('.gz')) {
             ch_okseq_rfd_file = GUNZIP_OKSEQ_RFD_FILE ( [ [id:'okseq_rfd_file'], file(okseq_rfd_file, checkIfExists: true) ] ).gunzip
@@ -178,8 +178,7 @@ workflow PREPARE_GENOME {
         }
     }
 
-    //ch_initiation_zones = Channel.value( [ [id:'initiation_zones'], ch_dummy_file ] )
-    ch_initiation_zones = Channel.empty()
+    ch_initiation_zones = Channel.empty().first() // .first() ensures it is a value channel
     if (initiation_zones) {
         if (initiation_zones.endsWith('.gz')) {
             ch_initiation_zones = GUNZIP_INITIATION_ZONES ( [ [id:'initiation_zones'], file(initiation_zones, checkIfExists: true) ] ).gunzip

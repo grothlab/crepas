@@ -292,22 +292,22 @@ workflow INPUT_CHECK {
             // Strandedness checks
             if (['SCAR-seq', 'OK-seq'].contains(meta.exp_type)) {
                 if (!meta.strandedness) {
-                    error("ERROR: Strandedness must be specified for SCAR-seq and OK-seq samples. Check sample: ${meta.id}")
+                    error("ERROR: `strandedness` must be specified for SCAR-seq and OK-seq samples. Check sample: ${meta.id}")
                 }
             } else if (meta.strandedness) {
-                error("ERROR: Strandedness must not be specified for samples other than SCAR-seq and OK-seq. Check sample: ${meta.id}")
+                error("ERROR: `strandedness` must not be specified for samples other than SCAR-seq and OK-seq. Check sample: ${meta.id}")
             }
             // Antibody checks
             if (['ChIP-seq', 'ChIP-exo', 'ChOR-seq', 'SCAR-seq'].contains(meta.exp_type)) {
                 if (!meta.antibody && !meta.is_input_control) {
-                    log.warn("Antibody should be specified for non-input ChIP-seq, ChIP-exo, ChOR-seq, and SCAR-seq samples. Check sample: ${meta.id}")
+                    log.warn("`antibody` should be specified for non-input ChIP-seq, ChIP-exo, ChOR-seq, and SCAR-seq samples. Check sample: ${meta.id}")
                 }
                 if (meta.antibody && meta.is_input_control) {
-                    error("ERROR: Antibody must not be specified for input control samples. Check sample: ${meta.id}")
+                    error("ERROR: `antibody` must not be specified for input control samples. Check sample: ${meta.id}")
                 }
             } else {
                 if (meta.antibody) {
-                    error("ERROR: Antibody must not be specified for samples other than ChIP-seq, ChIP-exo, ChOR-seq, and SCAR-seq. Check sample: ${meta.id}")
+                    error("ERROR: `antibody` must not be specified for samples other than ChIP-seq, ChIP-exo, ChOR-seq, and SCAR-seq. Check sample: ${meta.id}")
                 }
             }
             return [ meta, fastqs ]
@@ -433,11 +433,11 @@ def validateInputParameters() {
     if (!params.skip_flTbl) {
         if (!params.containsKey('blacklist')) {
             if (params.refgenie_ignore && params.igenomes_ignore) {
-                error("Blacklist filtering is enabled ('--skip_flTbl false'), a blacklist file ('--blacklist') has not been provided, and reference genomes are being ignored ('--refgenie_ignore true' and '--igenomes_ignore true'). You should set the pipeline to skip blacklist filtering ('--skip_flTbl') or provide a blacklist.")
+                error("Blacklist filtering is enabled (`--skip_flTbl false`), a blacklist file (`--blacklist`) has not been provided, and reference genomes are being ignored (`--refgenie_ignore true` and `--igenomes_ignore true`). You should set the pipeline to skip blacklist filtering (`--skip_flTbl`) or provide a blacklist.")
             } else if (!getGenomeAttribute('blacklist')) {
-                error("Blacklist filtering is enabled ('--skip_flTbl false') but no valid blacklist file has been found among reference genomes (iGenomes or Refgenie). You should set the pipeline to skip blacklist filtering ('--skip_flTbl') or provide a blacklist.")
+                error("Blacklist filtering is enabled (`--skip_flTbl false`) but no valid blacklist file has been found among reference genomes (iGenomes or Refgenie). You should set the pipeline to skip blacklist filtering (`--skip_flTbl`) or provide a blacklist.")
             }
-        error("Blacklist filtering is enabled ('--skip_flTbl false') but no valid blacklist file has been provided. You should set the pipeline to skip blacklist filtering ('--skip_flTbl') or provide a blacklist.")
+        error("Blacklist filtering is enabled (`--skip_flTbl false`) but no valid blacklist file has been provided. You should set the pipeline to skip blacklist filtering (`--skip_flTbl`) or provide a blacklist.")
         }
     }
 
@@ -446,34 +446,34 @@ def validateInputParameters() {
     }
 
     if (params.umi_dedup_tool == 'umicollapse' && !['directional', 'adjacency', 'cluster'].contains(params.umi_grouping_method)) {
-        error("The '--umi_grouping_method' parameter must be set to 'directional', 'adjacency' or 'cluster' when using the 'umicollapse' UMI deduplication tool.")
+        error("The `-umi_grouping_method` parameter must be set to 'directional', 'adjacency' or 'cluster' when using the 'umicollapse' UMI deduplication tool.")
     }
 
     if (params.hardtrim3_length && params.hardtrim5_length) {
-        error("Both '--hardtrim3_length' and '--hardtrim5_length' parameters have been provided. Please provide only one.")
+        error("Both `--hardtrim3_length` and `--hardtrim5_length` parameters have been provided. Please provide only one.")
     }
 
     if (!params.read_length && !params.macs_gsize) {
-        error ("Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS3 genome size for peak calling.")
+        error ("Both `--read_length` and `--macs_gsize` not specified! Please specify either to infer MACS3 genome size for peak calling.")
     }
 
     if (params.trim_q_cutoff && params.trim_nextseq) {
-        error("Both '--trim_q_cutoff' and '--trim_nextseq' parameters have been provided (or one is set by default and the other was provided on top). Please provide only one.")
+        error("Both `--trim_q_cutoff` and `--trim_nextseq` parameters have been provided (or one is set by default and the other was provided on top). Please provide only one.")
     }
 
     // if --read_length and either hardtrim3_length or hardtrim5_length are provided, then check if they are equal
     if (params.read_length && (params.hardtrim3_length || params.hardtrim5_length)) {
         if (params.hardtrim3_length && params.hardtrim3_length != params.read_length) {
-            error("The '--read_length' and '--hardtrim3_length' parameters must be equal.")
+            error("The `--read_length` and `--hardtrim3_length` parameters must be equal.")
         }
         if (params.hardtrim5_length && params.hardtrim5_length != params.read_length) {
-            error("The '--read_length' and '--hardtrim5_length' parameters must be equal.")
+            error("The `--read_length` and `--hardtrim5_length` parameters must be equal.")
         }
     }
 
     if (params.map_n_multimappers) {
         if (!['chromap', 'bowtie2', 'hisat2'].contains(params.aligner)) {
-            error("The '--map_n_multimappers' parameter requires the aligner to be set to 'chromap', 'bowtie2', or 'hisat2'.")
+            error("The `--map_n_multimappers` parameter requires the aligner to be set to 'chromap', 'bowtie2', or 'hisat2'.")
         }
     }
 
