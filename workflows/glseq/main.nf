@@ -214,7 +214,7 @@ workflow GLSEQ {
         FASTQ_ALIGN_BWA(
             FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE.out.reads,
             ch_bwa_index,
-            params.sort_bam,
+            false,
             ch_fasta
         )
         ch_genome_bam = FASTQ_ALIGN_BWA.out.bam
