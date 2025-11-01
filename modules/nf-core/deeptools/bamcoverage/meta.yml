@@ -7,8 +7,8 @@ keywords:
   - track
 tools:
   - deeptools:
-      description: A set of user-friendly tools for normalization and visualization
-        of deep-sequencing data
+      description: A set of user-friendly tools for normalization and visualization of
+        deep-sequencing data
       homepage: https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html
       documentation: https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html
       tool_dev_url: https://github.com/deeptools/deepTools/
@@ -25,26 +25,22 @@ input:
         type: file
         description: BAM/CRAM file
         pattern: "*.{bam,cram}"
-        ontologies: []
     - input_index:
         type: file
         description: BAM/CRAM index file
         pattern: "*.{bai,crai}"
-        ontologies: []
-  - fasta:
-      type: file
-      description: Reference file the CRAM file was created with (required with CRAM
-        input)
-      pattern: "*.{fasta,fa}"
-      ontologies: []
-  - fasta_fai:
-      type: file
-      description: Index of the reference file (optional, but recommended)
-      pattern: "*.{fai}"
-      ontologies: []
+  - - fasta:
+        type: file
+        description: Reference file the CRAM file was created with (required with CRAM
+          input)
+        pattern: "*.{fasta,fa}"
+  - - fasta_fai:
+        type: file
+        description: Index of the reference file (optional, but recommended)
+        pattern: "*.{fai}"
 output:
-  bigwig:
-    - - meta:
+  - bigwig:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -53,9 +49,8 @@ output:
           type: file
           description: BigWig file
           pattern: "*.bigWig"
-          ontologies: []
-  bedgraph:
-    - - meta:
+  - bedgraph:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information
@@ -64,14 +59,11 @@ output:
           type: file
           description: Bedgraph file
           pattern: "*.bedgraph"
-          ontologies: []
-  versions:
-    - versions.yml:
-        type: file
-        description: File containing software versions
-        pattern: "versions.yml"
-        ontologies:
-          - edam: http://edamontology.org/format_3750 # YAML
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
 authors:
   - "@FriederikeHanssen"
   - "@SusiJo"

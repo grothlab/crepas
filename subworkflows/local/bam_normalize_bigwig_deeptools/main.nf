@@ -148,7 +148,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
         }
         .set { ch_bdg_map_type }
 
-    // For non-downsampled files, duplicate input controls for each antibody
     ch_bdg_map_type
         .ipcontrol
         .branch { meta, bdg ->
@@ -177,6 +176,8 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
             meta_clone.input_control_of_antibody = ip_antibody
             [ meta_clone, ipcontrol_bdg ]
         }
+        // remove duplicates based on meta_clone and filename (basically the meta_clone.control_of_antibody we added above)
+        // Because we don't need the same input normalized in the same way several times
         .unique()
         .set { ch_ipcontrols_not_dsp }
 
@@ -203,8 +204,8 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
             if (meta_clone.dSp_total_mapped_reads) {
                 meta_clone.norm_factor_val = 1e6 / meta_clone.dSp_total_mapped_reads
                 meta_clone.norm_factor_val_used = 'dSp_total_mapped_reads'
-            // if antibody_to_use is in the list of antibodies or there is no flTbl or flT3, use flT2 or flT1, otherwise use flTbl or flT3
-            } else if (rpm_use_flT2_total && antibody_to_use in rpm_use_flT2_total.split(',').collect { it.trim() } || !meta_clone.flT3_total_mapped_reads && !meta_clone.flTbl_total_mapped_reads) {
+            // if antibody_to_use is in the list of antibodies or there is no flT3, use flT2_total_mapped_reads or flT1_total_mapped_reads, otherwise use flT3_total_mapped_reads
+            } else if (rpm_use_flT2_total && antibody_to_use in rpm_use_flT2_total.split(',').collect { it.trim() } || !meta_clone.flT3_total_mapped_reads) {
                 if (meta_clone.flT2_total_mapped_reads) {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT2_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
@@ -213,9 +214,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT1_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT1_total_mapped_reads'
                 }
-            } else if (meta_clone.flTbl_total_mapped_reads) {
-                meta_clone.norm_factor_val = 1e6 / meta_clone.flTbl_total_mapped_reads
-                meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
             } else {
                 meta_clone.norm_factor_val = 1e6 / meta_clone.flT3_total_mapped_reads
                 meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'
@@ -284,9 +282,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 } else if (srpm_use_flT2_total && antibody in srpm_use_flT2_total.split(',').collect { it.trim() } || !exo_meta.flT3_total_mapped_reads && !exo_meta.flTbl_total_mapped_reads) {
                     meta_clone.norm_factor_val = 1e6 / exo_meta.flT2_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
-                } else if (exo_meta.flTbl_total_mapped_reads) {
-                    meta_clone.norm_factor_val = 1e6 / exo_meta.flTbl_total_mapped_reads
-                    meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
                 } else {
                     meta_clone.norm_factor_val = 1e6 / exo_meta.flT3_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'
@@ -423,9 +418,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 } else if (cisrpm_use_flT2_total && meta.input_control_of_antibody in cisrpm_use_flT2_total.split(',').collect { it.trim() } || (!meta_clone.flT3_total_mapped_reads && !meta_clone.flTbl_total_mapped_reads)) {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT2_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
-                } else if (meta_clone.flTbl_total_mapped_reads) {
-                    meta_clone.norm_factor_val = 1e6 / meta_clone.flTbl_total_mapped_reads
-                    meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
                 } else {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT3_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'
@@ -603,8 +595,8 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 if (meta_clone.dSp_total_mapped_reads) {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.dSp_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'dSp_total_mapped_reads'
-                // if antibody_to_use is in the list of antibodies or there is no flTbl or flT3, use flT2 or flT1, otherwise use flTbl or flT3
-                } else if (rpm_use_flT2_total && antibody_to_use in rpm_use_flT2_total.split(',').collect { it.trim() } || (!meta_clone.flT3_total_mapped_reads && !meta_clone.flTbl_total_mapped_reads)) {
+                // if antibody_to_use is in the list of antibodies or there is no flT3, use flT2_total_mapped_reads or flT1_total_mapped_reads, otherwise use flT3_total_mapped_reads
+                } else if (rpm_use_flT2_total && antibody_to_use in rpm_use_flT2_total.split(',').collect { it.trim() } || !meta_clone.flT3_total_mapped_reads) {
                     if (meta_clone.flT2_total_mapped_reads) {
                         meta_clone.norm_factor_val = 1e6 / meta_clone.flT2_total_mapped_reads
                         meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
@@ -613,9 +605,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                         meta_clone.norm_factor_val = 1e6 / meta_clone.flT1_total_mapped_reads
                         meta_clone.norm_factor_val_used = 'flT1_total_mapped_reads'
                     }
-                } else if (meta_clone.flTbl_total_mapped_reads) {
-                    meta_clone.norm_factor_val = 1e6 / meta_clone.flTbl_total_mapped_reads
-                    meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
                 } else {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT3_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'

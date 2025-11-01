@@ -10,7 +10,6 @@ keywords:
   - trimgalore
 components:
   - fastqc
-  - umitransfer
   - umitools/extract
   - trimgalore
 input:

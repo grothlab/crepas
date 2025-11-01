@@ -21,6 +21,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
     ch_peak_count_header_multiqc      // channel: [ header_file ]
     ch_frip_score_multiqc             // channel: [ header_file ]
     ch_peak_annotation_header_multiqc // channel: [ header_file ]
+    is_narrow_peak                    // boolean: true/false
     skip_peak_annotation              // boolean: true/false
     skip_peak_qc                      // boolean: true/false
 
@@ -28,7 +29,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
 
     ch_versions = Channel.empty()
 
-    // Branch channels based on if input control is present
     ch_bam
         .branch { meta, bam ->
             ips_with_ipcontrol: meta.input_control
@@ -90,7 +90,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
             meta, ip_bams, ipcontrol_bams ->
                 "${meta}\t${ip_bams}\t${ipcontrol_bams}"
         }
-        .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER" )
+        .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}" )
 
 
     //
@@ -173,7 +173,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
         HOMER_ANNOTATEPEAKS (
             ch_epic2_peaks,
             ch_fasta.map{ it[1] },
-            ch_gtf.map{ it[1] }
+            ch_gtf
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
@@ -182,21 +182,21 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
 
             // Create channels: [ meta, [ peaks ] ]
             // Where meta = [ id:exp_type, exp_type:exp_type ]
-            // ch_epic2_peaks
-            //     .map {
-            //         meta, peaks ->
-            //             [ meta.exp_type, meta.genome, peaks ]
-            //     }
-            //     .groupTuple(by: [0, 1])
-            //     .map {
-            //         exp_type, genome, peaks ->
-            //             def meta_new = [:]
-            //             meta_new.id = exp_type
-            //             meta_new.exp_type = exp_type
-            //             meta_new.genome = genome
-            //             [ meta_new, peaks ]
-            //     }
-            //     .set { ch_epic2_peaks_grouped }
+            ch_epic2_peaks
+                .map {
+                    meta, peaks ->
+                        [ meta.exp_type, meta.genome, peaks ]
+                }
+                .groupTuple(by: [0, 1])
+                .map {
+                    exp_type, genome, peaks ->
+                        def meta_new = [:]
+                        meta_new.id = exp_type
+                        meta_new.exp_type = exp_type
+                        meta_new.genome = genome
+                        [ meta_new, peaks ]
+                }
+                .set { ch_epic2_peaks_grouped }
             
             //
             // epic2 QC plots with R

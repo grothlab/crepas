@@ -36,6 +36,7 @@ process MACS3_BDGCMP {
     """
 
     stub:
+    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.bedGraph
