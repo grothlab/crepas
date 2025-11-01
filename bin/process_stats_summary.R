@@ -39,7 +39,8 @@ parser$add_argument("-g","--endogenous_genome_name", action = "store",
 
 parser$add_argument("-e","--exogenous_genome_name", action = "store",
                     type = "character",
-                    help = "Name of the exogenous (spike-in) genome if applicable (e.g., dm6) [optional]")
+                    default = "dm6",
+                    help = "Name of the exogenous (spike-in) genome if applicable [optional]")
 
 parser$add_argument("-n", "--prefix", action = "store",
                     default = "final_samtools_stats_summary",
