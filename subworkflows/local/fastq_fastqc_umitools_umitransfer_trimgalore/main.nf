@@ -56,7 +56,7 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
 
         // split umi_reads channel into the ones that have meta.sep_umi_fq and the ones that don't
         umi_reads
-            .branch { meta, read -> 
+            .branch { meta, reads -> 
                 sep_umi_fq: meta.sep_umi_fq
                 no_sep_umi_fq: !meta.sep_umi_fq
             }
@@ -82,8 +82,8 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
                 .out
                 .reads
                 .map {
-                    meta, read ->
-                        meta.single_end ? [ meta, read ] : [ meta + ['single_end': true], read[umi_discard_read % 2] ]
+                    meta, reads ->
+                        meta.single_end ? [ meta, reads ] : [ meta + ['single_end': true], reads[umi_discard_read % 2] ]
                 }
                 .set { ch_no_sep_umi_fq }
         }
@@ -115,23 +115,23 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
             .reads
             .join(trim_log, remainder: true)
             .map {
-                meta, read, log ->
-                    if (log) {
-                        def num_reads = getTrimGaloreReadsAfterFiltering(meta.single_end ? log : log[-1])
-                        [ meta, read, num_reads ]
+                meta, reads, trim_log ->
+                    if (trim_log) {
+                        num_reads = getTrimGaloreReadsAfterFiltering(meta.single_end ? trim_log : trim_log[-1])
+                        [ meta, reads, num_reads ]
                     } else {
-                        [ meta, read, min_trimmed_reads.toFloat() + 1 ]
+                        [ meta, reads, min_trimmed_reads.toFloat() + 1 ]
                     }
             }
             .set { ch_num_trimmed_reads }
 
         ch_num_trimmed_reads
-            .filter { meta, read, num_reads -> num_reads >= min_trimmed_reads.toFloat() }
-            .map { meta, read, num_reads -> [ meta, read ] }
+            .filter { meta, reads, num_reads -> num_reads >= min_trimmed_reads.toFloat() }
+            .map { meta, reads, num_reads -> [ meta, reads ] }
             .set { trim_reads }
 
         ch_num_trimmed_reads
-            .map { meta, read, num_reads -> [ meta, num_reads ] }
+            .map { meta, reads, num_reads -> [ meta, num_reads ] }
             .set { trim_read_count }
 
         htrim_unpaired   = channel.empty()
@@ -166,10 +166,5 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
     trim_log           // channel: [ val(meta), [ txt ] ]
     trim_read_count    // channel: [ val(meta), val(count) ]
 
-    htrim_unpaired    // channel: [ val(meta), [ reads ] ]
-    htrim_html        // channel: [ val(meta), [ html ] ]
-    htrim_zip         // channel: [ val(meta), [ zip ] ]
-    htrim_log         // channel: [ val(meta), [ txt ] ]
-
-    versions = ch_versions // channel: [ versions.yml ]
+    versions = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }

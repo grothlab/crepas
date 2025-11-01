@@ -5,7 +5,7 @@ include { ROCCO               } from '../../../modules/local/rocco/main'
 
 workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
     take:
-    ch_bam_bai            // channel: [ val(meta), [ bam ], [ bai ] ]
+    ch_bam                // channel: [ meta, [ip_bams_merged_reps], [ip_bais_merged_reps], [control_bams_merged_reps], [control_bais_merged_reps] ]
     ch_chrom_sizes        // channel: [ val(meta), [ chrom_sizes ] ]
     ch_blacklist          // channel: [ val(meta), [ blacklist ] ]
     ch_sparsebed          // channel: [ val(meta), [ sparsebed ] ]

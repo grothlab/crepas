@@ -2,14 +2,19 @@
 //
 // Call peaks with MACS3, annotate with HOMER and perform downstream QC
 //
+
+include { EDD } from '../../../modules/local/edd/main'
+
 include { MACS3_CALLPEAK           } from '../../../modules/nf-core/macs3/callpeak/main'
 include { MACS3_BDGCMP             } from '../../../modules/local/macs3/bdgcmp/main'
 include { BEDTOOLS_SLOP                  } from '../../../modules/nf-core/bedtools/slop/main'
 include { AWK_FIX_MACS3_BDGCMP       } from '../../../modules/local/awk_fix_macs3_bdgcmp/main'
 include { UCSC_BEDCLIP               } from '../../../modules/nf-core/ucsc/bedclip/main'
 include { FILE_SORT                  } from '../../../modules/local/file_sort/main'
+//include { UCSC_BEDGRAPHTOBIGWIG      } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 include { BIGTOOLS_BEDGRAPHTOBIGWIG } from '../../../modules/local/bigtools/bedgraphtobigwig/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../../modules/nf-core/homer/annotatepeaks/main'
+
 include { FRIP_SCORE               } from '../../../modules/local/frip_score/main'
 include { MULTIQC_CUSTOM_PEAKS     } from '../../../modules/local/multiqc_custom_peaks/main'
 include { PLOT_MACS3_QC            } from '../../../modules/local/plot_macs3_qc/main'
@@ -21,6 +26,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     ch_fasta                          // channel: [ fasta ]
     ch_gtf                            // channel: [ gtf ]
     ch_chrom_sizes                    // channel: [ bed ]
+    ch_blacklist                      // channel: [ bed ]
     macs_gsize                        // integer: value for --macs_gsize parameter
     annotate_peaks_suffix             //  string: suffix for input HOMER annotate peaks files to be trimmed off
     ch_peak_count_header_multiqc      // channel: [ header_file ]
@@ -29,12 +35,25 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     is_narrow_peak                    // boolean: true/false
     skip_peak_annotation              // boolean: true/false
     skip_peak_qc                      // boolean: true/false
+    skip_edd                          // boolean: true/false
     skip_bdgcmp                       // boolean: true/false
 
 
     main:
 
     ch_versions = channel.empty()
+
+    if (!skip_edd) {
+        //
+        // Call peaks with EDD
+        //
+        EDD (
+            ch_bam,
+            ch_chrom_sizes,
+            ch_blacklist
+        )
+        ch_versions = ch_versions.mix(EDD.out.versions.first())
+    }
 
     //
     // Call peaks with MACS3
@@ -151,8 +170,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         //
         HOMER_ANNOTATEPEAKS (
             ch_macs3_peaks,
-            ch_fasta.map { it[1] },
-            ch_gtf.map { it[1] }
+            ch_fasta,
+            ch_gtf
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())

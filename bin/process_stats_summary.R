@@ -39,8 +39,7 @@ parser$add_argument("-g","--endogenous_genome_name", action = "store",
 
 parser$add_argument("-e","--exogenous_genome_name", action = "store",
                     type = "character",
-                    default = "dm6",
-                    help = "Name of the exogenous (spike-in) genome if applicable [optional]")
+                    help = "Name of the exogenous (spike-in) genome if applicable (e.g., dm6) [optional]")
 
 parser$add_argument("-n", "--prefix", action = "store",
                     default = "final_samtools_stats_summary",
@@ -143,10 +142,6 @@ if (is.null(opt$exogenous_genome_name)) {
                                 gsub("\\.flT3$", paste0(".", opt$endogenous_genome_name, "_flT3"), ID), ID),
                     ID = ifelse(grepl(paste0(".", opt$exogenous_genome_name, "."), ID),
                                 gsub("\\.flT3$", paste0(".", opt$exogenous_genome_name, "_flT3"), ID), ID),
-                    ID = ifelse(grepl(paste0(".", opt$exogenous_genome_name, "."), ID),
-                                gsub("\\.flTbl$", paste0(".", opt$exogenous_genome_name, "_flTbl"), ID), ID),
-                    ID = ifelse(grepl(paste0(".", opt$exogenous_genome_name, "."), ID),
-                                gsub("\\.rmO$", paste0(".", opt$exogenous_genome_name, "_rmO"), ID), ID),
                     ID = ifelse(grepl(paste0("\\.", opt$endogenous_genome_name, "\\."), ID),
                           gsub("\\.dSp(.*)$", paste0(".", opt$endogenous_genome_name, "_dSp\\1"), ID), ID),
                     ID = ifelse(grepl(paste0("\\.", opt$exogenous_genome_name, "\\."), ID),

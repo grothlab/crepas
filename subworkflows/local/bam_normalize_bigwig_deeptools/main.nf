@@ -159,9 +159,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT1_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT1_total_mapped_reads'
                 }
-            } else if (meta_clone.flTbl_total_mapped_reads) {
-                meta_clone.norm_factor_val = 1e6 / meta_clone.flTbl_total_mapped_reads
-                meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
             } else {
                 meta_clone.norm_factor_val = 1e6 / meta_clone.flT3_total_mapped_reads
                 meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'
@@ -230,9 +227,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 } else if (srpm_use_flT2_total && antibody in srpm_use_flT2_total.split(',').collect { it -> it.trim() } || !exo_meta.flT3_total_mapped_reads && !exo_meta.flTbl_total_mapped_reads) {
                     meta_clone.norm_factor_val = 1e6 / exo_meta.flT2_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
-                } else if (exo_meta.flTbl_total_mapped_reads) {
-                    meta_clone.norm_factor_val = 1e6 / exo_meta.flTbl_total_mapped_reads
-                    meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
                 } else {
                     meta_clone.norm_factor_val = 1e6 / exo_meta.flT3_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'
@@ -369,9 +363,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                 } else if (cisrpm_use_flT2_total && meta.input_control_of_antibody in cisrpm_use_flT2_total.split(',').collect { it -> it.trim() } || (!meta_clone.flT3_total_mapped_reads && !meta_clone.flTbl_total_mapped_reads)) {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT2_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT2_total_mapped_reads'
-                } else if (meta_clone.flTbl_total_mapped_reads) {
-                    meta_clone.norm_factor_val = 1e6 / meta_clone.flTbl_total_mapped_reads
-                    meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
                 } else {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT3_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'
@@ -560,9 +551,6 @@ workflow BAM_NORMALIZE_BIGWIG_DEEPTOOLS {
                         meta_clone.norm_factor_val = 1e6 / meta_clone.flT1_total_mapped_reads
                         meta_clone.norm_factor_val_used = 'flT1_total_mapped_reads'
                     }
-                } else if (meta_clone.flTbl_total_mapped_reads) {
-                    meta_clone.norm_factor_val = 1e6 / meta_clone.flTbl_total_mapped_reads
-                    meta_clone.norm_factor_val_used = 'flTbl_total_mapped_reads'
                 } else {
                     meta_clone.norm_factor_val = 1e6 / meta_clone.flT3_total_mapped_reads
                     meta_clone.norm_factor_val_used = 'flT3_total_mapped_reads'

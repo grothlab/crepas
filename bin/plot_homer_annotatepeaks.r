@@ -9,9 +9,9 @@
 # Source:
 #     https://github.com/nf-core/chipseq/blob/76e2382b6d443db4dc2396e6831d1243256d80b0/bin/plot_homer_annotatepeaks.r
 #
-# Adapted for the grothlab/crepas pipeline by:
+# Adapted for the grothlab/glseq pipeline by:
 #     - Samuel Ruiz-Pérez <samper@cancer.dk>
-#     https://github.com/grothlab/crepas/
+#     https://github.com/grothlab/glseq/
 #
 # Description:
 #     Generates plots from HOMER annotatePeaks output.

@@ -1,3 +1,4 @@
+
 nextflow_process {
 
     name "Test Process BEDTOOLS_MAKEWINDOWS"
@@ -16,9 +17,10 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    [ id:'test2'],
-                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
-            ]
+				    [ id:'test2'],
+				    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
+				]
+
                 """
             }
         }
@@ -37,9 +39,10 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    [ id:'test2'],
-                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true)
-                    ]
+				    [ id:'test2'],
+				    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true)
+				]
+
                 """
             }
         }
@@ -48,30 +51,6 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(process.out).match() }
-            )
-        }
-    }
-
-    test("test-bedtools-makewindows-bed -- stub") {
-        options "-stub"
-        when {
-            process {
-                """
-                input[0] = [
-                    [ id:'test2'],
-                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
-                ]
-                """
-            }
-        }
-
-        then {
-            assertAll(
-                { assert process.success },
-                { assert snapshot(
-                    process.out,
-                    path(process.out.versions[0]).yaml
-                ).match() }
             )
         }
     }

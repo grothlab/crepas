@@ -239,14 +239,6 @@
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`.",
                     "default": true
-                },
-                "refgenie_ignore": {
-                    "type": "boolean",
-                    "description": "Whether to ignore the Refgenie reference genomes.",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "help_text": "Do not use the Refgenie reference genomes, even if loaded before through config files.",
-                    "default": true
                 }
             }
         },
@@ -554,12 +546,6 @@
                     "default": false,
                     "description": "Whether to skip the flT3 filtering step (filtering by mapping quality, which also removes multimapping reads in most cases).",
                     "fa_icon": "fas fa-filter"
-                },
-                "skip_flTbl": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to skip the blacklist filtering step. This serves to skip the removal of blacklisted regions from the BAM files even if a blacklist BED file is provided.",
-                    "fa_icon": "fas fa-filter"
                 }
             }
         },
@@ -702,18 +688,6 @@
                     "description": "Skip local TE counting.",
                     "fa_icon": "fas fa-fast-forward"
                 },
-                "skip_tecount_gz": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Skip gzip compression of TEcount output files.",
-                    "fa_icon": "fas fa-fast-forward"
-                },
-                "skip_telocal_gz": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Skip gzip compression of TElocal output files.",
-                    "fa_icon": "fas fa-fast-forward"
-                },
                 "te_counting_mode": {
                     "type": "string",
                     "default": "multi",
@@ -794,21 +768,11 @@
                 "macs_extsize": {
                     "type": "integer",
                     "description": "Used to extend reads in 5'->3' direction to fix-sized fragments when processing ATAC-seq data, for which MACS3 bypasses building the shifting model (`--nomodel`). See [MACS3 documentation](https://macs3-project.github.io/MACS/docs/callpeak.html) for more details.",
-                    "default": 250
+                    "default": 150
                 },
                 "macs_slocal": {
                     "type": "integer",
-                    "default": 1500,
-                    "description": "Size of the small local region around peak regions to calculate the maximum lambda as local lambda.",
-                    "help_text": "By default, MACS3 considers 1000 bp for small local region (`--slocal`). You can tweak this according to your project. Remember that if the region is set too small, a sharp spike in the input data may kill a significant peak. See [MACS3 documentation](https://macs3-project.github.io/MACS/docs/callpeak.html) for more details.",
-                    "fa_icon": "fas fa-chart-area"
-                },
-                "macs_llocal": {
-                    "type": "integer",
-                    "default": 10000,
-                    "description": "Size of the large local region around peak regions to calculate the maximum lambda as local lambda.",
-                    "help_text": "By default, MACS3 considers 10000 bp for large local region (`--llocal`) which captures the bias from a long-range effect like an open chromatin domain. You can tweak this according to your project. See [MACS3 documentation](https://macs3-project.github.io/MACS/docs/callpeak.html) for more details.",
-                    "fa_icon": "fas fa-chart-area"
+                    "default": 1500
                 },
                 "save_macs_pileup": {
                     "type": "boolean",
@@ -833,7 +797,7 @@
                 },
                 "skip_bdgcmp": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Skip bdgcmp calculation with MACS3.",
                     "fa_icon": "fas fa-fast-forward"
                 },
@@ -842,27 +806,21 @@
                 },
                 "skip_edd": {
                     "type": "boolean",
-                    "description": "Whether to skip EDD peak calling.",
-                    "fa_icon": "fas fa-fast-forward",
                     "default": true
                 },
                 "edd_bin_size": {
-                    "type": "string",
-                    "description": "Bin size (Kb) for EDD peak calling. Autoestimated if left blank. See [EDD documentation](https://github.com/CollasLab/edd) for more details."
+                    "type": "string"
                 },
                 "edd_gap_penalty": {
-                    "type": "string",
-                    "description": "Gap penalty for EDD peak calling. Autoestimated by EDD if left blank. See [EDD documentation](https://github.com/CollasLab/edd) for more details."
+                    "type": "string"
                 },
                 "edd_num_trials": {
                     "type": "integer",
-                    "description": "Number of Monte Carlo trials for EDD peak calling. See [EDD documentation](https://github.com/CollasLab/edd) for more details.",
                     "default": 10000
                 },
                 "edd_fdr": {
                     "type": "number",
-                    "description": "FDR threshold for EDD peak calling. See [EDD documentation](https://github.com/CollasLab/edd) for more details.",
-                    "default": 0.01
+                    "default": 0.05
                 },
                 "genrich_narrow_gap": {
                     "type": "integer",
@@ -872,7 +830,7 @@
                 },
                 "genrich_broad_gap": {
                     "type": "integer",
-                    "default": 200,
+                    "default": 100,
                     "description": "Genrich broad gap parameter.",
                     "fa_icon": "fas fa-hand-scissors"
                 },
@@ -932,7 +890,7 @@
                 },
                 "skip_epic2": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Skip epic2 peak calling.",
                     "fa_icon": "fas fa-fast-forward"
                 },
@@ -944,7 +902,7 @@
                 },
                 "skip_mace": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Skip MACE peak calling.",
                     "fa_icon": "fas fa-fast-forward"
                 },
@@ -1087,31 +1045,23 @@
             "properties": {
                 "partition_window_size": {
                     "type": "integer",
-                    "description": "Window/bin size (in bp) for dividing chromosomes when calculating coverage for partition/RFD analysis in SCAR-seq or OK-seq experiments. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
                     "default": 1000
                 },
                 "partition_step_size": {
                     "type": "integer",
-                    "description": "Step size (in bp) for sliding window when calculating coverage for partition/RFD analysis in SCAR-seq or OK-seq experiments. Default is the same as `--partition_window_size` to create fixed-size book-ended bins instead of sliding windows.",
                     "default": 1000
                 },
                 "smooth_radius": {
                     "type": "integer",
-                    "default": 30,
-                    "description": "Smoothing radius for partition/RFD signal smoothing. Smoothing is computed across consecutive book-ended bins, performing a uniform blur considering the neighboring bins on each side. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
-                    "fa_icon": "fas fa-chart-line"
+                    "default": 30
                 },
                 "derivative_radius": {
                     "type": "integer",
-                    "default": 30,
-                    "description": "Radius for [nonparametric derivative estimation](https://doi.org/10.18637/jss.v055.i02) of RFD signal to detect sharp transitions between neighboring bins for initiation zone detection. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
-                    "fa_icon": "fas fa-chart-line"
+                    "default": 30
                 },
                 "zero_crossing_radius": {
                     "type": "integer",
-                    "default": 1,
-                    "description": "Radius for zero-crossing detection when defining replication initiation zones. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
-                    "fa_icon": "fas fa-chart-line"
+                    "default": 1
                 },
                 "partition_rpm_cutoff": {
                     "type": "number",
@@ -1121,9 +1071,7 @@
                 },
                 "partition_plot_range": {
                     "type": "integer",
-                    "default": 100,
-                    "description": "Plot range for partition analysis visualization.",
-                    "fa_icon": "fas fa-chart-area"
+                    "default": 100
                 },
                 "partition_exclude_scaffolds": {
                     "type": "boolean",
@@ -1133,15 +1081,10 @@
                 },
                 "partition_exclude_chromosomes": {
                     "type": "string",
-                    "default": "chrX,chrY,chrM",
-                    "description": "Comma-separated list of chromosomes to exclude from partition analysis. Typically sex chromosomes and mitochondrial chromosomes are excluded. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
-                    "fa_icon": "fas fa-ban"
+                    "default": "chrX,chrY,chrM"
                 },
                 "save_partition_intermeds": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to save the intermediate files from the partition/RFD analysis step.",
-                    "fa_icon": "fas fa-save"
+                    "type": "boolean"
                 }
             }
         },
