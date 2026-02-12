@@ -581,8 +581,8 @@
                     "fa_icon": "fas fa-chart-area"
                 },
                 "soi_min_count": {
-                    "type": "integer",
-                    "default": 0,
+                    "type": "number",
+                    "default": 0.00001,
                     "description": "Minimum CISRPM value required in a bin to be included in the signal over input (SOI) calculation.",
                     "fa_icon": "fas fa-chart-area"
                 },
