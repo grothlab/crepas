@@ -332,6 +332,7 @@ workflow INPUT_CHECK {
                     error("ERROR: `extract_umi` is set to true, but `with_umi` is set to false. Check sample: ${meta.id}")
                 }
             }
+            return [ meta, fastqs ]
         }
         .set { ch_fastq }
 
