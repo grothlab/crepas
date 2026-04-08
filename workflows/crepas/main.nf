@@ -158,6 +158,7 @@ workflow CREPAS {
                         return [ meta_clone, [ fastq_1 ] ]
                     } else {
                         meta_clone.sep_umi_fq = true
+                        meta_clone.with_umi = true
                         return [ meta_clone, [ fastq_1, fastq_umi ] ]
                     }
                 } else {
@@ -167,6 +168,7 @@ workflow CREPAS {
                         return [ meta_clone, [ fastq_1, fastq_2 ] ]
                     } else {
                         meta_clone.sep_umi_fq = true
+                        meta_clone.with_umi = true
                         return [ meta_clone, [ fastq_1, fastq_2, fastq_umi ] ]
                     }
                 }
@@ -190,8 +192,6 @@ workflow CREPAS {
         params.skip_fastqc || params.skip_qc,
         params.skip_spikein_barcode_extract,
         ch_spikein_barcode_table,
-        params.with_umi,
-        params.skip_umi_extract,
         params.skip_trimming,
         params.umi_discard_read,
         params.min_trimmed_reads,
@@ -286,68 +286,66 @@ workflow CREPAS {
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.idxstats.collect { it -> it[1] })
 
 
-    if (params.with_umi) {
-
-        //
-        // MODULE: Preseq coverage analysis
-        //
-        // TODO: this is done on the bams with spike-in included
-        if (!params.skip_preseq) {
-            PRESEQ_LCEXTRAP(
-                ch_merged_bam
-            )
-            ch_multiqc_files = ch_multiqc_files.mix(PRESEQ_LCEXTRAP.out.lc_extrap.collect { it -> it[1] })
-            ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
-        }
-
-        //
-        // SUBWORKFLOW: Deduplicate BAM files
-        //
-        ch_transcriptome_bam = channel.empty()
-        ch_transcriptome_fasta = channel.empty()
-        BAM_DEDUP_UMI (
-            ch_merged_bam_bai,
-            [],
-            params.umi_dedup_tool,
-            params.get_dedup_stats,
-            false,
-            ch_transcriptome_bam,
-            ch_transcriptome_fasta
+    //
+    // MODULE: Preseq coverage analysis
+    //
+    // TODO: this is done on the bams with spike-in included
+    if (!params.skip_preseq) {
+        PRESEQ_LCEXTRAP(
+            ch_merged_bam
         )
-        ch_dedup_bam = BAM_DEDUP_UMI.out.bam
-        ch_dedup_index = BAM_DEDUP_UMI.out.bai
-        ch_multiqc_files = ch_multiqc_files.mix(BAM_DEDUP_UMI.out.multiqc_files)
-    }
-    else {
-        //
-        // SUBWORKFLOW: Mark duplicates & filter BAM files
-        //
-        BAM_MARKDUPLICATES_PICARD (
-            ch_merged_bam,
-            ch_fasta,
-            ch_fai
-        )
-        ch_dedup_bam = BAM_MARKDUPLICATES_PICARD.out.bam
-        ch_dedup_index = BAM_MARKDUPLICATES_PICARD.out.bai
-        ch_samtools_stats_summary = ch_samtools_stats_summary.mix(BAM_MARKDUPLICATES_PICARD.out.stats)
-        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.stats.collect { it -> it[1] })
-        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.flagstat.collect { it -> it[1] })
-        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.idxstats.collect { it -> it[1] })
-        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.metrics.collect { it -> it[1] })
-
-        //
-        // MODULE: Preseq coverage analysis
-        //
-        // TODO: this is done on the bams with spike-in included
-        if (!params.skip_preseq) {
-            PRESEQ_LCEXTRAP (
-                ch_dedup_bam
-            )
-            ch_multiqc_files = ch_multiqc_files.mix(PRESEQ_LCEXTRAP.out.lc_extrap.collect { it -> it[1] })
-            ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
-        }
+        ch_multiqc_files = ch_multiqc_files.mix(PRESEQ_LCEXTRAP.out.lc_extrap.collect { it -> it[1] })
+        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
+    ch_merged_bam_bai
+        .branch { meta, bam, bai ->
+            with_umi: meta.with_umi
+            without_umi: !meta.with_umi
+                return [ meta, bam ]
+        }
+        .set { ch_merged_bam_bai }
+
+    //
+    // SUBWORKFLOW: Deduplicate BAM files
+    //
+    ch_transcriptome_bam = channel.empty()
+    ch_transcriptome_fasta = channel.empty()
+    ch_umidedup_bam = channel.empty()
+    ch_umidedup_index = channel.empty()
+    BAM_DEDUP_UMI (
+        ch_merged_bam_bai.with_umi,
+        [],
+        params.umi_dedup_tool,
+        params.get_dedup_stats,
+        false,
+        ch_transcriptome_bam,
+        ch_transcriptome_fasta
+    )
+    ch_umidedup_bam = BAM_DEDUP_UMI.out.bam
+    ch_umidedup_index = BAM_DEDUP_UMI.out.bai
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_DEDUP_UMI.out.multiqc_files)
+    
+    //
+    // SUBWORKFLOW: Mark duplicates & filter BAM files
+    //
+    ch_mkdup_bam = channel.empty()
+    ch_mkdup_index = channel.empty()
+    BAM_MARKDUPLICATES_PICARD (
+        ch_merged_bam_bai.without_umi,
+        ch_fasta,
+        ch_fai
+    )
+    ch_mkdup_bam = BAM_MARKDUPLICATES_PICARD.out.bam
+    ch_mkdup_index = BAM_MARKDUPLICATES_PICARD.out.bai
+    ch_samtools_stats_summary = ch_samtools_stats_summary.mix(BAM_MARKDUPLICATES_PICARD.out.stats)
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.stats.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.flagstat.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.idxstats.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.metrics.collect { it -> it[1] })
+
+    ch_dedup_bam = ch_umidedup_bam.mix(ch_mkdup_bam)
+    ch_dedup_index = ch_umidedup_index.mix(ch_mkdup_index)
 
     //
     // SUBWORKFLOW: Filter BAM file with SAMBAMBA

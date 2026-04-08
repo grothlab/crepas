@@ -26,12 +26,10 @@ def getTrimGaloreReadsAfterFiltering(log_file) {
 
 workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
     take:
-    reads             // channel: [ val(meta), [ reads ] ]
+    ch_reads             // channel: [ val(meta), [ reads ] ]
     skip_fastqc       // boolean: true/false
     skip_spikein_barcode_extract // boolean: true/false
     ch_spikein_barcode_table  // channel: [ val(meta), path(spikein_barcode_table.tsv) ]
-    with_umi          // boolean: true/false
-    skip_umi_extract  // boolean: true/false
     skip_trimming     // boolean: true/false
     umi_discard_read  // integer: 0, 1 or 2
     min_trimmed_reads // integer: > 0
@@ -44,75 +42,67 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
     fastqc_html = channel.empty()
     fastqc_zip  = channel.empty()
     if (!skip_fastqc) {
-        FASTQC (reads)
+        FASTQC (ch_reads)
         fastqc_html = FASTQC.out.html
         fastqc_zip  = FASTQC.out.zip
     }
 
-    umi_reads = reads
     ch_sep_umi_fq       = channel.empty()
-    ch_no_sep_umi_fq    = channel.empty()
+    ch_extract_umi    = channel.empty()
     sep_umi_fq_log             = channel.empty()
     no_sep_umi_fq_log          = channel.empty()
 
     ch_barcode_counts = channel.empty()
     if (!skip_spikein_barcode_extract) {
         FASTQ_EXTRACT_SPIKEIN_BARCODES (
-            reads,
+            ch_reads,
             ch_spikein_barcode_table
         )
         ch_barcode_counts = FASTQ_EXTRACT_SPIKEIN_BARCODES.out.counts
         ch_versions = ch_versions.mix(FASTQ_EXTRACT_SPIKEIN_BARCODES.out.versions.first())
     }
 
-    if (with_umi && !skip_umi_extract) {
 
-        // split umi_reads channel into the ones that have meta.sep_umi_fq and the ones that don't
-        umi_reads
-            .branch { meta, read -> 
-                sep_umi_fq: meta.sep_umi_fq
-                no_sep_umi_fq: !meta.sep_umi_fq
-            }
-            .set { result }
-
-        // Move the key you want to join on to be the first element
-        ch_sep_umi_fq    = result.sep_umi_fq
-        ch_no_sep_umi_fq = result.no_sep_umi_fq
-
-        UMITRANSFER (ch_sep_umi_fq)
-        ch_sep_umi_fq = UMITRANSFER.out.reads
-        sep_umi_fq_log   = UMITRANSFER.out.log
-        ch_versions = ch_versions.mix(UMITRANSFER.out.versions.first())
-
-        UMITOOLS_EXTRACT (ch_no_sep_umi_fq)
-        ch_no_sep_umi_fq = UMITOOLS_EXTRACT.out.reads
-        no_sep_umi_fq_log   = UMITOOLS_EXTRACT.out.log
-
-        // Discard R1 / R2 if required
-        if (umi_discard_read in [1,2]) {
-            UMITOOLS_EXTRACT
-                .out
-                .reads
-                .map {
-                    meta, read ->
-                        meta.single_end ? [ meta, read ] : [ meta + ['single_end': true], read[umi_discard_read % 2] ]
-                }
-                .set { ch_no_sep_umi_fq }
+    // split ch_umi_reads channel into the ones that have meta.sep_umi_fq and the ones that don't
+    ch_reads
+        .branch { meta, read -> 
+            sep_umi_fq: meta.sep_umi_fq
+            extract_umi: !meta.sep_umi_fq && meta.extract_umi
+            other: true
         }
+        .set { ch_reads }
 
-    // join ch_sep_umi_fq and ch_no_sep_umi_fq
-    umi_reads = ch_sep_umi_fq.mix(ch_no_sep_umi_fq)
-    
+    UMITRANSFER (ch_reads.sep_umi_fq)
+    ch_sep_umi_fq   = UMITRANSFER.out.reads
+    sep_umi_fq_log  = UMITRANSFER.out.log
+    ch_versions     = ch_versions.mix(UMITRANSFER.out.versions.first())
+
+    UMITOOLS_EXTRACT (ch_reads.extract_umi)
+    ch_extract_umi    = UMITOOLS_EXTRACT.out.reads
+    no_sep_umi_fq_log   = UMITOOLS_EXTRACT.out.log
+
+    // Discard R1 / R2 if required
+    if (umi_discard_read in [1,2]) {
+        UMITOOLS_EXTRACT
+            .out
+            .reads
+            .map {
+                meta, read ->
+                    meta.single_end ? [ meta, read ] : [ meta + ['single_end': true], read[umi_discard_read % 2] ]
+            }
+            .set { ch_extract_umi }
     }
 
-    trim_reads      = umi_reads
+    ch_reads = ch_reads.other.mix(ch_extract_umi).mix(ch_sep_umi_fq)
+
+    ch_trim_reads      = ch_reads
     trim_unpaired   = channel.empty()
     trim_html       = channel.empty()
     trim_zip        = channel.empty()
     trim_log        = channel.empty()
     trim_read_count = channel.empty()
     if (!skip_trimming) {
-        TRIMGALORE (umi_reads)
+        TRIMGALORE (ch_reads)
         trim_unpaired = TRIMGALORE.out.unpaired
         trim_html     = TRIMGALORE.out.html
         trim_zip      = TRIMGALORE.out.zip
@@ -139,7 +129,7 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
         ch_num_trimmed_reads
             .filter { meta, read, num_reads -> num_reads >= min_trimmed_reads.toFloat() }
             .map { meta, read, num_reads -> [ meta, read ] }
-            .set { trim_reads }
+            .set { ch_trim_reads }
 
         ch_num_trimmed_reads
             .map { meta, read, num_reads -> [ meta, num_reads ] }
@@ -149,10 +139,10 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
         htrim_html       = channel.empty()
         htrim_zip        = channel.empty()
         htrim_log        = channel.empty()
-        htrim_reads = trim_reads
+        ch_htrim_reads = ch_trim_reads
         if (hardtrim3_length || hardtrim5_length) {
-            TRIMGALORE_HARDTRIM (trim_reads)
-            htrim_reads     = TRIMGALORE_HARDTRIM.out.reads
+            TRIMGALORE_HARDTRIM (ch_trim_reads)
+            ch_htrim_reads     = TRIMGALORE_HARDTRIM.out.reads
             htrim_unpaired  = TRIMGALORE_HARDTRIM.out.unpaired
             htrim_html      = TRIMGALORE_HARDTRIM.out.html
             htrim_zip       = TRIMGALORE_HARDTRIM.out.zip
@@ -162,7 +152,7 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
     }
 
     emit:
-    reads = htrim_reads // channel: [ val(meta), [ reads ] ]
+    reads          = ch_htrim_reads // channel: [ val(meta), [ reads ] ]
 
     barcode_counts = ch_barcode_counts // channel: [ val(meta), path(*.tsv) ]
 

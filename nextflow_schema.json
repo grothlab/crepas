@@ -280,19 +280,6 @@
             "fa_icon": "fas fa-dna",
             "description": "Options to adjust UMI extraction and deduplication criteria.",
             "properties": {
-                "with_umi": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Set this parameter to enable UMI extraction and deduplication.",
-                    "fa_icon": "fas fa-dna"
-                },
-                "skip_umi_extract": {
-                    "type": "boolean",
-                    "description": "Skip UMI extraction step.",
-                    "help_text": "Use this flag to skip the UMI extraction/transfer step. This is useful if you have already extracted UMIs from your data but want to run the deduplication",
-                    "fa_icon": "fas fa-dna",
-                    "default": true
-                },
                 "umitools_extract_method": {
                     "type": "string",
                     "description": "UMI pattern to use. Can be either `string` (default) or `regex`.",

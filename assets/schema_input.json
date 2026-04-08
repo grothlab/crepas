@@ -61,6 +61,16 @@
                 "errorMessage": "Antibody entry cannot contain spaces",
                 "meta": ["antibody"]
             },
+            "with_umi": {
+                "type": "boolean",
+                "errorMessage": "`with_umi` must be set to true for samples that contain UMIs, either in the read sequence, in the read name, or in a separate FastQ file (`fastq_umi`). If your samples contain UMIs, but they are not in a separate FastQ file, set `with_umi` to true and leave the `fastq_umi` column empty.",
+                "meta": ["with_umi"]
+            },
+            "extract_umi": {
+                "type": "boolean",
+                "errorMessage": "If the UMIs are contained in the read sequence, `extract_umi` must be set to true to move them to the read name. If the UMIs have already been extracted and moved to the read name, set `extract_umi` to false.",
+                "meta": ["extract_umi"]
+            },
             "fastq_1": {
                 "type": "string",
                 "format": "file-path",
@@ -87,8 +97,9 @@
         "dependentRequired": {
             "input_control": ["input_control_biological_replicate"],
             "input_control_biological_replicate": ["input_control"],
-            "input_control_technical_replicate": ["input_control_biological_replicate", "technical_replicate"]
-
+            "input_control_technical_replicate": ["input_control_biological_replicate", "technical_replicate"],
+            "with_umi": ["extract_umi"],
+            "extract_umi": ["with_umi"]
         }
     }
 }

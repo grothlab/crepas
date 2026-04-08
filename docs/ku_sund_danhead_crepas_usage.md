@@ -373,8 +373,6 @@ nextflow run /user/datadir/software/crepas \
       -work-dir /user/datadir/projects/project1/output/work/ \
       --aligner bowtie2 \
       --read_length 50 \
-      --with_umi \
-      --skip_umi_extract false \
       --genome mm10 \
       --spikein_genome dm6 \
       --bowtie2_index /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index \
@@ -400,8 +398,6 @@ outdir: /user/datadir/projects/project1/output/
 work_dir: /user/datadir/projects/project1/output/work/
 aligner: bowtie2
 read_length: 50
-with_umi: true
-skip_umi_extract: false
 genome: mm10
 spikein_genome: dm6
 bowtie2_index: /maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index
@@ -429,8 +425,6 @@ Or in JSON (`.json`) format. For example, `project1_crepas_params.json` would lo
   "work_dir": "/user/datadir/projects/project1/output/work/",
   "aligner": "bowtie2",
   "read_length": 50,
-  "with_umi": true,
-  "skip_umi_extract": false,
   "genome": "mm10",
   "spikein_genome": "dm6",
   "bowtie2_index": "/maps/projects/dan1/data/Groth_group/shared/references/Mus_musculus/GRCm38/spiked/GRCm38_dm6/indices/bowtie2_2.5.4_index",

@@ -323,6 +323,18 @@ workflow INPUT_CHECK {
         }
         .set { ch_fastq }
 
+
+    // Parse UMI meta fields
+    ch_fastq
+        .map { meta, fastqs ->
+            if (meta.extract_umi) {
+                if (!meta.with_umi) {
+                    error("ERROR: `extract_umi` is set to true, but `with_umi` is set to false. Check sample: ${meta.id}")
+                }
+            }
+        }
+        .set { ch_fastq }
+
     // TODO: print for debugging
     ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
         .collectFile(name: 'ch_fastq_6.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
