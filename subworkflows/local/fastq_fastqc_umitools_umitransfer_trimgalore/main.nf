@@ -95,7 +95,8 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
 
     ch_reads = ch_reads.other.mix(ch_extract_umi).mix(ch_sep_umi_fq)
 
-    ch_trim_reads      = ch_reads
+    ch_trim_reads   = ch_reads
+    ch_htrim_reads  = ch_reads
     trim_unpaired   = channel.empty()
     trim_html       = channel.empty()
     trim_zip        = channel.empty()
@@ -139,10 +140,10 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
         htrim_html       = channel.empty()
         htrim_zip        = channel.empty()
         htrim_log        = channel.empty()
-        ch_htrim_reads = ch_trim_reads
+        ch_htrim_reads   = ch_trim_reads
         if (hardtrim3_length || hardtrim5_length) {
             TRIMGALORE_HARDTRIM (ch_trim_reads)
-            ch_htrim_reads     = TRIMGALORE_HARDTRIM.out.reads
+            ch_htrim_reads  = TRIMGALORE_HARDTRIM.out.reads
             htrim_unpaired  = TRIMGALORE_HARDTRIM.out.unpaired
             htrim_html      = TRIMGALORE_HARDTRIM.out.html
             htrim_zip       = TRIMGALORE_HARDTRIM.out.zip
