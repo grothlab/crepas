@@ -274,7 +274,8 @@ workflow CREPAS {
     SAMTOOLS_INDEX (
         ch_merged_bam
     )
-    ch_merged_bam_bai = ch_merged_bam.join(SAMTOOLS_INDEX.out.bai, by: 0)
+    ch_merged_bai = SAMTOOLS_INDEX.out.bai
+    ch_merged_bam_bai = ch_merged_bam.join(ch_merged_bai, by: 0)
 
     BAM_STATS_SAMTOOLS (
         ch_merged_bam_bai,
@@ -298,13 +299,9 @@ workflow CREPAS {
         ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
-    ch_merged_bam_bai
-        .branch { meta, bam, bai ->
-            with_umi: meta.with_umi
-            without_umi: !meta.with_umi
-                return [ meta, bam ]
-        }
-        .set { ch_merged_bam_bai }
+    ch_merged_bam_with_umi = ch_merged_bam.filter { meta, bam -> meta.with_umi }
+    ch_merged_bai_without_umi = ch_merged_bai.filter { meta, bai -> !meta.with_umi }
+    ch_merged_bam_without_umi = ch_merged_bam.filter { meta, bam -> !meta.with_umi }
 
     //
     // SUBWORKFLOW: Deduplicate BAM files
@@ -314,7 +311,7 @@ workflow CREPAS {
     ch_umidedup_bam = channel.empty()
     ch_umidedup_index = channel.empty()
     BAM_DEDUP_UMI (
-        ch_merged_bam_bai.with_umi,
+        ch_merged_bam_with_umi,
         [],
         params.umi_dedup_tool,
         params.get_dedup_stats,
@@ -325,28 +322,36 @@ workflow CREPAS {
     ch_umidedup_bam = BAM_DEDUP_UMI.out.bam
     ch_umidedup_index = BAM_DEDUP_UMI.out.bai
     ch_multiqc_files = ch_multiqc_files.mix(BAM_DEDUP_UMI.out.multiqc_files)
+
+
+    if (!params.skip_markduplicates ) {
+        //
+        // SUBWORKFLOW: Mark duplicates & filter BAM files
+        //
+        ch_mkdup_bam = channel.empty()
+        ch_mkdup_index = channel.empty()
+        BAM_MARKDUPLICATES_PICARD (
+            ch_merged_bam_without_umi,
+            ch_fasta,
+            ch_fai
+        )
+        ch_mkdup_bam = BAM_MARKDUPLICATES_PICARD.out.bam
+        ch_mkdup_index = BAM_MARKDUPLICATES_PICARD.out.bai
+        ch_samtools_stats_summary = ch_samtools_stats_summary.mix(BAM_MARKDUPLICATES_PICARD.out.stats)
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.stats.collect { it -> it[1] })
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.flagstat.collect { it -> it[1] })
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.idxstats.collect { it -> it[1] })
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.metrics.collect { it -> it[1] })
     
-    //
-    // SUBWORKFLOW: Mark duplicates & filter BAM files
-    //
-    ch_mkdup_bam = channel.empty()
-    ch_mkdup_index = channel.empty()
-    BAM_MARKDUPLICATES_PICARD (
-        ch_merged_bam_bai.without_umi,
-        ch_fasta,
-        ch_fai
-    )
-    ch_mkdup_bam = BAM_MARKDUPLICATES_PICARD.out.bam
-    ch_mkdup_index = BAM_MARKDUPLICATES_PICARD.out.bai
-    ch_samtools_stats_summary = ch_samtools_stats_summary.mix(BAM_MARKDUPLICATES_PICARD.out.stats)
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.stats.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.flagstat.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.idxstats.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.metrics.collect { it -> it[1] })
+        ch_dedup_bam = ch_umidedup_bam.mix(ch_mkdup_bam)
+        ch_dedup_index = ch_umidedup_index.mix(ch_mkdup_index)
+        
+    } else {
 
-    ch_dedup_bam = ch_umidedup_bam.mix(ch_mkdup_bam)
-    ch_dedup_index = ch_umidedup_index.mix(ch_mkdup_index)
-
+        ch_dedup_bam = ch_umidedup_bam.mix(ch_merged_bam_without_umi)
+        ch_dedup_index = ch_umidedup_index.mix(ch_merged_bai_without_umi)
+    }
+    
     //
     // SUBWORKFLOW: Filter BAM file with SAMBAMBA
     //

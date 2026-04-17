@@ -280,6 +280,12 @@
             "fa_icon": "fas fa-dna",
             "description": "Options to adjust UMI extraction and deduplication criteria.",
             "properties": {
+                "skip_markduplicates": {
+                    "type": "boolean",
+                    "description": "Skip the MarkDuplicates step with Picard for samples without UMIs.",
+                    "fa_icon": "fas fa-fast-forward",
+                    "default": false
+                },
                 "umitools_extract_method": {
                     "type": "string",
                     "description": "UMI pattern to use. Can be either `string` (default) or `regex`.",
