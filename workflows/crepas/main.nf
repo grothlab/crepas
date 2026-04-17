@@ -299,7 +299,7 @@ workflow CREPAS {
         ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
-    ch_merged_bam_with_umi = ch_merged_bam.filter { meta, bam -> meta.with_umi }
+    ch_merged_bam_bai_with_umi = ch_merged_bam_bai.filter { meta, bam, bai -> meta.with_umi }
     ch_merged_bai_without_umi = ch_merged_bai.filter { meta, bai -> !meta.with_umi }
     ch_merged_bam_without_umi = ch_merged_bam.filter { meta, bam -> !meta.with_umi }
 
@@ -311,7 +311,7 @@ workflow CREPAS {
     ch_umidedup_bam = channel.empty()
     ch_umidedup_index = channel.empty()
     BAM_DEDUP_UMI (
-        ch_merged_bam_with_umi,
+        ch_merged_bam_bai_with_umi,
         [],
         params.umi_dedup_tool,
         params.get_dedup_stats,

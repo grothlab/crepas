@@ -328,9 +328,11 @@ workflow INPUT_CHECK {
     // Parse UMI meta fields
     ch_fastq
         .map { meta, fastqs ->
-            if (meta.extract_umi) {
-                if (!meta.with_umi) {
+            if (!meta.with_umi) {
+                if (meta.extract_umi) {
                     error("ERROR: `extract_umi` is set to true, but `with_umi` is set to false. Check sample: ${meta.id}")
+                } else if (meta.sep_umi_fq) {
+                    error("ERROR: `fastq_umi` has been provided in the samplesheet, but `with_umi` is set to false. Check sample: ${meta.id}")
                 }
             }
             return [ meta, fastqs ]

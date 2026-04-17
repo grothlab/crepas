@@ -99,7 +99,8 @@
             "input_control_biological_replicate": ["input_control"],
             "input_control_technical_replicate": ["input_control_biological_replicate", "technical_replicate"],
             "with_umi": ["extract_umi"],
-            "extract_umi": ["with_umi"]
+            "extract_umi": ["with_umi"],
+            "fastq_umi": ["with_umi", "extract_umi"]
         }
     }
 }
