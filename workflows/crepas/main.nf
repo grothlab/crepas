@@ -158,7 +158,6 @@ workflow CREPAS {
                         return [ meta_clone, [ fastq_1 ] ]
                     } else {
                         meta_clone.sep_umi_fq = true
-                        meta_clone.with_umi = true
                         return [ meta_clone, [ fastq_1, fastq_umi ] ]
                     }
                 } else {
@@ -168,7 +167,6 @@ workflow CREPAS {
                         return [ meta_clone, [ fastq_1, fastq_2 ] ]
                     } else {
                         meta_clone.sep_umi_fq = true
-                        meta_clone.with_umi = true
                         return [ meta_clone, [ fastq_1, fastq_2, fastq_umi ] ]
                     }
                 }

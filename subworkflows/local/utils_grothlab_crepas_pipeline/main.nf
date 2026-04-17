@@ -331,8 +331,12 @@ workflow INPUT_CHECK {
             if (!meta.with_umi) {
                 if (meta.extract_umi) {
                     error("ERROR: `extract_umi` is set to true, but `with_umi` is set to false. Check sample: ${meta.id}")
-                } else if (meta.sep_umi_fq) {
-                    error("ERROR: `fastq_umi` has been provided in the samplesheet, but `with_umi` is set to false. Check sample: ${meta.id}")
+                }
+                if (meta.sep_umi_fq) {
+                    if (!meta.extract_umi) {
+                        log.warn("ERROR: `fastq_umi` has been provided in the samplesheet, but `extract_umi` is set to false. UMIs will not be transfered for sample: ${meta.id}")
+                    }
+                    log.warn("WARNING: `fastq_umi` has been provided in the samplesheet, but `with_umi` is set to false. UMIs will not be used for deduplication. Check sample: ${meta.id}")
                 }
             }
             return [ meta, fastqs ]
