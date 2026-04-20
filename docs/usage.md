@@ -190,12 +190,12 @@ Define where the pipeline should find input data and save output data.
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `input` | Path to comma-separated file containing information about the samples in the experiment. <details><summary>Help</summary><small>You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row. See [usage docs](https://github.com/grothlab/crepas/blob/main/docs/usage.md).</small></details>| `string` |  | true |  |
-| `fragment_size` | Estimated fragment size used to extend single-end reads. | `integer` | 150 |  |  |
+| `input` | Path to comma-separated file containing information about the samples in the experiment. <details><summary>Help</summary><small>You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row. See [usage docs](https://github.com/grothlab/crepas/blob/main/docs/usage.md).</small></details>| `string` |  | True |  |
+| `fragment_size` | Estimated fragment size used to extend single-end reads. | `integer` | 250 |  |  |
 | `seq_platform` | Platform/technology used to produce the reads. Corresponds to the `PL` tag in the SAM/BAM file header. <details><summary>Help</summary><small>See the [SAM format specification](https://github.com/samtools/hts-specs/blob/master/SAMv1.pdf). Valid values: CAPILLARY, DNBSEQ (MGI/BGI), ELEMENT, HELICOS, ILLUMINA, IONTORRENT, LS454, ONT (Oxford Nanopore), PACBIO (Pacific Biosciences), SINGULAR, SOLID, and ULTIMA. This field should be omitted when the technology is not in this list (though the PM field may still be present in this case) or is unknown.</small></details>| `string` |  |  |  |
 | `seq_center` | Sequencing center information to be added to read group of BAM files. | `string` |  |  |  |
-| `read_length` | Read length used to calculate MACS3 genome size for peak calling if `--macs_gsize` isn't provided. | `integer` | 50 |  |  |
-| `outdir` | The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure. | `string` |  | true |  |
+| `read_length` | Read length used to calculate MACS3 genome size for peak calling if `--macs_gsize` isn't provided. (accepted: `50`\|`75`\|`100`\|`150`\|`200`) | `integer` | 50 |  |  |
+| `outdir` | The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure. | `string` |  | True |  |
 | `email` | Email address for completion summary. <details><summary>Help</summary><small>Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.</small></details>| `string` |  |  |  |
 | `multiqc_title` | MultiQC report title. Printed as page header, used for filename if not otherwise specified. | `string` |  |  |  |
 
@@ -205,26 +205,33 @@ Reference genome related files and options required for the workflow.
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `genome` | Name of reference genome (e.g., `GRCh38`, `hg19`, `mm10`). | `string` |  | true |  |
-| `fasta` | Path to FASTA genome file. <details><summary>Help</summary><small>If you don't have the appropriate alignment index available this will be generated for you automatically based on this file. Combine with `--save_reference` to save alignment index for future runs.</small></details>| `string` |  | true |  |
-| `gtf` | Path to GTF annotation file. | `string` |  | true |  |
+| `genome` | Name of reference genome (e.g., `GRCh38`, `hg19`, `mm10`). | `string` |  | True |  |
+| `fasta` | Path to FASTA genome file. <details><summary>Help</summary><small>If you don't have the appropriate alignment index available this will be generated for you automatically based on this file. Combine with `--save_reference` to save alignment index for future runs.</small></details>| `string` |  | True |  |
+| `gtf` | Path to GTF annotation file. | `string` |  | True |  |
 | `gff` | Path to GFF3 annotation file. | `string` |  |  |  |
 | `bwa_index` | Path to directory or tar.gz archive for pre-built BWA index. | `string` |  |  |  |
+| `bwa_mem2_index` | Path to directory or tar.gz archive for pre-built BWAMEM2 index. | `string` |  |  |  |
+| `bowtie_index` | Path to directory or tar.gz archive for pre-built Bowtie index. | `string` |  |  |  |
 | `bowtie2_index` | Path to directory or tar.gz archive for pre-built Bowtie2 index. | `string` |  |  |  |
 | `chromap_index` | Path to directory or tar.gz archive for pre-built Chromap index. | `string` |  |  |  |
 | `star_index` | Path to directory or tar.gz archive for pre-built STAR index. | `string` |  |  |  |
 | `hisat2_index` | Path to directory or tar.gz archive for pre-built HISAT2 index. | `string` |  |  |  |
+| `minimap2_index` | Path to directory or tar.gz archive for pre-built Minimap2 index. | `string` |  |  |  |
+| `strobealign_index` | Path to Strobealign index file with extension '.sti'. This will be created from the FASTA file if not specified and the aligner is set to strobealign. | `string` |  |  |  |
 | `gene_bed` | Path to BED file containing gene intervals. This will be created from the GTF file if not specified. | `string` |  |  |  |
 | `initiation_zones` | Path to BED file containing initiation zones for SCAR-seq analysis. | `string` |  |  |  |
+| `okseq_rfd_file` | Path to GZIP-compressed OK-seq RFD text file. The path cannot contain spaces and must have extension '.txt.gz', '.tsv.gz' or '.bed.gz' | `string` |  |  |  |
 | `macs_gsize` | Effective genome size parameter required by MACS3. <details><summary>Help</summary><small>[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3.</small></details>| `number` |  |  |  |
 | `blacklist` | Path to blacklist regions in BED format, used for filtering alignments. <details><summary>Help</summary><small>If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format.</small></details>| `string` |  |  |  |
 | `sparsebed` | Path to BED file with sparse segments for Consenrich. <details><summary>Help</summary><small>Defines the annotation file of 'sparse segments' (genomic regions) from the complement of an 'inflated' BED file of known active regions. See https://github.com/nolan-h-hamilton/Consenrich/blob/5e7f287d81ac4a9bc098ae29e825a5ded07af3b8/consenrich/consenrich.py#L58C54-L58C174</small></details>| `string` |  |  |  |
 | `active_regions` | Path to BED file with active regions for Consenrich. <details><summary>Help</summary><small>Defines the annotation file of 'active regions' (genomic regions) for Consenrich. See https://github.com/nolan-h-hamilton/Consenrich/blob/5e7f287d81ac4a9bc098ae29e825a5ded07af3b8/consenrich/consenrich.py#L67</small></details>| `string` |  |  |  |
 | `rocco_params` | Path to ROCCO parameters file. <details><summary>Help</summary><small>CSV file containing chromosome-specific optimization parameters. Each supported genome has a custom `--params` file packaged with ROCCO, but a custom file has to be manually passed to ROCCO within this pipeline. Consider using this argument to set chromosome-specific budget and gamma values custom to your data and preferences. See the [ROCCO documentation](https://nolan-h-hamilton.github.io/ROCCO/#rocco-constants) for more details.</small></details>| `string` |  |  |  |
 | `splicesites` | Path to splice sites file for HISAT2. <details><summary>Help</summary><small>If using HISAT2 as the aligner, you can provide a list of known splice sites, which HISAT2 makes use of to align reads with small anchors. If this file is not provided, it will be generated from the GTF file.</small></details>| `string` |  |  |  |
-| `save_reference` | If generated by the pipeline save the BWA index in the results directory. <details><summary>Help</summary><small>If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times.</small></details>| `boolean` | true |  |  |
-| `igenomes_base` | Directory / URL base for iGenomes references. | `string` | s3://ngi-igenomes/igenomes/ |  | true |
-| `igenomes_ignore` | Do not load the iGenomes reference config. <details><summary>Help</summary><small>Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`.</small></details>| `boolean` | true |  | true |
+| `save_reference` | If generated by the pipeline save the BWA index in the results directory. <details><summary>Help</summary><small>If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times.</small></details>| `boolean` | True |  |  |
+| `skip_gtf_index` | Skip indexing the GTF file with tabix before processing. <details><summary>Help</summary><small>Set this parameter to true to skip indexing the GTF file with tabix. This may be useful if your GTF file is already indexed or if you encounter issues with tabix.</small></details>| `boolean` | False |  |  |
+| `igenomes_base` | Directory / URL base for iGenomes references. | `string` | s3://ngi-igenomes/igenomes/ |  | True |
+| `igenomes_ignore` | Do not load the iGenomes reference config. <details><summary>Help</summary><small>Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`.</small></details>| `boolean` | True |  | True |
+| `refgenie_ignore` | Whether to ignore the Refgenie reference genomes. <details><summary>Help</summary><small>Do not use the Refgenie reference genomes, even if loaded before through config files.</small></details>| `boolean` | True |  | True |
 
 #### UMI extraction and deduplication options
 
@@ -232,15 +239,16 @@ Options to adjust UMI extraction and deduplication criteria.
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `umitools_extract_method` | UMI pattern to use. Can be either `string` (default) or `regex`. <details><summary>Help</summary><small>More details can be found in the [UMI-tools documentation](https://umi-tools.readthedocs.io/en/latest/reference/extract.html#extract-method).<br></small></details>| `string` | string |  |  |
+| `skip_markduplicates` | Skip the MarkDuplicates step with Picard for samples without UMIs. | `boolean` | False |  |  |
+| `umitools_extract_method` | UMI pattern to use. Can be either `string` (default) or `regex`. (accepted: `string`\|`regex`) <details><summary>Help</summary><small>More details can be found in the [UMI-tools documentation](https://umi-tools.readthedocs.io/en/latest/reference/extract.html#extract-method).<br></small></details>| `string` | string |  |  |
 | `umitools_bc_pattern` | The UMI barcode pattern to use e.g. 'NNNNNN' indicates that the first 6 nucleotides of the read are from the UMI. <details><summary>Help</summary><small>More details can be found in the [UMI-tools documentation](https://umi-tools.readthedocs.io/en/latest/reference/extract.html#extract-method).</small></details>| `string` | NNNNNNNNN |  |  |
 | `umitools_bc_pattern2` | The UMI barcode pattern to use if the UMI is located in read 2. | `string` | NNNNNNNNN |  |  |
 | `umi_separator` | Separator used to separate the UMI from the read name. | `string` | _ |  |  |
-| `umi_grouping_method` | Method to use to determine read groups by subsuming those with similar UMIs. All methods start by identifying the reads with the same mapping position, but treat similar yet nonidentical UMIs differently. | `string` | percentile |  |  |
+| `umi_grouping_method` | Method to use to determine read groups by subsuming those with similar UMIs. All methods start by identifying the reads with the same mapping position, but treat similar yet nonidentical UMIs differently. (accepted: `unique`\|`percentile`\|`directional`\|`adjacency`\|`cluster`) | `string` | percentile |  |  |
 | `umi_discard_read` | After UMI barcode extraction discard either R1 or R2 by setting this parameter to `1` or `2`, respectively. | `integer` |  |  |  |
-| `get_dedup_stats` | Get deduplication statistics. | `boolean` | true |  |  |
-| `umi_dedup_tool` | UMI deduplication tool to use. | `string` | umitools |  |  |
-| `save_dedup_intermeds` | Save intermediate files from the UMI deduplication step. | `boolean` |  |  |  |
+| `get_dedup_stats` | Get deduplication statistics. | `boolean` | True |  |  |
+| `umi_dedup_tool` | UMI deduplication tool to use. (accepted: `umicollapse`\|`umitools`) | `string` | umitools |  |  |
+| `save_dedup_intermeds` | Save intermediate files from the UMI deduplication step. | `boolean` | True |  |  |
 
 #### Adapter trimming options
 
@@ -327,16 +335,22 @@ Options to adjust coverage and normalization criteria.
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `skip_srpm` | Whether to skip the SRPM normalization step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details. | `boolean` | false |  |  |
-| `skip_cisrpm` | Whether to skip the CISRPM normalization step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details. | `boolean` | false |  |  |
-| `skip_cisrpmsoi` | Whether to skip the CISRPM SOI step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details. | `boolean` | false |  |  |
-| `soi_min_count` | Minimum CISRPM value required in a bin to be included in the signal over input (SOI) calculation. | `integer` | 0 |  |  |
+| `skip_srpm` | Whether to skip the SRPM normalization step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details. | `boolean` | False |  |  |
+| `skip_cisrpm` | Whether to skip the CISRPM normalization step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details. | `boolean` | False |  |  |
 | `coverage_extend_reads` | This parameter allows the extension of reads to fragment size. If set, each read is extended, without exception. <details><summary>Help</summary><small>Single-end: Requires a user specified value for the final fragment length. Reads that already exceed this fragment length will not be extended. Paired-end: Reads with mates are always extended to match the fragment size defined by the two read mates. Unmated reads, mate reads that map too far apart (>4x fragment length) or even map to different chromosomes are treated like single-end reads. The input of a fragment length value is optional. If no value is specified, it is estimated from the data (mean of the fragment size of all mate reads). Read the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html#read-processing-options) for more details.</small></details>| `integer` | 250 |  |  |
 | `coverage_bin_size` | Size of the bins, in bases, for the output of the coverage calculation. | `integer` | 250 |  |  |
-| `rpm_use_flT2_total` | Comma-separated list of histone marks for which RPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list the total mapped reads after flT3 will be used for normalization factor calculation. | `string` | H3K9me3,H3K27me3 |  |  |
-| `srpm_use_flT2_total` | Comma-separated list of histone marks for which SRPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list the total mapped reads after flT3 will be used for normalization factor calculation. | `string` | H3K9me3,H3K27me3 |  |  |
-| `cisrpm_use_flT2_total` | Comma-separated list of histone marks for which CISRPM normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list the total mapped reads after flT3 will be used for normalization factor calculation. | `string` | H3K9me3,H3K27me3 |  |  |
-| `save_coverage_intermeds` | Whether to save the intermediate files from the coverage calculation step. These include the coverage files in bedGraph format. | `boolean` | false |  |  |
+| `coverage_skip_nas` | This parameter determines if non-covered regions (regions without overlapping reads) should be skipped. The default is to treat those regions as having a value of zero. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html#read-coverage-normalization-options) for more details. | `boolean` | False |  |  |
+| `skip_signal_vs_input` | Whether to skip the signal vs input comparison step. | `boolean` | False |  |  |
+| `signal_vs_input_operation` | Operation to perform when comparing IP and input coverage. `soi` is basically the same as `ratio`, although it is computed with a special script. For the rest of the operations, see the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/bigwigCompare.html#named-arguments) for more details. (accepted: `soi`\|`log2`\|`ratio`\|`subtract`\|`add`\|`mean`\|`reciprocal_ratio`\|`first`\|`second`) | `string` | soi |  |  |
+| `min_signal_for_soi` | Minimum signal in the IP bin to be included in the signal over input (SOI) calculation. Otherwise, the the score of that bin is set to `NaN`. | `number` | 0 |  |  |
+| `min_input_for_soi` | Minimum input signal in the input bin to be included in the signal over input (SOI) calculation. Otherwise, the the score of that bin is set to `NaN`. | `number` | 0.001 |  |  |
+| `bw_compare_pseudocount` | A small number to avoid x/0. Only useful together with `--operation log2` or `--operation ratio`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/bigwigCompare.html#named-arguments) for more details. | `number` | 1 |  |  |
+| `bw_compare_skip_zero_over_zero` | This parameter determines if regions with zero coverage in both the IP and input should be skipped when comparing IP and input coverage. This is determined BEFORE any applicable pseudocount is added. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/bigwigCompare.html#named-arguments) for more details. | `boolean` | True |  |  |
+| `use_flT2_as_total_ref` | Comma-separated list of histone marks for which downsampling or normalization factors should be calculated using the total number of reads before the quality filtering in flT3. The total mapped reads after flT1 will be used if flT2 was not performed (i.e., when there is no spike-in splitting). For marks/antibodies not in this list the total mapped reads after flT3 will be used for normalization factor calculation. | `string` | H3K9me3,H3K27me3 |  |  |
+| `save_coverage_intermeds` | Whether to save the intermediate files from the coverage calculation step. These include the coverage files in bedGraph format. | `boolean` | False |  |  |
+| `min_reads_for_norm` | Minimum number of total mapped reads required to include a BAM in any normalization. For example, this prevents having an empty exogenous input control BAM when no reads map to the spike-in genome. | `integer` | 1 |  |  |
+| `skip_bw_average` | Whether to skip the generation of average bigWig files across replicates for each sample group. | `boolean` | False |  |  |
+| `skip_exo_bw` | Whether to skip the generation of exogenous bigWig files for each sample. | `boolean` | True |  |  |
 
 #### Downsampling options
 
@@ -352,52 +366,96 @@ Options to adjust downsampling criteria.
 | `bam_downsampling_accuracy` | Accuracy of downsampling BAM files. See [Picard](https://gatk.broadinstitute.org/hc/en-us/articles/360036431292-DownsampleSam-Picard) for more details. | `number` | 1e-06 |  |  |
 | `save_downsampling_intermeds` | Save the intermediate BAM files from the downsampling step. | `boolean` | true |  |  |
 
+#### TE counting options
+
+Options to adjust transposable element (TE) counting criteria.
+
+| Parameter | Description | Type | Default | Required | Hidden |
+|-----------|-----------|-----------|-----------|-----------|-----------|
+| `skip_te_counting` | Skip transposable element (TE) counting. | `boolean` | True |  |  |
+| `skip_telocal` | Skip local TE counting. | `boolean` | True |  |  |
+| `skip_tecount_gz` | Skip gzip compression of TEcount output files. | `boolean` | True |  |  |
+| `skip_telocal_gz` | Skip gzip compression of TElocal output files. | `boolean` | True |  |  |
+| `te_counting_mode` | Method to use for TE counting. See [TEcount's documentation](https://github.com/mhammell-laboratory/TEtranscripts?tab=readme-ov-file#usage-1) for more details. (accepted: `multi`\|`uniq`) | `string` | multi |  |  |
+| `te_counting_gene_gtf` | Path to a different gene GTF file for counting with TEcount and TElocal. If not provided, the main `--gtf` file will be used to generate a gene index suitable for TEcount or TElocal, unless the respective prebuilt gene index files are provided. | `string` |  |  |  |
+| `tecount_gene_index` | Path to the prebuilt gene index file (.ind) for counting with TEcount. If not provided, this file in `--gtf` will be used to generate a gene index suitable for TEcount. | `string` |  |  |  |
+| `telocal_gene_index` | Path to the prebuilt gene index file (.ind) for counting with TElocal. If not provided, this file in `--gtf` will be used to generate a gene index suitable for TElocal. | `string` |  |  |  |
+| `te_gtf` | Path to the TE GTF file for counting with TEcount or TElocal. If not provided, this file will be used to generate a TE index suitable for TEcount or TElocal. | `string` |  |  |  |
+| `tecount_te_index` | Path to the prebuilt TE index file (.ind) for counting with TEcount. If not provided, this file in `--te_gtf` will be used to generate a TE index suitable for TEcount. | `string` |  |  |  |
+| `telocal_te_index` | Path to the prebuilt TE index file (.locInd) for local (instance) TE counting with TElocal. If not provided, this file in `--te_gtf` will be used to generate a TE index suitable for TElocal. | `string` |  |  |  |
+
 #### Peak calling options
 
 Options to adjust peak calling criteria.
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `narrow_peak` | Whether to call narrow peaks with MACS3 and Genrich. Default is to call broad peaks. | `boolean` | false |  |  |
-| `peak_cutoff_method` | Whether to use q-value or p-value as the cutoff for peak calling. | `string` | qvalue |  |  |
+| `narrow_peak` | Whether to call narrow peaks with MACS3 and Genrich. Default is to call broad peaks. | `boolean` | False |  |  |
+| `peak_cutoff_method` | Whether to use q-value or p-value as the cutoff for peak calling. (accepted: `qvalue`\|`pvalue`) | `string` | qvalue |  |  |
 | `narrow_cutoff` | Specifies narrow cutoff value (p-value or q-value) for MACS3 and Genrich peak calling. | `number` | 0.01 |  |  |
 | `broad_cutoff` | Specifies broad cutoff value (p-value or q-value) for MACS3 and Genrich peak calling. | `number` | 0.1 |  |  |
 | `min_reps_consensus` | Number of biological replicates required from a given condition for a peak to contribute to a consensus peak. <details><summary>Help</summary><small>If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a 'reproducible' set of consensus peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.</small></details>| `integer` | 1 |  |  |
-| `macs_extsize` |  | `integer` | 200 |  |  |
-| `macs_slocal` |  | `integer` | 1500 |  |  |
-| `save_macs_pileup` | Instruct MACS3 to create bedGraph files normalised to signal per million reads. | `boolean` | true |  |  |
+| `macs_extsize` | Used to extend reads in 5'->3' direction to fix-sized fragments when processing ATAC-seq data, for which MACS3 bypasses building the shifting model (`--nomodel`). See [MACS3 documentation](https://macs3-project.github.io/MACS/docs/callpeak.html) for more details. | `integer` | 250 |  |  |
+| `macs_slocal` | Size of the small local region around peak regions to calculate the maximum lambda as local lambda. <details><summary>Help</summary><small>By default, MACS3 considers 1000 bp for small local region (`--slocal`). You can tweak this according to your project. Remember that if the region is set too small, a sharp spike in the input data may kill a significant peak. See [MACS3 documentation](https://macs3-project.github.io/MACS/docs/callpeak.html) for more details.</small></details>| `integer` | 1500 |  |  |
+| `macs_llocal` | Size of the large local region around peak regions to calculate the maximum lambda as local lambda. <details><summary>Help</summary><small>By default, MACS3 considers 10000 bp for large local region (`--llocal`) which captures the bias from a long-range effect like an open chromatin domain. You can tweak this according to your project. See [MACS3 documentation](https://macs3-project.github.io/MACS/docs/callpeak.html) for more details.</small></details>| `integer` | 10000 |  |  |
+| `save_macs_pileup` | Instruct MACS3 to create bedGraph files normalised to signal per million reads. | `boolean` | True |  |  |
 | `skip_peak_qc` | Skip MACS3 peak QC plot generation. | `boolean` |  |  |  |
 | `skip_peak_annotation` | Skip annotation of MACS3 and consensus peaks with HOMER. | `boolean` |  |  |  |
 | `skip_consensus_peaks` | Skip consensus peak generation, annotation and counting. | `boolean` |  |  |  |
-| `skip_bdgcmp` | Skip bdgcmp calculation with MACS3. | `boolean` | false |  |  |
+| `skip_consensus_plotprofile` | Skip generation of the consensus peak profile plot. | `boolean` |  |  |  |
+| `consensus_plotprofile_mode` | Mode to use for the consensus peak profile plot. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html#mode) for more details. (accepted: `reference_point`\|`scale_regions`) | `string` | reference_point |  |  |
+| `consensus_plotprofile_ref_point` | Reference point to use for the consensus peak profile plot when `--consensus_plotprofile_mode` is set to `reference_point`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html#reference-point) for more details. (accepted: `TSS`\|`TES`\|`center`) | `string` | center |  |  |
+| `consensus_plotprofile_region_body_length` | Length of the region body to plot for the consensus peak profile plot when `--consensus_plotprofile_mode` is set to `scale_regions`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html#scale-regions) for more details. | `integer` | 1000 |  |  |
+| `consensus_plotprofile_upstream` | Length of the upstream region to plot for the consensus peak profile plot. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html#upstream-and-downstream) for more details. | `integer` | 6000 |  |  |
+| `consensus_plotprofile_downstream` | Length of the downstream region to plot for the consensus peak profile plot. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html#upstream-and-downstream) for more details. | `integer` | 6000 |  |  |
+| `consensus_plotprofile_skip_zeros` | Whether to skip regions with zero coverage in the consensus peak profile plot. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html#skip-zeros) for more details. | `boolean` | True |  |  |
+| `consensus_plotprofile_per_group` | Whether to plot all samples in a group together in the consensus peak profile plot. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html#per-group) for more details. | `boolean` | True |  |  |
+| `input_cisrpm_in_plotprofile` | Whether to include the input CISRPM signal in the gene or consensus peak profile plots. | `boolean` | False |  |  |
+| `skip_bdgcmp` | Skip bdgcmp calculation with MACS3. | `boolean` | True |  |  |
 | `save_macs_bdgcmp_intermeds` |  | `boolean` |  |  |  |
-| `skip_edd` |  | `boolean` | true |  |  |
-| `edd_bin_size` |  | `string` |  |  |  |
-| `edd_gap_penalty` |  | `string` |  |  |  |
-| `edd_num_trials` |  | `integer` | 10000 |  |  |
-| `edd_fdr` |  | `number` | 0.05 |  |  |
+| `skip_edd` | Whether to skip EDD peak calling. | `boolean` | True |  |  |
+| `edd_bin_size` | Bin size (Kb) for EDD peak calling. Autoestimated if left blank. See [EDD documentation](https://github.com/CollasLab/edd) for more details. | `string` |  |  |  |
+| `edd_gap_penalty` | Gap penalty for EDD peak calling. Autoestimated by EDD if left blank. See [EDD documentation](https://github.com/CollasLab/edd) for more details. | `string` |  |  |  |
+| `edd_num_trials` | Number of Monte Carlo trials for EDD peak calling. See [EDD documentation](https://github.com/CollasLab/edd) for more details. | `integer` | 10000 |  |  |
+| `edd_fdr` | FDR threshold for EDD peak calling. See [EDD documentation](https://github.com/CollasLab/edd) for more details. | `number` | 0.01 |  |  |
 | `genrich_narrow_gap` | Genrich narrow gap parameter. | `integer` | 100 |  |  |
-| `genrich_broad_gap` | Genrich broad gap parameter. | `integer` | 100 |  |  |
-| `save_genrich_pileup` | Instruct Genrich to save pileup files. | `boolean` | true |  |  |
-| `save_genrich_pvalues` | Instruct Genrich to save p-values. | `boolean` | true |  |  |
-| `save_genrich_intervals` | Instruct Genrich to save intervals. | `boolean` | true |  |  |
-| `skip_genrich` | Skip Genrich peak calling. | `boolean` |  |  |  |
-| `epic2_binsize` | Size of the windows to scan the genome in epic2. Bin size is the smallest possible island. | `integer` | 150 |  |  |
+| `genrich_broad_gap` | Genrich broad gap parameter. | `integer` | 200 |  |  |
+| `save_genrich_pileup` | Instruct Genrich to save pileup files. | `boolean` | True |  |  |
+| `save_genrich_pvalues` | Instruct Genrich to save p-values. | `boolean` | True |  |  |
+| `save_genrich_intervals` | Instruct Genrich to save intervals. | `boolean` | True |  |  |
+| `skip_genrich` | Skip Genrich peak calling. | `boolean` | True |  |  |
+| `epic2_binsize` | Size of the windows to scan the genome in epic2. Bin size is the smallest possible island. | `integer` | 250 |  |  |
 | `epic2_fdr` | In epic2 peak calling, remove all islands with an FDR above this cutoff. | `number` | 0.01 |  |  |
-| `skip_epic2` | Skip epic2 peak calling. | `boolean` | false |  |  |
-| `skip_consenrich` | Skip Consenrich (Genome-wide 'consensus' epigenomic state estimates and uncertainty metrics). | `boolean` |  |  |  |
-| `skip_mace` | Skip MACE peak calling. | `boolean` | false |  |  |
+| `skip_dpeak` | Skip DANPOS2's dpeak peak calling. | `boolean` | True |  |  |
+| `skip_dpos` | Skip DANPOS2's dpos peak calling. | `boolean` | True |  |  |
+| `skip_encode_pipeline` | Skip peak calling with the ENCODE ChIP-seq pipeline. | `boolean` | True |  |  |
+| `ctl_depth_ratio_threshold` | For each sample, if the ratio of depth between input controls is higher than this, then a pooled input control will be used for all sample replicates. | `number` | 1.2 |  |  |
+| `use_best_multisummit_idr` | Set the IDR value for a group of multi summit peaks (a group of peaks with the same chr/start/stop but different summits) to the best value across all of these peaks. This is a work around for peak callers that don't do a good job splitting scores across multi summit peaks (e.g. MACS). If set in conjunction with --plot two plots will be created - one with alternate summits and one without. Use this option with care. See the [IDR documentation](https://github.com/nboley/idr) for more details. | `boolean` | True |  |  |
+| `idr_soft_threshold` | Report statistics for peaks with a global IDR below this value but return all peaks | `number` | 0.05 |  |  |
+| `idr_filtering_threshold` | Filter peaks with an IDR above this value. | `number` | 0.05 |  |  |
+| `spp_npeak` | Threshold on the number of peaks to call with SPP for the ENCODE-based processing. | `integer` | 300000 |  |  |
+| `encode_peak_max_score` | Set peaks with a score above this value to this value. | `number` | 1000 |  |  |
+| `xcor_exclusion_range_min` | Minimum fragment length to exclude when calculating cross-correlation metrics for the ENCODE-based processing. | `integer` | -500 |  |  |
+| `xcor_exclusion_range_max` | Maximum fragment length to exclude when calculating cross-correlation metrics for the ENCODE-based processing. If not provided `max(params.read_length + 10, 100)` will be used. | `integer` |  |  |  |
+| `skip_epic2` | Skip epic2 peak calling. | `boolean` | True |  |  |
+| `skip_consenrich` | Skip Consenrich (Genome-wide 'consensus' epigenomic state estimates and uncertainty metrics). | `boolean` | True |  |  |
+| `skip_mace` | Skip MACE peak calling. | `boolean` | True |  |  |
+| `skip_macs3` | Skip MACS3 peak calling. | `boolean` | False |  |  |
+| `seacr_peak_threshold` | SEACR specifies returns the top n fraction (between 0 and 1) of peaks based on total signal within peaks. This is only used if there are no controls included with the samples and if `--use_control` is `false` | `number` | 0.05 |  |  |
+| `seacr_norm` | SEACR normalization. (accepted: `non`\|`norm`) | `string` | non |  |  |
+| `seacr_stringency` | SEACR stringency. (accepted: `stringent`\|`relaxed`) | `string` | stringent |  |  |
 | `mace_kmer_size` | Set the k-mer size for MACE peak calling. Kmer size [6,12] to correct nucleotide composition bias. kmerSize < 0.5*read_length. Larger KmerSize might make program slower. Set kmerSize = 0 to turn off nucleotide compsition bias correction. default=6. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `integer` |  |  |  |
 | `mace_bin` | Chromosome chunk size. Each chomosome will be cut into small chunks of this size. Decrease chunk size will save more RAM. default=100000 (bp). See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `integer` |  |  |  |
 | `mace_depth` | Reference reads count (default = 10 million). Sequencing depth will be normailzed to this number, so that wig files are comparable between replicates. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `integer` |  |  |  |
 | `mace_qcut` | phred scaled mapping quality threshhold to determine “uniqueness” of alignments. default=30. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `number` |  |  |  |
-| `mace_norm_method` | methods (“EM”, “AM”, “GM”, or “SNR”) used to consolidate replicates and reduce noise. “EM” = Entropy weighted mean, “AM”=Arithmetic mean, “GM”=Geometric mean, “SNR”=Signal-to-noise ratio. default=EM. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `string` |  |  |  |
+| `mace_norm_method` | methods (“EM”, “AM”, “GM”, or “SNR”) used to consolidate replicates and reduce noise. “EM” = Entropy weighted mean, “AM”=Arithmetic mean, “GM”=Geometric mean, “SNR”=Signal-to-noise ratio. default=EM. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. (accepted: `EM`\|`AM`\|`GM`\|`SNR`) | `string` |  |  |  |
 | `mace_pvalue` | Pvalue cutoff for border detection and subsequent border pairing. default=0.05. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `number` |  |  |  |
 | `mace_max_dist` | Maximum distance allowed for border pairing. default=100 (bp). See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `integer` |  |  |  |
 | `mace_fuzzy_size` | Peaks (i.e. borders) located closely within this window will be merged. default=5 (bp). See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `integer` |  |  |  |
 | `mace_window_size` | Background window size used to determine background signal level. default=100 (bp). See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `integer` |  |  |  |
 | `mace_signal_fold` | Minimum coverage signal used to build model (i.e. estimate optimal peak pair size). default=2.0. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details. | `number` |  |  |  |
-| `save_mace_intermeds` | Whether to save the intermediate files from the MACE peak calling step. These include the MACE peak files in bedGraph format. | `boolean` | false |  |  |
+| `save_mace_intermeds` | Whether to save the intermediate files from the MACE peak calling step. These include the MACE peak files in bedGraph format. | `boolean` | False |  |  |
+| `skip_denopa` | Skip deNOPA peak calling for ATAC-seq. | `boolean` | True |  |  |
 
 #### Process skipping options
 
@@ -406,10 +464,18 @@ Options to skip various steps within the workflow.
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
 | `skip_fastqc` | Skip FastQC. | `boolean` |  |  |  |
+| `spikein_barcode_table` | Path to a tab-delimited file containing the spike-in barcode targets, ids, and sequences. See the [sc_spikein_barcodes.tsv](https://github.com/grothlab/crepas/assets/barcodes/sc_spikein_barcodes.tsv) for an example. This is only useful for CUT&Tag or CUT&RUN experiments with SNAP-CUTANA™ Spike-ins (See https://support.epicypher.com/v1/docs/analyzing-snap-cutana-spike-in-controls-and-expected-results). | `string` |  |  |  |
+| `skip_spikein_barcode_extract` | Whether to skip the extraction of spike-in barcodes from FASTQ files. This is useful for CUT&Tag or CUT&RUN experiments with SNAP-CUTANA™ Spike-ins (See https://support.epicypher.com/v1/docs/analyzing-snap-cutana-spike-in-controls-and-expected-results). | `boolean` |  |  |  |
 | `skip_picard_metrics` | Skip Picard CollectMultipleMetrics. | `boolean` |  |  |  |
-| `skip_preseq` | Skip Preseq. | `boolean` | true |  |  |
-| `deseq2_vst` | Use vst transformation instead of rlog with DESeq2. <details><summary>Help</summary><small>See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).</small></details>| `boolean` | true |  |  |
-| `skip_plot_profile` | Skip deepTools plotProfile. | `boolean` |  |  |  |
+| `skip_preseq` | Skip Preseq. | `boolean` | True |  |  |
+| `deseq2_vst` | Use vst transformation instead of rlog with DESeq2. <details><summary>Help</summary><small>See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).</small></details>| `boolean` | True |  |  |
+| `skip_genes_plotprofile` | Skip deepTools plotProfile. | `boolean` | False |  |  |
+| `genes_plotprofile_mode` | Mode to compute the matrix for deepTools plotProfile. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details. (accepted: `scale_regions`\|`reference_point`) | `string` | scale_regions |  |  |
+| `genes_plotprofile_ref_point` | Reference point for deepTools plotProfile when `--genes_plotprofile_mode` is `reference_point`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details. (accepted: `TSS`\|`TES`\|`center`) | `string` | TSS |  |  |
+| `genes_plotprofile_region_body_length` | Region body length (in bp) for deepTools plotProfile when `--genes_plotprofile_mode` is `scale_regions`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details. | `integer` | 3000 |  |  |
+| `genes_plotprofile_upstream` | Upstream distance (in bp) from the reference point for deepTools plotProfile when `--genes_plotprofile_mode` is `reference_point`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details. | `integer` | 3000 |  |  |
+| `genes_plotprofile_downstream` | Downstream distance (in bp) from the reference point for deepTools plotProfile when `--genes_plotprofile_mode` is `reference_point`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details. | `integer` | 3000 |  |  |
+| `genes_plotprofile_skip_zeros` | Whether to skip regions with zero coverage in all samples when computing the matrix for deepTools plotProfile. This is determined BEFORE any applicable pseudocount is added. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details. | `boolean` | False |  |  |
 | `skip_plot_fingerprint` | Skip deepTools plotFingerprint. | `boolean` |  |  |  |
 | `skip_spp_qc` | Skip Phantompeakqualtools QC metrics and plots. | `boolean` |  |  |  |
 | `skip_deseq2_qc` | Skip DESeq2 PCA and heatmap plotting. | `boolean` |  |  |  |
@@ -423,15 +489,17 @@ Options to adjust SCAR-seq and OK-seq analysis criteria.
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `partition_window_size` |  | `integer` | 1000 |  |  |
-| `partition_step_size` |  | `integer` | 1000 |  |  |
-| `smooth_radius` |  | `integer` | 30 |  |  |
-| `derivative_radius` |  | `integer` | 30 |  |  |
-| `zero_crossing_radius` |  | `integer` | 1 |  |  |
-| `partition_cpm_cutoff` |  | `number` | 0.3 |  |  |
-| `partition_plot_range` |  | `integer` | 100 |  |  |
-| `partition_exclude_chromosomes` |  | `string` | chrX,chrY,chrM |  |  |
-| `save_partition_intermeds` |  | `boolean` |  |  |  |
+| `partition_fragment_size` | For single-end SCAR-seq or OK-seq data, the fragment size (in bp) to extend reads when calculating coverage for partition/RFD analysis. For paired-end data, coverage of intervals is calculated from the left point of a read pair to the right point. | `integer` | 250 |  |  |
+| `partition_window_size` | Window/bin size (in bp) for dividing chromosomes when calculating coverage for partition/RFD analysis in SCAR-seq or OK-seq experiments. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details. | `integer` | 1000 |  |  |
+| `partition_step_size` | Step size (in bp) for sliding window when calculating coverage for partition/RFD analysis in SCAR-seq or OK-seq experiments. Default is the same as `--partition_window_size` to create fixed-size book-ended bins instead of sliding windows. | `integer` | 1000 |  |  |
+| `smooth_radius` | Smoothing radius for partition/RFD signal smoothing. Smoothing is computed across consecutive book-ended bins, performing a uniform blur considering the neighboring bins on each side. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details. | `integer` | 30 |  |  |
+| `derivative_radius` | Radius for [nonparametric derivative estimation](https://doi.org/10.18637/jss.v055.i02) of RFD signal to detect sharp transitions between neighboring bins for initiation zone detection. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details. | `integer` | 30 |  |  |
+| `zero_crossing_radius` | Radius for zero-crossing detection when defining replication initiation zones. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details. | `integer` | 1 |  |  |
+| `partition_rpm_cutoff` | RPM (reads per million) cutoff for bins to be included in downstream partition analysis. Bins with normalized read-counts above this threshold will be included. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details. | `number` | 0.3 |  |  |
+| `partition_plot_range` | Plot range for partition analysis visualization. | `integer` | 100 |  |  |
+| `partition_exclude_scaffolds` | Whether to exclude scaffolds from partition plots. Scaffolds are defined as chromosomes whose name begins with 'chrUn' or contains a dot ('.'). | `boolean` | True |  |  |
+| `partition_exclude_chromosomes` | Comma-separated list of chromosomes to exclude from partition analysis. Typically sex chromosomes and mitochondrial chromosomes are excluded. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details. | `string` | chrX,chrY,chrM |  |  |
+| `save_partition_intermeds` | Whether to save the intermediate files from the partition/RFD analysis step. | `boolean` | False |  |  |
 
 #### Institutional config options
 
@@ -439,12 +507,12 @@ Parameters used to describe centralised config profiles. These should not be edi
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `custom_config_version` | Git commit id for Institutional configs. | `string` | master |  | true |
-| `custom_config_base` | Base directory for Institutional configs. <details><summary>Help</summary><small>If you're running offline, Nextflow will not be able to fetch the institutional config files from the internet. If you don't need them, then this is not a problem. If you do need them, you should download the files from the repo and tell Nextflow where to find them with this parameter.</small></details>| `string` | https://raw.githubusercontent.com/nf-core/configs/master |  | true |
-| `config_profile_name` | Institutional config name. | `string` |  |  | true |
-| `config_profile_description` | Institutional config description. | `string` |  |  | true |
-| `config_profile_contact` | Institutional config contact information. | `string` |  |  | true |
-| `config_profile_url` | Institutional config URL link. | `string` |  |  | true |
+| `custom_config_version` | Git commit id for Institutional configs. | `string` | master |  | True |
+| `custom_config_base` | Base directory for Institutional configs. <details><summary>Help</summary><small>If you're running offline, Nextflow will not be able to fetch the institutional config files from the internet. If you don't need them, then this is not a problem. If you do need them, you should download the files from the repo and tell Nextflow where to find them with this parameter.</small></details>| `string` | https://raw.githubusercontent.com/nf-core/configs/master |  | True |
+| `config_profile_name` | Institutional config name. | `string` |  |  | True |
+| `config_profile_description` | Institutional config description. | `string` |  |  | True |
+| `config_profile_contact` | Institutional config contact information. | `string` |  |  | True |
+| `config_profile_url` | Institutional config URL link. | `string` |  |  | True |
 
 #### Generic options
 
@@ -452,15 +520,15 @@ Less common options for the pipeline, typically set in a config file.
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `help` | Display help text. | `boolean` |  |  | true |
-| `publish_dir_mode` | Method used to save pipeline results to output directory. <details><summary>Help</summary><small>The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.</small></details>| `string` | copy |  | true |
-| `fingerprint_bins` | Number of genomic bins to use when calculating deepTools fingerprint plot. | `integer` | 500000 |  | true |
-| `email_on_fail` | Email address for completion summary, only when pipeline fails. <details><summary>Help</summary><small>An email address to send a summary email to when the pipeline is completed - ONLY sent if the pipeline does not exit successfully.</small></details>| `string` |  |  | true |
-| `plaintext_email` | Send plain-text email instead of HTML. | `boolean` |  |  | true |
-| `max_multiqc_email_size` | File size limit when attaching MultiQC reports to summary emails. | `string` | 25.MB |  | true |
-| `monochrome_logs` | Do not use coloured log outputs. | `boolean` |  |  | true |
-| `multiqc_config` | Custom config file to supply to MultiQC. | `string` |  |  | true |
-| `validate_params` | Boolean whether to validate parameters against the schema at runtime | `boolean` | true |  | true |
+| `help` | Display help text. | `boolean` |  |  | True |
+| `publish_dir_mode` | Method used to save pipeline results to output directory. (accepted: `symlink`\|`rellink`\|`link`\|`copy`\|`copyNoFollow`\|`move`) <details><summary>Help</summary><small>The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.</small></details>| `string` | copy |  | True |
+| `fingerprint_bins` | Number of genomic bins to use when calculating deepTools fingerprint plot. | `integer` | 500000 |  | True |
+| `email_on_fail` | Email address for completion summary, only when pipeline fails. <details><summary>Help</summary><small>An email address to send a summary email to when the pipeline is completed - ONLY sent if the pipeline does not exit successfully.</small></details>| `string` |  |  | True |
+| `plaintext_email` | Send plain-text email instead of HTML. | `boolean` |  |  | True |
+| `max_multiqc_email_size` | File size limit when attaching MultiQC reports to summary emails. | `string` | 25.MB |  | True |
+| `monochrome_logs` | Do not use coloured log outputs. | `boolean` |  |  | True |
+| `multiqc_config` | Custom config file to supply to MultiQC. | `string` |  |  | True |
+| `validate_params` | Boolean whether to validate parameters against the schema at runtime | `boolean` | True |  | True |
 
 #### Other parameters
 
@@ -472,9 +540,7 @@ Less common options for the pipeline, typically set in a config file.
 | `version` |  | `boolean` |  |  |  |
 | `pipelines_testdata_base_path` |  | `string` | https://raw.githubusercontent.com/nf-core/test-datasets/ |  |  |
 | `local_testdata_base_path` |  | `string` | /maps/projects/dan1/data/Groth_group/SRP/crepas_testdata/ |  |  |
-| `validationFailUnrecognisedParams` |  | `boolean` |  |  |  |
-| `validationLenientMode` |  | `boolean` |  |  |  |
-| `validationShowHiddenParams` |  | `boolean` |  |  |  |
+| `trace_report_suffix` |  | `string` | 2025-08-03_12-45-27 |  |  |
 
 
 ### Updating the pipeline
