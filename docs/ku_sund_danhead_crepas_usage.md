@@ -153,13 +153,13 @@ The recommended way to run the pipeline on the DAN System is through an _SBATCH_
     ```bash
     #!/bin/bash
 
-    #SBATCH --job-name=crepas        # specify a name for the job
+    #SBATCH --job-name=crepas           # specify a name for the job
     #SBATCH --mail-type=END,FAIL        # mail events (NONE, BEGIN, END, FAIL, ALL)
     #SBATCH --mail-user=NONE            # email address to receive the notifications
     #SBATCH -c 1                        # number of requested cores for the Nextflow head job
     #SBATCH --mem=4gb                   # total requested RAM for the Nextflow head job
     #SBATCH --time=2-00:00:00           # max. running time of the pipeline job, format in D-HH:MM:SS
-    #SBATCH --output=crepas_job.%j.log   # standard output and error log, '%j' gives the job ID
+    #SBATCH --output=crepas_job.%j.log  # standard output and error log, '%j' gives the job ID
 
     # Source the bashrc file to load the environment variables
     source ~/.bashrc
@@ -174,6 +174,7 @@ The recommended way to run the pipeline on the DAN System is through an _SBATCH_
     # Run the pipeline
     nextflow run grothlab/crepas \
         -r <version> \
+        --custom_config_base https://raw.githubusercontent.com/grothlab/configs/master \ 
         -profile ku_sund_danhead_mod \
         -params-file <path_to_project_directory>/<params_file_yaml> \
         -work-dir <path_to_project_directory>/output/work/
@@ -269,6 +270,7 @@ cd <path_to_test_project_directory>/crepas/output/
 # Run the pipeline
 nextflow run grothlab/crepas \
     -r <version> \
+    --custom_config_base https://raw.githubusercontent.com/grothlab/configs/master \
     -profile ku_sund_danhead_mod,test_chipseq \
     --outdir <path_to_test_project_directory>/crepas/output/ \
     -work-dir <path_to_test_project_directory>/crepas/output/work/
@@ -376,6 +378,7 @@ On the command line:
 ```bash
 nextflow run /user/datadir/software/crepas \
       -r main \
+      --custom_config_base https://raw.githubusercontent.com/grothlab/configs/master \
       -profile ku_sund_danhead_mod \
       --input /user/datadir/projects/project1/project1_crepas_samplesheet.csv \
       --outdir /user/datadir/projects/project1/output/ \
@@ -401,6 +404,7 @@ Parameters specified on the command line [can be also specified in a params file
 Parameters can be represented in YAML (`.yml`) format. For example, `project1_crepas_params.yml` would look like this:
 
 ```yaml title="project1_crepas_params.yml"
+custom_config_base: https://raw.githubusercontent.com/grothlab/configs/master
 input: /user/datadir/projects/project1/project1_crepas_samplesheet.csv
 outdir: /user/datadir/projects/project1/output/
 work_dir: /user/datadir/projects/project1/output/work/
@@ -428,6 +432,7 @@ Or in JSON (`.json`) format. For example, `project1_crepas_params.json` would lo
 
 ```json title="project1_crepas_params.json"
 {
+  "custom_config_base": "https://raw.githubusercontent.com/grothlab/configs/master",
   "input": "/user/datadir/projects/project1/project1_crepas_samplesheet.csv",
   "outdir": "/user/datadir/projects/project1/output/",
   "work_dir": "/user/datadir/projects/project1/output/work/",
