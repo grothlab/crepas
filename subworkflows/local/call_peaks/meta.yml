@@ -102,6 +102,15 @@ input:
   - ch_macs3_peak_annotation_header:
       type: file
       description: MultiQC custom-content header for the MACS3 peak annotation plot
+  - ch_seacr_peak_count_header:
+      type: file
+      description: MultiQC custom-content header for the SEACR peak count table
+  - ch_seacr_frip_score_header:
+      type: file
+      description: MultiQC custom-content header for the SEACR FRiP score table
+  - ch_seacr_peak_annotation_header:
+      type: file
+      description: MultiQC custom-content header for the SEACR peak annotation plot
   - ch_deseq2_pca_header:
       type: file
       description: MultiQC custom-content header for the consensus-peak DESeq2 PCA plot
