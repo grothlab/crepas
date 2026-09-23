@@ -211,7 +211,7 @@
                 "macs_gsize": {
                     "type": "number",
                     "description": "Effective genome size parameter required by MACS3.",
-                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3.",
+                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3. Provide the number written out in full (e.g. `--macs_gsize 2700000000`), not in scientific notation: `2.7e9`.",
                     "fa_icon": "fas fa-arrows-alt-h"
                 },
                 "blacklist": {
