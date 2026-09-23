@@ -45,7 +45,7 @@ Development version of grothlab/crepas.
 - Removed the pipeline-wide `sort_bam` parameter; alignment sorting, indexing and stats are now always handled by `BAM_SORT_STATS_SAMTOOLS`, with the aligners emitting an unsorted BAM.
 - Updated numerous nf-core modules (aligners, deepTools, MACS3, HOMER, bedtools, MultiQC, FastQC, …) to their latest versions.
 - Added Apptainer container definitions to the local modules.
-- Updated the pipeline to the nf-core tools 4.0.2 template, bumped `nf-schema` to 2.7.3 and `nf-prov` to 1.7.0, and regenerated the parameter documentation from the schema.
+- Updated the pipeline to the nf-core tools 4.1.0 template, bumped `nf-schema` to 2.7.3 and `nf-prov` to 1.7.0, and regenerated the parameter documentation from the schema.
 - `BAM_SPLIT_BY_STRAND` now takes `exp_type` and `strandedness` as explicit inputs and selects reads with `samtools view --expr` filter expressions, excluding unmapped records from every output.
 - Renamed the samtools stats summary outputs to `*.all.tsv` (every column) and `*.totals.tsv` (read counts only), so that the two tables can be matched separately.
 - Renamed the multimapping-reads column of the samtools stats summary to `<column>_minus_<column>`, since the filtering step it is derived from removes more than just multimapping reads.
