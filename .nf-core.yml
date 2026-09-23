@@ -2,10 +2,23 @@ lint:
   actions_awsfulltest: false
   actions_nf_test: false
   container_configs: false
+  files_exist:
+    - CODE_OF_CONDUCT.md
+    - assets/nf-core-crepas_logo_light.png
+    - conf/modules.config
+    - docs/images/nf-core-crepas_logo_light.png
+    - docs/images/nf-core-crepas_logo_dark.png
+    - .github/ISSUE_TEMPLATE/config.yml
+  files_unchanged:
+    - assets/email_template.html
+    - assets/sendmail_template.txt
+    - docs/README.md
+    - .github/CONTRIBUTING.md
+    - .github/ISSUE_TEMPLATE/config.yml
   modules_config: false
   multiqc_config: false
   nf_test_content: false
-nf_core_version: 4.0.2
+nf_core_version: 4.1.0
 repository_type: pipeline
 template:
   author: "Samuel Ruiz-P\xE9rez, Qian Du, Alva Biran, Anja Groth, Nicolas Alcaraz"
