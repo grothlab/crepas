@@ -31,6 +31,10 @@ Development version of grothlab/crepas.
 - Support for the `Repli-seq` experiment type, in two designs selected by a new `rt_fraction` samplesheet column (`early`, `mid`, `late`, `G1`, `S1`..`S16`); one sample may carry both. Early/late Repli-seq gives a log2(early/late) replication-timing track per sample, CPM- and optionally quantile-normalized, replicates paired or pooled, loess- or rolling-mean-smoothed, written as bedGraph and bigWig with a per-sample `*.qc.txt`, plus a replication-timing index track when three or more fractions are given. The track is segmented into domains of constant timing with DNAcopy, and genes are classified by the fraction with the highest read density over their gene body. Adds a `test_repliseq` profile and the `repliseq_*`/`save_repliseq_intermeds` parameters.
 
 - Support for high-resolution (16-fraction) Repli-seq, following [Zhao, Sasaki & Gilbert (2020)](https://doi.org/10.1186/s13059-020-01983-8). Reads are counted per 50-kb bin and assembled into a Gaussian-smoothed, column-scaled array; a `G1` control, when present, drops the bins it does not cover (`hr_repliseq_normalization`). Initiation zones, timing transition regions, breakages, termination sites and late constant-timing regions are called from the array, each as its own BED. The published description admits more than one reading of how breakages relate to transition regions, and the readings move most of the genome between the two classes, so all three are emitted (`overlap`, `disjoint` and `flanked`), each with a partition BED assigning every analysed bin to one class. Fork speed within each transition region is estimated from its length and the stretch of S phase it spans (`hr_repliseq_s_phase_hours`).
+- The smoothed, normalized coverage track of each early/late Repli-seq replicate (`*.coverage.smooth.bedGraph`, plus a bigWig), written when smoothing is applied per replicate (`--repliseq_smooth_stage replicate`, the default).
+- Repli-seq outputs in the IGV session: the E/L ratio and replication-timing index bigWigs, the per-replicate smoothed coverage bigWigs, the RT domains, the per-class gene classification BEDs, and the high-resolution Repli-seq initiation zones, transition regions, breakages, termination sites, constant-timing regions and partition.
+- FRiP scores, HOMER peak annotation, annotation QC plots and MultiQC sections (peak count, FRiP score and peak annotation) for SEACR peaks, as for MACS3. SEACR peaks are called once per normalization of the input bedGraph, and each set is scored and annotated separately.
+- A diagram in `docs/usage.md` showing how `strandedness` relates Read 1 and Read 2 to the nascent strands.
 
 ### `Changed`
 
@@ -60,6 +64,10 @@ Development version of grothlab/crepas.
 - `--gtf` is no longer a required parameter, so an annotation can be supplied through `--gff` alone, which the pipeline already converted with `gffread`.
 - `--partition_iz_rm_overlap_range 0` now skips the removal of overlapping initiation zones entirely, keeping every initiation zone, instead of being treated as a zero-width window.
 - The partition and RFD plots now assign every sample its own color when there are more samples than the 12-colour palette they previously used. Plots with more than 15 samples are also drawn 3 inches wider, so that a long legend does not squeeze the panel.
+- The bowtie2 test profiles (`test_cutandrun`, `test_espan`, `test_hr_repliseq` and `test_repliseq`) use the prebuilt iGenomes Bowtie2 indices instead of building one on every run.
+- The `test_repliseq` samplesheet has extra samples.
+- The grothlab institutional profiles (`dcai_gefion`, `ku_cpromegate`, `ku_sund_danhead_mod`) moved out of the pipeline to [grothlab/configs](https://github.com/grothlab/configs); select them with `--custom_config_base https://raw.githubusercontent.com/grothlab/configs/master`.
+- Local module containers are pulled over `https://` instead of `oras://`.
 
 ### `Fixed`
 
@@ -91,6 +99,8 @@ Development version of grothlab/crepas.
 - `CALL_PEAKS` never emitting its MultiQC channel, so FRiP scores, peak counts, HOMER annotation, consensus `featureCounts` and the DESeq2 QC plots were collected and then discarded.
 - MultiQC search patterns that did not match the pipeline's own file names, so Picard MarkDuplicates metrics and the phantompeakqualtools cross-correlation scores were never parsed, and the five CollectMultipleMetrics programs were skipped.
 - `plotPCA`, `plotCorrelation` and the plotFingerprint quality metrics never reaching MultiQC, and the gene-body and consensus-peak `plotProfile` outputs sharing a single section.
+- Stub runs (`-stub`) stopping early or failing, because the pipeline parsed the empty stub output of some modules as real content: the khmer genome size in `PREPARE_GENOME`, the TrimGalore read count (which silently filtered out every sample), and the `BAM_FLAGSTAT_MAPPED` total. `STATS_TRANSPOSE`'s stub also named its output differently from the real run, so outputs of different stages collided in `STATS_CAT`.
+- Nextflow warnings when optional reference inputs (blacklist, sparse BED, active regions, OK-seq RFD file) are not provided; their placeholder channels are now value channels.
 
 ## [[1.0.0](https://github.com/grothlab/crepas/releases/tag/1.0.0)] - Mercurian Cinnabar - 2026-06-21
 
