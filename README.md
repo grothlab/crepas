@@ -173,9 +173,6 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 > [!IMPORTANT]
 > See the [usage docs](./docs/usage.md) for an overview of how the pipeline works, how to run it and a description of all of the different command-line flags and parameters.
 
-> [!NOTE]
-> See the [usage guide for DAN System users](./docs/ku_sund_danhead_crepas_usage.md) for instructions on how to run the pipeline on the DAN System.
-
 ## Output
 
 > [!IMPORTANT]

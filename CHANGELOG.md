@@ -53,7 +53,8 @@ Development version of grothlab/crepas.
 - Expanded `CITATIONS.md.
 - SEACR is no longer restricted to CUT&RUN, CUT&Tag and TIP-seq samples; it now runs on every sample for which it is requested through `peak_callers`.
 - Updated the pipeline metro map.
-- The samplesheet examples in `docs/usage.md` now match the example samplesheets shipped in `assets/test-datasets/`, and the DAN System guide (`docs/ku_sund_danhead_crepas_usage.md`) lists every available test profile.
+- The samplesheet examples in `docs/usage.md` now match the example samplesheets shipped in `assets/test-datasets/`.
+- Removed the DAN System usage guide (`docs/ku_sund_danhead_crepas_usage.md`).
 - Renamed `min_reps_consensus` to `consensus_min_replicates_per_sample`, and the corresponding `macs3_merged_expand.py` argument from `--min_replicates` to `--min_replicates_per_sample`.
 - Removed some channel dumps written to `<outdir>/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2/`.
 
