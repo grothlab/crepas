@@ -1,0 +1,230 @@
+---
+import { getRepoStats } from "../lib/github";
+import { getBranch, getComponents, getLastUpdate, getLatestVersion, getManifest, type SiteVersion } from "../lib/repo";
+
+export interface Props {
+    version: SiteVersion;
+}
+
+const { version } = Astro.props;
+const manifest = getManifest(version.ref);
+const pipeline = manifest.name;
+const revision = version.isDev ? getBranch() : version.id;
+const stats = await getRepoStats(manifest.homePage);
+const latest = getLatestVersion();
+const lastUpdate = getLastUpdate();
+const { modules, subworkflows } = getComponents(version.ref);
+const SHOWN = 5;
+
+const commands = [
+    {
+        id: "nextflow",
+        label: "Nextflow",
+        cmd: `nextflow run ${pipeline} -r ${revision} -profile test,<docker/singularity> --outdir <OUTDIR>`,
+    },
+    { id: "nf-core", label: "nf-core", cmd: `nf-core pipelines launch ${pipeline} -r ${revision}` },
+];
+
+const counters = stats
+    ? [
+          { label: "subscribers", value: stats.subscribers, href: `${manifest.homePage}/watchers` },
+          { label: "stars", value: stats.stars, href: `${manifest.homePage}/stargazers` },
+          { label: "open issues", value: stats.openIssues, href: `${manifest.homePage}/issues` },
+          { label: "open PRs", value: stats.openPulls, href: `${manifest.homePage}/pulls` },
+      ]
+    : [];
+
+const componentLists = [
+    { label: "included modules", items: modules, noun: "modules" },
+    { label: "included subworkflows", items: subworkflows, noun: "subworkflows" },
+].filter((list) => list.items.length > 0);
+---
+
+<aside class="sidebar sticky-top pt-3">
+    <section class="sidebar-row">
+        <p class="sidebar-title"><i class="fa-solid fa-terminal me-2"></i>run with</p>
+        <div class="border rounded-1">
+            <div class="tab-content">
+                {
+                    commands.map((command, i) => (
+                        <div
+                            class:list={["tab-pane", { "show active": i === 0 }]}
+                            id={`${command.id}-pane`}
+                            role="tabpanel"
+                            aria-labelledby={`${command.id}-tab`}
+                        >
+                            <div class="d-flex align-items-start">
+                                <code class="run-cmd flex-grow-1 p-2">{command.cmd}</code>
+                                <button
+                                    class="btn btn-sm btn-link text-body-secondary"
+                                    type="button"
+                                    data-copy={command.cmd}
+                                    title="Copy command"
+                                    aria-label="Copy command"
+                                >
+                                    <i class="fa-regular fa-copy" />
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                }
+            </div>
+            <ul class="nav nav-fill small border-top" role="tablist">
+                {
+                    commands.map((command, i) => (
+                        <li class="nav-item" role="presentation">
+                            <button
+                                class:list={["nav-link btn btn-sm rounded-0", { active: i === 0 }]}
+                                id={`${command.id}-tab`}
+                                data-bs-toggle="tab"
+                                data-bs-target={`#${command.id}-pane`}
+                                type="button"
+                                role="tab"
+                                aria-controls={`${command.id}-pane`}
+                                aria-selected={i === 0 ? "true" : "false"}
+                            >
+                                {command.label}
+                            </button>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="sidebar-row d-flex">
+        <div class="flex-fill">
+            <p class="sidebar-title">version</p>
+            <p class="sidebar-value"><code>{manifest.version}</code></p>
+        </div>
+        {
+            manifest.nextflowVersion && (
+                <div class="flex-fill">
+                    <p class="sidebar-title">nextflow</p>
+                    <p class="sidebar-value">
+                        <code>{manifest.nextflowVersion.replace(/^!/, "")}</code>
+                    </p>
+                </div>
+            )
+        }
+    </section>
+
+    {
+        counters.length > 0 && (
+            <section class="sidebar-row stat-grid">
+                {counters.map((counter) => (
+                    <div>
+                        <p class="sidebar-title">{counter.label}</p>
+                        <a class="sidebar-value stat-value text-body text-decoration-none" href={counter.href}>
+                            {counter.value}
+                        </a>
+                    </div>
+                ))}
+            </section>
+        )
+    }
+
+    {
+        (latest.date || lastUpdate) && (
+            <section class="sidebar-row stat-grid">
+                {!latest.isDev && latest.date && (
+                    <div>
+                        <p class="sidebar-title">last release</p>
+                        <p class="sidebar-value">
+                            <time datetime={latest.date} data-relative>
+                                {latest.date}
+                            </time>
+                        </p>
+                    </div>
+                )}
+                {lastUpdate && (
+                    <div>
+                        <p class="sidebar-title">last update</p>
+                        <p class="sidebar-value">
+                            <time datetime={lastUpdate} data-relative>
+                                {lastUpdate}
+                            </time>
+                        </p>
+                    </div>
+                )}
+            </section>
+        )
+    }
+
+    {
+        componentLists.map((list) => (
+            <section class="sidebar-row">
+                <p class="sidebar-title">{list.label}</p>
+                <div class="component-list small">
+                    {list.items.slice(0, SHOWN).map((item) => (
+                        <code class="component">{item.replaceAll("/", "_")}</code>
+                    ))}
+                    {list.items.length > SHOWN && (
+                        <details class="d-inline">
+                            <summary class="text-body-secondary">
+                                and {list.items.length - SHOWN} more {list.noun}
+                            </summary>
+                            {list.items.slice(SHOWN).map((item) => (
+                                <code class="component">{item.replaceAll("/", "_")}</code>
+                            ))}
+                        </details>
+                    )}
+                </div>
+            </section>
+        ))
+    }
+
+    {
+        manifest.contributors.length > 0 && (
+            <section class="sidebar-row">
+                <p class="sidebar-title">contributors</p>
+                <ul class="list-unstyled mb-0">
+                    {manifest.contributors.map((person) => (
+                        <li class="d-flex align-items-center gap-2 mb-2">
+                            {person.github ? (
+                                <img
+                                    class="rounded-circle"
+                                    src={`https://github.com/${person.github}.png?size=80`}
+                                    alt=""
+                                    width="40"
+                                    height="40"
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <i class="fa-solid fa-circle-user fa-2x text-body-secondary" />
+                            )}
+                            <div class="small">
+                                <div class="fw-semibold">
+                                    {person.github ? (
+                                        <a href={`https://github.com/${person.github}`}>{person.name}</a>
+                                    ) : (
+                                        person.name
+                                    )}
+                                    {person.orcid && (
+                                        <a
+                                            class="ms-1 text-accent"
+                                            href={`https://orcid.org/${person.orcid}`}
+                                            title="ORCID"
+                                        >
+                                            <i class="fa-brands fa-orcid" />
+                                        </a>
+                                    )}
+                                </div>
+                                {person.contribution.length > 0 && (
+                                    <div class="text-body-secondary">{person.contribution.join(", ")}</div>
+                                )}
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        )
+    }
+
+    <section class="sidebar-row">
+        <p class="sidebar-title">get help</p>
+        <a class="btn btn-outline-secondary w-100" href={`${manifest.homePage}/issues`}>
+            <i class="fa-brands fa-github me-1"></i> Open an issue on GitHub
+        </a>
+    </section>
+</aside>

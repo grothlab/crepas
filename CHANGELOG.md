@@ -35,6 +35,7 @@ Development version of grothlab/crepas.
 - Repli-seq outputs in the IGV session: the E/L ratio and replication-timing index bigWigs, the per-replicate smoothed coverage bigWigs, the RT domains, the per-class gene classification BEDs, and the high-resolution Repli-seq initiation zones, transition regions, breakages, termination sites, constant-timing regions and partition.
 - FRiP scores, HOMER peak annotation, annotation QC plots and MultiQC sections (peak count, FRiP score and peak annotation) for SEACR peaks, as for MACS3. SEACR peaks are called once per normalization of the input bedGraph, and each set is scored and annotated separately.
 - A diagram in `docs/usage.md` showing how `strandedness` relates Read 1 and Read 2 to the nascent strands.
+- A pipeline website ([crepas.grothlab.workers.dev](https://crepas.grothlab.workers.dev/)). Links to the usage and output docs now point to the website.
 
 ### `Changed`
 

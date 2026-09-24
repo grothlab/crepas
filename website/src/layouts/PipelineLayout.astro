@@ -1,0 +1,282 @@
+---
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "@fontsource/maven-pro/500.css";
+import "@fontsource/maven-pro/700.css";
+import "../styles/site.css";
+import {
+    getBranch,
+    getLatestVersion,
+    getManifest,
+    getVersions,
+    githubRef,
+    type Page,
+    pageHref,
+    type SiteVersion,
+} from "../lib/repo";
+
+export interface Props {
+    title: string;
+    version: SiteVersion;
+    page: Page;
+}
+
+const { title, version, page } = Astro.props;
+const manifest = getManifest(version.ref);
+const versions = getVersions();
+const latest = getLatestVersion();
+const githubTree = `${manifest.homePage}/tree/${githubRef(version)}`;
+
+const tabs: { label: string; page: Page; icon: string }[] = [
+    { label: "Introduction", page: "", icon: "fa-solid fa-right-to-bracket" },
+    { label: "Usage", page: "usage", icon: "fa-solid fa-book-open" },
+    { label: "Parameters", page: "parameters", icon: "fa-solid fa-list" },
+    { label: "Output", page: "output", icon: "fa-solid fa-folder-tree" },
+    { label: "Releases & Statistics", page: "releases", icon: "fa-solid fa-tags" },
+];
+const activeTab = tabs.find((tab) => tab.page === page) ?? tabs[0];
+const versionLabel = (v: SiteVersion) => (v.isLatest && !v.isDev ? `${v.id} (latest)` : v.id);
+---
+
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content={manifest.description} />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>{`${manifest.name}: ${title}`}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <script is:inline>
+            (() => {
+                let theme = null;
+                try {
+                    theme = localStorage.getItem("theme");
+                } catch {}
+                if (!theme) theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                document.documentElement.setAttribute("data-bs-theme", theme);
+            })();
+        </script>
+    </head>
+    <body>
+        <nav class="navbar border-bottom bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                    <i class="fa-solid fa-dna text-accent"></i>
+                    <span class="brand-name">{manifest.name}</span>
+                </a>
+                <div class="d-flex align-items-center gap-3">
+                    <img
+                        class="center-logo"
+                        src="/epic-logo.png"
+                        alt="EpiC, Center for Epigenetic Cell Memory"
+                        title="EpiC, Center for Epigenetic Cell Memory"
+                        width="48"
+                        height="48"
+                    />
+                    <a class="text-body" href={manifest.homePage} title="GitHub repository">
+                        <i class="fa-brands fa-github fa-lg"></i>
+                    </a>
+                    <button
+                        id="theme-toggle"
+                        class="btn btn-sm btn-outline-secondary"
+                        type="button"
+                        title="Toggle dark mode"
+                        aria-label="Toggle dark mode"
+                    >
+                        <i class="fa-solid fa-circle-half-stroke"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <header class="subheader bg-body-secondary">
+            <div class="container text-center d-flex flex-column align-items-center py-4">
+                <h1 class="display-5 fw-bold mb-2">{manifest.name}</h1>
+                <p class="lead mb-3">{manifest.description}</p>
+                {
+                    version.isDev && (
+                        <div class="alert alert-warning py-2 px-3 mb-3" role="alert">
+                            This is the development version of the pipeline (<code>{manifest.version}</code>).
+                            {!latest.isDev && (
+                                <>
+                                    {" "}
+                                    See the <a href={pageHref(latest, page)}>latest release ({latest.id})</a>.
+                                </>
+                            )}
+                        </div>
+                    )
+                }
+                {
+                    !version.isDev && !version.isLatest && (
+                        <div class="alert alert-info py-2 px-3 mb-3" role="alert">
+                            You are viewing an older release (<code>{version.id}</code>). See the{" "}
+                            <a href={pageHref(latest, page)}>latest release ({latest.id})</a>.
+                        </div>
+                    )
+                }
+                <a href={githubTree} class="text-body text-break">
+                    <i class="fa-brands fa-github me-2"></i><span class="d-none d-md-inline">{githubTree}</span><span class="d-md-none">View on GitHub</span>
+                </a>
+            </div>
+        </header>
+        <div class="triangle-down bg-body-secondary"></div>
+
+        <div class="container-xl page-container">
+            <div class="tab-bar mb-3">
+                <ul class="d-none d-lg-flex nav nav-tabs nav-fill align-items-center">
+                    {
+                        tabs.map((tab) => (
+                            <li class="nav-item">
+                                <a
+                                    class:list={["nav-link", { active: tab === activeTab }]}
+                                    href={pageHref(version, tab.page)}
+                                    aria-current={tab === activeTab ? "page" : undefined}
+                                >
+                                    <i class:list={[tab.icon, "me-2"]} />
+                                    {tab.label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                    <li class="nav-item flex-grow-0 ms-2">
+                        <div class="dropdown version-select">
+                            <button
+                                class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                title="Pipeline version"
+                            >
+                                <i class="fa-solid fa-tag me-1"></i>{versionLabel(version)}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                {
+                                    versions.map((v) => (
+                                        <li>
+                                            <a
+                                                class:list={["dropdown-item", { active: v.id === version.id }]}
+                                                href={pageHref(v, page)}
+                                            >
+                                                {versionLabel(v)}
+                                            </a>
+                                        </li>
+                                    ))
+                                }
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+                <div class="d-flex d-lg-none justify-content-between align-items-center">
+                    <div class="dropdown">
+                        <button
+                            class="btn btn-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+                            <i class:list={[activeTab.icon, "me-2"]}></i>{activeTab.label}
+                        </button>
+                        <ul class="dropdown-menu">
+                            {
+                                tabs.map((tab) => (
+                                    <li>
+                                        <a
+                                            class:list={["dropdown-item", { active: tab === activeTab }]}
+                                            href={pageHref(version, tab.page)}
+                                        >
+                                            <i class:list={[tab.icon, "fa-fw", "me-2"]} />
+                                            {tab.label}
+                                        </a>
+                                    </li>
+                                ))
+                            }
+                        </ul>
+                    </div>
+                    <div class="dropdown version-select">
+                        <button
+                            class="btn btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            title="Pipeline version"
+                        >
+                            <i class="fa-solid fa-tag me-1"></i>{versionLabel(version)}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {
+                                versions.map((v) => (
+                                    <li>
+                                        <a
+                                            class:list={["dropdown-item", { active: v.id === version.id }]}
+                                            href={pageHref(v, page)}
+                                        >
+                                            {versionLabel(v)}
+                                        </a>
+                                    </li>
+                                ))
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <main>
+                <slot />
+            </main>
+        </div>
+
+        <footer class="border-top mt-5 py-4 bg-body-tertiary">
+            <div class="container-xl page-container small text-body-secondary d-flex flex-wrap justify-content-between gap-2">
+                <span>Built from <a href={`${manifest.homePage}/tree/${getBranch()}`}>{manifest.name}@{getBranch()}</a></span>
+                <span>
+                    Page layout adapted from the <a href="https://github.com/nf-core/website">nf-core website</a>{" "}
+                    (MIT licence)
+                </span>
+            </div>
+        </footer>
+
+        <script>
+            import "bootstrap/dist/js/bootstrap.bundle.min.js";
+
+            document.getElementById("theme-toggle")?.addEventListener("click", () => {
+                const root = document.documentElement;
+                const next = root.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
+                root.setAttribute("data-bs-theme", next);
+                try {
+                    localStorage.setItem("theme", next);
+                } catch {
+                    // storage may be unavailable; the toggle still works for this page view
+                }
+            });
+
+            document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((button) => {
+                button.addEventListener("click", async () => {
+                    const text = button.dataset.copy ?? "";
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        button.innerHTML = '<i class="fa-solid fa-check"></i>';
+                        setTimeout(() => (button.innerHTML = '<i class="fa-regular fa-copy"></i>'), 1500);
+                    } catch {
+                        // clipboard access denied; leave the command visible for manual copying
+                    }
+                });
+            });
+
+            // Relative ages ("2 months ago") next to release dates, computed when the page is viewed.
+            const units: [Intl.RelativeTimeFormatUnit, number][] = [
+                ["year", 365 * 24 * 3600],
+                ["month", 30 * 24 * 3600],
+                ["week", 7 * 24 * 3600],
+                ["day", 24 * 3600],
+            ];
+            const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+            document.querySelectorAll<HTMLTimeElement>("time[data-relative]").forEach((el) => {
+                const seconds = (new Date(el.dateTime).getTime() - Date.now()) / 1000;
+                const [unit, size] = units.find(([, s]) => Math.abs(seconds) >= s) ?? ["day", 24 * 3600];
+                el.textContent = rtf.format(Math.round(seconds / size), unit);
+                el.title = el.dateTime;
+            });
+        </script>
+    </body>
+</html>

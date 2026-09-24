@@ -63,7 +63,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 16. BAM downsampling considering sample type (IP or input control) and genome (endogenous or spike-in) ([`picard`](https://gatk.broadinstitute.org/hc/en-us/articles/360037056792-DownsampleSam-Picard))
 
-17. Creation of coverage tracks (with a specified bin size) and applying multiple [normalization methods](./docs/output.md#normalized-bigwig-files) accounting for spike-in ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html))
+17. Creation of coverage tracks (with a specified bin size) and applying multiple [normalization methods](https://crepas.grothlab.workers.dev/output/#normalized-bigwig-files) accounting for spike-in ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html))
 
 18. Generating gene-body meta-profile from coverage files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
 
@@ -172,12 +172,12 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 ## Usage
 
 > [!IMPORTANT]
-> See the [usage docs](./docs/usage.md) for an overview of how the pipeline works, how to run it and a description of all of the different command-line flags and parameters.
+> See the [usage docs](https://crepas.grothlab.workers.dev/usage/) for an overview of how the pipeline works, how to run it and a description of all of the different command-line flags and parameters.
 
 ## Output
 
 > [!IMPORTANT]
-> See the [output docs](./docs/output.md) for an overview of the different results produced by the pipeline and how to interpret them.
+> See the [output docs](https://crepas.grothlab.workers.dev/output/) for an overview of the different results produced by the pipeline and how to interpret them.
 
 ## Credits
 

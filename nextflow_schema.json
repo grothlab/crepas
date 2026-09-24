@@ -20,7 +20,7 @@
                     "schema": "assets/schema_input.json",
                     "exists": true,
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. See [usage docs](https://github.com/grothlab/crepas/blob/main/docs/usage.md).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. See [usage docs](https://crepas.grothlab.workers.dev/usage/).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "fragment_size": {
@@ -661,12 +661,12 @@
             "properties": {
                 "skip_srpm": {
                     "type": "boolean",
-                    "description": "Whether to skip the SRPM normalization step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details.",
+                    "description": "Whether to skip the SRPM normalization step. See the [output documentation](https://crepas.grothlab.workers.dev/output/#normalized-bigwig-files) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "skip_cisrpm": {
                     "type": "boolean",
-                    "description": "Whether to skip the CISRPM normalization step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details.",
+                    "description": "Whether to skip the CISRPM normalization step. See the [output documentation](https://crepas.grothlab.workers.dev/output/#normalized-bigwig-files) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "coverage_extend_reads": {
