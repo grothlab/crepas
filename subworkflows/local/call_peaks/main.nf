@@ -37,6 +37,9 @@ workflow CALL_PEAKS {
     ch_macs3_peak_count_header
     ch_macs3_frip_score_header
     ch_macs3_peak_annotation_header
+    ch_seacr_peak_count_header
+    ch_seacr_frip_score_header
+    ch_seacr_peak_annotation_header
     ch_deseq2_pca_header
     ch_deseq2_clustering_header
     narrow_peak
@@ -171,9 +174,6 @@ workflow CALL_PEAKS {
     // Create channel for downstream processes: [ meta, [ ip_bam, ipcontrol_bam ] [ ip_index, ipcontrol_index ] ]
     // (Excluding ips_wo_ipcontrol as they don't need to be compared to anything)
     //
-    // `peak_caller` is part of the join key: ch_bam_index carries one copy of every IP and every
-    // input control per selected peak caller, so joining on [input control, antibody] alone would
-    // pair each IP with the input controls of all the other peak callers as well
     ch_bam_index
         .branch { meta, bam, index ->
             ips_with_ipcontrol: meta.input_control
@@ -288,10 +288,21 @@ workflow CALL_PEAKS {
 
     BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER (
         ch_all_bdg_ip_and_controls.filter { it -> it[0].peak_caller == 'seacr' },
-        seacr_peak_threshold
-
+        seacr_peak_threshold,
+        ch_all_ip_and_controls.filter { it -> it[0].peak_caller == 'seacr' },
+        ch_fasta,
+        ch_gtf,
+        ".annotatePeaks.txt",
+        ch_seacr_peak_count_header,
+        ch_seacr_frip_score_header,
+        ch_seacr_peak_annotation_header,
+        skip_peak_annotation,
+        skip_peak_qc
     )
     ch_seacr_peaks = BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER.out.peaks
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER.out.frip_multiqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER.out.peak_count_multiqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER.out.plot_homer_annotatepeaks_tsv.collect { it -> it[1] })
 
 
     //

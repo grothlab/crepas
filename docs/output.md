@@ -28,6 +28,8 @@
    - [phantompeakqualtools](#phantompeakqualtools)
    - [Normalized coverage files](#normalized-coverage-files)
    - [deepTools plots](#deeptools-plots)
+   - [Repli-seq replication-timing tracks](#repli-seq-replication-timing-tracks)
+   - [High-resolution Repli-seq](#high-resolution-repli-seq)
    - [Peak calling](#peak-calling)
    - [Create and quantify consensus set of peaks](#create-and-quantify-consensus-set-of-peaks)
    - [ENCODE-ChIP-seq-pipeline-like analysis](#encode-chip-seq-pipeline-like-analysis)
@@ -411,6 +413,65 @@ The results from deepTools plotProfile gives you a quick visualisation for the g
 
 ![MultiQC - deepTools plotProfile plot](images/mqc_deeptools_plotProfile_plot.png)
 
+### Repli-seq replication-timing tracks
+
+<details markdown="1" open>
+    <summary>Output files</summary>
+
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/EL_repliseq/counts/`
+  - `*.counts.tsv`: raw read counts per genomic window across every fraction, from deepTools `multiBamSummary`. Only saved with `--save_repliseq_intermeds`.
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/EL_repliseq/qc/`
+  - `*.qc.txt`: how the biological replicates were combined and every pairwise correlation behind that choice.
+  - `*.rt_mqc.tsv`: the same summary, formatted for the MultiQC report.
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/EL_repliseq/EL_ratio/{raw,smooth}/`
+  - `*.bedGraph`: the log2(early/late) ratio track, unsmoothed and smoothed. Only saved with `--save_repliseq_intermeds`; the bigWig below is written either way. `*.covered.*` is the same track with bins that had no reads in either fraction dropped.
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/EL_repliseq/bigwig/{EL_ratio,RT_index}/{raw,smooth}/`
+  - `*.bigWig`: the tracks above, for genome browsers.
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/EL_repliseq/domains/`
+  - `*.RT_domains.bed`: domains of constant replication timing with their segment means, plus one BED per class (`*.early.bed`, `*.late.bed` and, with three-way classification, `*.mid.bed`).
+  - `*.RT_domains.qc.txt`, `*.RT_domains.plots.pdf`: segmentation summary and diagnostic plots.
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/EL_repliseq/gene_classification/`
+  - `*.gene_RT_class.tsv`: per-gene read density in each fraction and the class called from it, plus one BED per class.
+  - `*.gene_RT_class.qc.txt`, `*.gene_RT_class.plots.pdf`, `*.summary`: class counts, diagnostic plots and the featureCounts summary.
+
+</details>
+
+For `Repli-seq` samples with `early`/`late` fractions, reads are counted per genomic window across
+every biological replicate, normalized, combined and turned into a log2(early/late) replication-timing
+track. A sample with three or more fractions also gets a replication-timing index track, the
+weighted-mean fraction per bin rescaled from 0 (earliest) to 1 (latest), which unlike the ratio uses
+every fraction. The covered track is segmented into domains of constant timing, and genes are
+classified by the fraction with the highest read density over their gene body. See
+[Repli-seq replication-timing tracks](usage.md#repli-seq-replication-timing-tracks) in the usage
+documentation for the parameters controlling each step.
+
+### High-resolution Repli-seq
+
+<details markdown="1" open>
+    <summary>Output files</summary>
+
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/hr_repliseq/counts/`
+  - `*.counts.tsv`: raw read counts per genomic window across every fraction. Only saved with `--save_repliseq_intermeds`.
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/hr_repliseq/array/`
+  - `*.hr_array.csv`: the Repli-seq array. One row per genomic bin, indexed by `chrom,start,end`, and one column per S-phase fraction holding the percentage of that bin replicated in it, so each row sums to 100. This is the matrix the heatmaps are drawn from.
+  - `*.hr_array.qc.txt`: which normalization was applied, how many bins the G1 control did not cover, and per-fraction statistics.
+- `<aligner>/mergedLibrary/<allocation_method>/Repli-seq/hr_repliseq/features/`
+  - `*.hr_IZ.bed`, `*.hr_TTR.bed`, `*.hr_termination.bed`, `*.hr_CTR.bed`: initiation zones, timing transition regions, termination sites and late constant-timing regions, each with the S-phase fraction it replicates in. `hr_TTR.bed` carries a fifth column with the direction of the transition.
+  - `*.hr_breakage.{overlap,disjoint,flanked}.bed`: breakages under each reading of how they relate to transition regions.
+  - `*.hr_partition.{overlap,disjoint,flanked}.bed`: the same features resolved so that every analysed bin belongs to exactly one class, one file per reading. Genome-fraction percentages should be read from these rather than from the raw calls, which overlap.
+  - `*.hr_TTR.speed.tsv`: fork speed within each transition region, in kb/min, with the fractions it traverses and how many breakages were stitched over.
+  - `*.hr_cluster_rank.tsv`: the S-phase fraction of the cluster centroid each bin was assigned to, one row per analysed bin. This is the profile every feature is read off, and what the example-feature pages plot.
+  - `*.hr_features.qc.txt`: counts, bp and genome fractions for the raw calls and for all three partitions, plus the fork-speed quartiles.
+  - `*.hr_repliseq.plots.pdf`: feature summary, genome coverage under each partition, the fork-speed distribution, pages of example features (one randomly drawn instance of each feature shape, its rank profile over the heatmap of the same bins), and one Repli-seq heatmap per chromosome with the early/late track above it when the sample also has one.
+  - `*_mqc.png`: the heatmap of one chromosome, for the MultiQC report.
+
+</details>
+
+For `Repli-seq` samples with `S1`..`S16` fractions, the pipeline builds a Gaussian-smoothed,
+column-scaled array and reads it for the replication features described in
+[Zhao, Sasaki & Gilbert (2020)](https://doi.org/10.1186/s13059-020-01983-8). A `G1` fraction, if
+present, is used to drop bins it does not cover rather than becoming a row of the array.
+
 ### Peak calling
 
 <details markdown="1" open>
@@ -746,4 +807,4 @@ Reference genome-specific files can be useful to keep for the downstream process
 
 </details>
 
-[Nextflow](https://www.nextflow.io/docs/latest/tracing.html) provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to trouble-shoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
+[Nextflow](https://docs.seqera.io/platform-cloud/reports/overview) provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to troubleshoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.

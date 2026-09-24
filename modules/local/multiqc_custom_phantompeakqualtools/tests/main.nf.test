@@ -11,7 +11,7 @@ nextflow_process {
 
     setup {
         run("PHANTOMPEAKQUALTOOLS") {
-            script "../../../nf-core/phantompeakqualtools/main.nf"
+            script "../../phantompeakqualtools/main.nf"
             process {
                 """
                 input[0] = [

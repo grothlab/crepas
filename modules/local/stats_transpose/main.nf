@@ -52,7 +52,7 @@ process STATS_TRANSPOSE {
     """
 
     stub:
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = task.ext.prefix ?: "${stats.baseName}.transposed"
     """
     touch ${prefix}.tsv
     """

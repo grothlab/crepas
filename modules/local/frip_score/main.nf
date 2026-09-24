@@ -4,7 +4,7 @@ process FRIP_SCORE {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/bedtools_samtools:bda2f51e73da0bf1':
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/5c/5cac195f18a1414900b9ee3c2830e8fc68b60684edbf3a5019c87a2594187a56/data':
         'community.wave.seqera.io/library/bedtools_samtools:458c8149e87aefd3' }"
 
     input:

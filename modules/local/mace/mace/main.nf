@@ -5,7 +5,7 @@ process MACE_MACE {
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
         ? 'https://depot.galaxyproject.org/singularity/mace:1.2--py27he7e273a_2'
-        : 'biocontainers/mace:1.2_cv1'}"
+        : 'biocontainers/mace:1.2--py27he7e273a_2'}"
 
     input:
     tuple val(meta), path(forward_bw), path(reverse_bw)

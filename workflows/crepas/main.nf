@@ -15,6 +15,8 @@ include { paramsSummaryMap                                                  } fr
 include { paramsSummaryMultiqc                                              } from '../../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                                            } from '../../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                                            } from '../../subworkflows/local/utils_grothlab_crepas_pipeline'
+include { rtElFractions                                                    } from '../../subworkflows/local/utils_grothlab_crepas_pipeline'
+include { rtHrFractions                                                    } from '../../subworkflows/local/utils_grothlab_crepas_pipeline'
 include { INPUT_CHECK                                                       } from '../../subworkflows/local/utils_grothlab_crepas_pipeline'
 
 include {
@@ -27,6 +29,8 @@ include { BAM_SPIKEIN_SPLIT                                                 } fr
 include { FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE                      } from '../../subworkflows/local/fastq_fastqc_umitools_umitransfer_trimgalore/main'
 include { BAM_ENCODE_PIPELINE                                               } from '../../subworkflows/local/bam_encode_pipeline/main'
 include { BAM_CREATE_PARTITIONS                                             } from '../../subworkflows/local/bam_create_partitions/main'
+include { BAM_EL_REPLISEQ                                                   } from '../../subworkflows/local/bam_el_repliseq/main'
+include { BAM_HR_REPLISEQ                                                   } from '../../subworkflows/local/bam_hr_repliseq/main'
 include { BAM_ALLOCATE_MULTIMAPPERS                                         } from '../../subworkflows/local/bam_allocate_multimappers/main'
 include { BAM_SHIFT_READS                                                   } from '../../subworkflows/local/bam_shift_reads/main'
 include { SAMTOOLS_STATS_SUMMARY                                            } from '../../subworkflows/local/samtools_stats_summary/main'
@@ -120,15 +124,21 @@ workflow CREPAS {
     ch_gr_peak_count_header = file("${projectDir}/assets/multiqc/gr_peak_count_header.txt", checkIfExists: true)
     ch_mace_peak_count_header = file("${projectDir}/assets/multiqc/mace_peak_count_header.txt", checkIfExists: true)
     ch_epic2_peak_count_header = file("${projectDir}/assets/multiqc/epic2_peak_count_header.txt", checkIfExists: true)
+    ch_seacr_peak_count_header = file("${projectDir}/assets/multiqc/seacr_peak_count_header.txt", checkIfExists: true)
     ch_macs3_frip_score_header = file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true)
     ch_gr_frip_score_header = file("${projectDir}/assets/multiqc/gr_frip_score_header.txt", checkIfExists: true)
     ch_mace_frip_score_header = file("${projectDir}/assets/multiqc/mace_frip_score_header.txt", checkIfExists: true)
     ch_epic2_frip_score_header = file("${projectDir}/assets/multiqc/epic2_frip_score_header.txt", checkIfExists: true)
+    ch_seacr_frip_score_header = file("${projectDir}/assets/multiqc/seacr_frip_score_header.txt", checkIfExists: true)
     ch_macs3_peak_annotation_header = file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
     ch_gr_peak_annotation_header = file("${projectDir}/assets/multiqc/gr_peak_annotation_header.txt", checkIfExists: true)
     ch_mace_peak_annotation_header = file("${projectDir}/assets/multiqc/mace_peak_annotation_header.txt", checkIfExists: true)
     ch_epic2_peak_annotation_header = file("${projectDir}/assets/multiqc/epic2_peak_annotation_header.txt", checkIfExists: true)
+    ch_seacr_peak_annotation_header = file("${projectDir}/assets/multiqc/seacr_peak_annotation_header.txt", checkIfExists: true)
     ch_deseq2_pca_header = channel.value(file("${projectDir}/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true))
+    ch_repliseq_rt_header = channel.value(file("${projectDir}/assets/multiqc/repliseq_rt_header.txt", checkIfExists: true))
+    ch_repliseq_gene_class_header = channel.value(file("${projectDir}/assets/multiqc/repliseq_gene_class_header.txt", checkIfExists: true))
+    ch_hr_repliseq_features_header = channel.value(file("${projectDir}/assets/multiqc/hr_repliseq_features_header.txt", checkIfExists: true))
     ch_deseq2_clustering_header = channel.value(file("${projectDir}/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true))
 
     //
@@ -838,9 +848,9 @@ workflow CREPAS {
             ch_gtf,
             ch_effective_gfraction,
             ch_endo_chromsizes,
-            ch_blacklist.ifEmpty([[:], []]).first(),
-            ch_sparsebed.ifEmpty([[:], []]).first(),
-            ch_active_regions.ifEmpty([[:], []]).first(),
+            ch_blacklist.ifEmpty([[:], []]),
+            ch_sparsebed.ifEmpty([[:], []]),
+            ch_active_regions.ifEmpty([[:], []]),
             ch_rocco_params,
             ch_effective_gsize,
             ch_epic2_peak_count_header,
@@ -855,6 +865,9 @@ workflow CREPAS {
             ch_macs3_peak_count_header,
             ch_macs3_frip_score_header,
             ch_macs3_peak_annotation_header,
+            ch_seacr_peak_count_header,
+            ch_seacr_frip_score_header,
+            ch_seacr_peak_annotation_header,
             ch_deseq2_pca_header,
             ch_deseq2_clustering_header,
             params.narrow_peak,
@@ -926,7 +939,7 @@ workflow CREPAS {
             ch_endo_chromsizes,
             params.ctl_depth_ratio_threshold,
             params.narrow_peak ? 'narrowPeak' : 'broadPeak',
-            ch_blacklist.ifEmpty([[:], []]).first(),
+            ch_blacklist.ifEmpty([[:], []]),
             params.idr_filtering_threshold,
             params.encode_peak_max_score
         )
@@ -955,15 +968,60 @@ workflow CREPAS {
         ch_filtered_bam_ss,
         ch_fasta_fai,
         ch_endo_chromsizes_ss,
-        ch_blacklist.ifEmpty([[:], []]).first(),
-        ch_okseq_rfd_file.ifEmpty([[:], [[]]]).first(),
-        ch_initiation_zones.ifEmpty([[:], [[]]]).first(),
+        ch_blacklist.ifEmpty([[:], []]),
+        ch_okseq_rfd_file.ifEmpty([[:], [[]]]),
+        ch_initiation_zones.ifEmpty([[:], [[]]]),
         params.smooth_radius,
         params.derivative_radius,
         params.zero_crossing_radius,
         params.skip_partition_group_plot
     )
     ch_partition_smooth = BAM_CREATE_PARTITIONS.out.tab
+
+    //
+    // SUBWORKFLOW: Repli-seq analysis: E/L ratio replication-timing (RT) tracks
+    //
+
+    ch_filtered_bam_index_repliseq = ch_filtered_bam_index.filter { it ->
+        it[0].exp_type == 'Repli-seq' && it[0].rt_fraction in rtElFractions()
+    }
+
+    BAM_EL_REPLISEQ (
+        ch_filtered_bam_index_repliseq,
+        ch_endo_chromsizes,
+        ch_blacklist.ifEmpty([[:], []]),
+        ch_repliseq_rt_header,
+        ch_repliseq_gene_class_header,
+        ch_gene_bed
+    )
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_EL_REPLISEQ.out.mqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_EL_REPLISEQ.out.featurecounts_summary.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_EL_REPLISEQ.out.gene_class_mqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_EL_REPLISEQ.out.gene_class_box.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_EL_REPLISEQ.out.domain_box.collect { it -> it[1] })
+
+    //
+    // SUBWORKFLOW: High-resolution (16-fraction) Repli-seq: array and replication features
+    //
+    ch_filtered_bam_index_hr_repliseq = ch_filtered_bam_index.filter { it ->
+        it[0].exp_type == 'Repli-seq' && it[0].rt_fraction in rtHrFractions()
+    }
+
+    ch_el_track_for_hr = BAM_EL_REPLISEQ.out.bedgraph
+        .filter { meta, _bedgraph ->
+            meta.rt_measure == 'ratio' && meta.rt_track_type == 'smooth' && !meta.rt_covered
+        }
+        .map { meta, bedgraph -> [ meta.id, bedgraph ] }
+
+    BAM_HR_REPLISEQ (
+        ch_filtered_bam_index_hr_repliseq,
+        ch_blacklist.ifEmpty([[:], []]),
+        ch_hr_repliseq_features_header,
+        ch_el_track_for_hr
+    )
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_HR_REPLISEQ.out.mqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_HR_REPLISEQ.out.mqc_heatmap.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_HR_REPLISEQ.out.mqc_sizes.collect { it -> it[1] })
 
     //
     // SUBWORKFLOW: Create SAMtools summary table
@@ -1116,6 +1174,72 @@ workflow CREPAS {
             .mix(ch_files_and_outpaths)
             .set { ch_files_and_outpaths }
 
+        BAM_EL_REPLISEQ.out.bigwig
+            .map { meta, bw ->
+                def measure_label = meta.rt_measure == 'rt_index' ? 'RT_index' :
+                    (meta.rt_measure == 'coverage' ? 'coverage' :
+                    (params.repliseq_ratio_direction == 'late_over_early' ? 'LE_ratio' : 'EL_ratio'))
+                def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
+                    "/${meta.exp_type}" +
+                    "/EL_repliseq/bigwig/${measure_label}/${meta.rt_track_type}/" +
+                    "${bw.getName()}"
+                def color = meta.rt_measure == 'rt_index' ?
+                    (meta.rt_track_type == 'smooth' ? "128,0,128" : "216,191,216") : // purple / thistle
+                    meta.rt_measure == 'coverage' ? "105,105,105" : // dim grey
+                    (meta.rt_track_type == 'smooth' ? "0,100,0" : "144,238,144") // dark green / light green
+                [meta, bw, outpath, color]
+            }
+            .mix(ch_files_and_outpaths)
+            .set { ch_files_and_outpaths }
+
+        BAM_EL_REPLISEQ.out.domains
+            .map { meta, bed ->
+                def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
+                    "/${meta.exp_type}" +
+                    "/EL_repliseq/domains/" +
+                    "${bed.getName()}"
+                [meta, bed, outpath, "47,79,79"] // dark slate grey
+            }
+            .mix(ch_files_and_outpaths)
+            .set { ch_files_and_outpaths }
+
+        BAM_EL_REPLISEQ.out.gene_class_bed
+            .map { meta, bed ->
+                def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
+                    "/${meta.exp_type}" +
+                    "/EL_repliseq/gene_classification/" +
+                    "${bed.getName()}"
+                def color = [
+                    early: "33,102,172", // #2166AC
+                    mid: "178,171,210",  // #B2ABD2
+                    late: "178,24,43",   // #B2182B
+                    unclassified: "128,128,128"
+                ][meta.rt_gene_class]
+                [meta, bed, outpath, color]
+            }
+            .mix(ch_files_and_outpaths)
+            .set { ch_files_and_outpaths }
+
+        BAM_HR_REPLISEQ.out.iz.map { meta, bed -> [meta, bed, "220,20,60"] } // crimson
+            .mix(BAM_HR_REPLISEQ.out.ttr.map { meta, bed -> [meta, bed, "255,165,0"] }) // orange
+            .mix(BAM_HR_REPLISEQ.out.breakage.map { meta, bed -> [meta, bed, "139,0,0"] }) // dark red
+            .mix(BAM_HR_REPLISEQ.out.termination.map { meta, bed -> [meta, bed, "0,0,139"] }) // dark blue
+            .mix(BAM_HR_REPLISEQ.out.ctr.map { meta, bed -> [meta, bed, "0,139,139"] }) // dark cyan
+            .mix(BAM_HR_REPLISEQ.out.partition.map { meta, bed -> [meta, bed, "85,107,47"] }) // dark olive green
+            .map { meta, bed, color ->
+                def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
+                    "/${meta.exp_type}" +
+                    "/hr_repliseq/features/" +
+                    "${bed.getName()}"
+                [meta, bed, outpath, color]
+            }
+            .mix(ch_files_and_outpaths)
+            .set { ch_files_and_outpaths }
+
         // create channel: [ list_of_files, list_of_outpaths ]
         ch_files_and_outpaths
             .map { meta, file, outpath, color -> [1, file, outpath, color]}
@@ -1161,7 +1285,7 @@ workflow CREPAS {
         .mix(topic_versions_string)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
-            name: 'grothlab' + 'crepas_software_' + 'mqc_' + 'versions.yml',
+            name: 'grothlab_' + 'crepas_software_' + 'mqc_' + 'versions.yml',
             sort: true,
             newLine: true,
         )

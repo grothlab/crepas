@@ -83,9 +83,6 @@ if (is.null(opt$exogenous_genome_name)) {
                   rename_with(~ gsub("[- ]", "_", .x)) %>%
                   # Remove any row before library merging (containing ".Lb.")
                   filter(!grepl("\\.Lb\\.", ID)) %>%
-                  # replace the first dot in the ID column with underscore, only if it is not followed by "mLb"
-                  mutate(ID = sub("\\.", "_", ID),
-                         ID = gsub("_mLb", ".mLb", ID)) %>%
                   # remove ".sorted" and ".sorted.bam" from the ID column
                   mutate(
                     ID = gsub("\\.sorted\\.bam$", "", ID),
@@ -96,10 +93,13 @@ if (is.null(opt$exogenous_genome_name)) {
                     # ID = gsub("\\.flT3$", "_flT3", ID),
                     # ID = gsub("\\..shifted$", "_shifted", ID),
                     # ID = gsub("\\.dSp$", "_dSp", ID),
+                    # Merge "rmO" with the preceding step so the two
+                    # branches don't collapse onto the same processing_step
+                    ID = gsub("\\.([^.]+)\\.([^.]*rmO)$", ".\\1_\\2", ID),
                     # split ID by ".", processing_step is the last element
                     processing_step = gsub(".*\\.", "", ID),
                     processing_step = fct_relevel(processing_step, rev(unique(processing_step))),
-                    sample = gsub("\\..*$", "", ID)) %>%
+                    sample = sub("\\.mLb.*$", "", ID)) %>%
                   select(-ID) %>%
                   # First, pivot the data to long format for easier reshaping
                   pivot_longer(
@@ -138,9 +138,6 @@ if (is.null(opt$exogenous_genome_name)) {
                   rename_with(~ gsub("[- ]", "_", .x)) %>%
                   # Remove any row before library merging (containing ".Lb.")
                   filter(!grepl("\\.Lb\\.", ID)) %>%
-                  # replace the first dot in the ID column with underscore, only if it is not followed by "mLb"
-                  mutate(ID = sub("\\.", "_", ID),
-                         ID = gsub("_mLb", ".mLb", ID)) %>%
                   # remove ".sorted" and ".sorted.bam" from the ID column
                   mutate(
                     ID = gsub("\\.sorted\\.bam$", "", ID),
@@ -170,10 +167,15 @@ if (is.null(opt$exogenous_genome_name)) {
                           gsub("\\.dSp(.*)$", paste0(".", opt$endogenous_genome_name, "_dSp\\1"), ID), ID),
                     ID = ifelse(grepl(paste0("\\.", opt$exogenous_genome_name, "\\."), ID),
                           gsub("\\.dSp(.*)$", paste0(".", opt$exogenous_genome_name, "_dSp\\1"), ID), ID),
+                    # "rmO" (remove-orphans) can follow either flT3 directly
+                    # (TE-counting branch) or flTbl (blacklist-filtered
+                    # branch); merge it with the preceding step so the two
+                    # branches don't collapse onto the same processing_step
+                    ID = gsub("\\.([^.]+)\\.([^.]*rmO)$", ".\\1_\\2", ID),
                     # split ID by ".", processing_step is the last element
                     processing_step = gsub(".*\\.", "", ID),
                     processing_step = fct_relevel(processing_step, rev(unique(processing_step))),
-                    sample = gsub("\\..*$", "", ID)) %>%
+                    sample = sub("\\.mLb.*$", "", ID)) %>%
                     dplyr::select(-ID) %>%
                     # First, pivot the data to long format for easier reshaping
                     pivot_longer(

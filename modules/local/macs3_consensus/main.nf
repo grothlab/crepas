@@ -7,7 +7,7 @@ process MACS3_CONSENSUS {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/bedtools_biopython_r-optparse_r-upsetr:eb93fd19a8e7d9ea':
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/6a/6a6c6159c8410c98244fbe18fcd7d46e71cd67ddf5675b6d548eb839c36a3c11/data':
         'community.wave.seqera.io/library/bedtools_biopython_r-optparse_r-upsetr:71c4f71726f54101' }"
 
     input:

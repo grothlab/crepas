@@ -64,7 +64,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.bam:md5,c2af8f4213ea71e9d19ae9158e65153d"
+                    [
+                        "test.bam:readsMD5,370adea92dc13fbd1f92d6b38e1c787f"
+                    ]
                 ]
             ],
             {
@@ -84,7 +86,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-06T15:44:06.837652174",
+        "timestamp": "2026-09-24T10:01:14.560149442",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
@@ -98,7 +100,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.bam:md5,c1c2dc595306a90a6e9d9f38698641d8"
+                    [
+                        "test.bam:readsMD5,370adea92dc13fbd1f92d6b38e1c787f"
+                    ]
                 ]
             ],
             {
@@ -118,7 +122,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-06T15:43:54.52739586",
+        "timestamp": "2026-09-24T10:01:02.618961301",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
@@ -132,7 +136,9 @@
                         "id": "test",
                         "single_end": true
                     },
-                    "test.bam:md5,21afed4c3e007de5e007cc5cbaebede7"
+                    [
+                        "test.bam:readsMD5,798439cbd7fd81cbcc5078022dc5479d"
+                    ]
                 ]
             ],
             {
@@ -152,7 +158,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-06T15:44:18.4471866",
+        "timestamp": "2026-09-24T10:01:26.289698525",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"

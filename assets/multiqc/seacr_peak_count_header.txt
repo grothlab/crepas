@@ -1,0 +1,9 @@
+#id: 'seacr_peak_count'
+#section_name: 'MERGED LIB: SEACR peak count'
+#description: "is calculated from total number of peaks called by
+#	       <a href='https://github.com/FredHutch/SEACR' target='_blank'>SEACR</a>"
+#plot_type: 'bargraph'
+#anchor: 'seacr_peak_count'
+#pconfig:
+#    title: 'Total peak count'
+#    ylab: 'Peak count'

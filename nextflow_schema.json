@@ -211,7 +211,7 @@
                 "macs_gsize": {
                     "type": "number",
                     "description": "Effective genome size parameter required by MACS3.",
-                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3.",
+                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3. Provide the number written out in full (e.g. `--macs_gsize 2700000000`), not in scientific notation: `2.7e9`.",
                     "fa_icon": "fas fa-arrows-alt-h"
                 },
                 "blacklist": {
@@ -904,7 +904,7 @@
                     "type": "string",
                     "default": "macs3",
                     "description": "Comma-separated list of peak calling algorithms to use.",
-                    "help_text": "One or more of `macs3`, `genrich`, `consenrich`, `epic2`, `mace`, `dpeak`, `dpos`, `dregion`, `dtriple`, `edd`, `denopa`, `seacr`, given as a comma-separated list without spaces, e.g. `--peak_callers macs3,genrich`. Every listed peak caller is run on all applicable samples. Use `--skip_peak_calling` to switch peak calling off entirely.",
+                    "help_text": "One or more of `macs3`, `genrich`, `consenrich`, `epic2`, `mace`, `dpeak`, `dpos`, `dregion`, `dtriple`, `edd`, `denopa`, `seacr`, given as a comma-separated list without spaces, e.g. `--peak_callers macs3,genrich`. Every listed peak caller is run on all applicable samples. Use `--skip_peak_calling` to switch peak calling off entirely. `denopa` is not compatible with Singularity or Apptainer; run the pipeline with Docker to use it.",
                     "fa_icon": "fas fa-chart-area",
                     "pattern": "^(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr)(,(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr))*$"
                 },
@@ -1412,7 +1412,7 @@
                     "type": "integer",
                     "default": 100,
                     "description": "Distance (kb) around each initiation zone used to discard overlapping ones.",
-                    "help_text": "Any initiation zone whose window of this radius overlaps another one is discarded before plotting. Independent of `partition_plot_range`, so the plotted range can be widened without discarding more initiation zones.",
+                    "help_text": "Any initiation zone whose window of this radius overlaps another one is discarded before plotting. Set to 0 to skip the removal of overlapping initiation zones entirely and keep them all. Independent of `partition_plot_range`, so the plotted range can be widened without discarding more initiation zones.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "partition_exclude_scaffolds": {
@@ -1436,6 +1436,314 @@
                     "type": "boolean",
                     "description": "Whether to save the intermediate files from the partition/RFD analysis step.",
                     "fa_icon": "fas fa-save"
+                }
+            }
+        },
+        "repliseq_analysis_options": {
+            "title": "Repli-seq analysis options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Options to adjust Repli-seq replication-timing (RT) track analysis.",
+            "properties": {
+                "repliseq_bin_size": {
+                    "type": "integer",
+                    "default": 50000,
+                    "description": "Bin size (in bp) used by deepTools `multiBamSummary` when counting reads per window for Repli-seq replication-timing (RT) tracks (e.g. 5000, 10000, 20000, 50000, 100000 for 5/10/20/50/100 kb resolution).",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                },
+                "repliseq_replicate_method": {
+                    "type": "string",
+                    "default": "pooled",
+                    "enum": ["auto", "paired", "pooled"],
+                    "description": "How to combine early/late biological replicates when calculating the Repli-seq RT ratio. `paired` computes the ratio per matched early/late biological-replicate pair (matched by `biological_replicate`) and averages; `pooled` averages replicates within each phase first, then computes one ratio; `auto` chooses between the two via a correlation heuristic (see `--repliseq_pairing_threshold`).",
+                    "fa_icon": "fas fa-random"
+                },
+                "repliseq_normalization": {
+                    "type": "string",
+                    "default": "qn",
+                    "enum": ["cpm", "qn"],
+                    "description": "`cpm` only CPM-normalizes each Repli-seq replicate; `qn` additionally quantile-normalizes between replicates, on top of CPM.",
+                    "fa_icon": "fas fa-balance-scale"
+                },
+                "repliseq_smooth": {
+                    "type": "string",
+                    "default": "loess",
+                    "enum": ["loess", "roll", "none"],
+                    "description": "Smoothing strategy applied to the raw Repli-seq RT track.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_smooth_stage": {
+                    "type": "string",
+                    "default": "replicate",
+                    "enum": ["replicate", "ratio"],
+                    "description": "Where smoothing enters the Repli-seq RT calculation. `replicate` smooths each replicate's normalized coverage track and then takes the early/late ratio; `ratio` takes the ratio first and smooths that. Only affects the smoothed track; the raw track is always the unsmoothed ratio.",
+                    "fa_icon": "fas fa-layer-group"
+                },
+                "repliseq_clamp_negative": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Floor smoothed replicate coverage at zero before taking the Repli-seq early/late ratio. Coverage cannot be negative, but a loess fit can undershoot below it. Only applies with `--repliseq_smooth_stage replicate`.",
+                    "fa_icon": "fas fa-hand-paper"
+                },
+                "repliseq_ratio_direction": {
+                    "type": "string",
+                    "default": "early_over_late",
+                    "enum": ["early_over_late", "late_over_early"],
+                    "description": "Orientation of the Repli-seq log2 ratio. `early_over_late` makes high values early-replicating, which is the usual convention; `late_over_early` inverts it.",
+                    "fa_icon": "fas fa-exchange-alt"
+                },
+                "repliseq_loess_degree": {
+                    "type": "integer",
+                    "default": 2,
+                    "enum": [1, 2],
+                    "description": "Degree of the local polynomial fitted by loess when smoothing Repli-seq RT tracks.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_loess_family": {
+                    "type": "string",
+                    "default": "gaussian",
+                    "enum": ["gaussian", "symmetric"],
+                    "description": "Loess fitting family used when smoothing Repli-seq RT tracks. `symmetric` reweights to resist outliers, but is undefined on sequences where over half the residuals are exactly zero, in which case it falls back to `gaussian` for that sequence.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_loess_window": {
+                    "type": "integer",
+                    "default": 500000,
+                    "description": "Width (in bp) of the loess smoothing window used when `--repliseq_smooth loess`. It is converted to a per-sequence span, so the same genomic scale is smoothed over on every sequence regardless of its length.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_loess_span": {
+                    "type": "number",
+                    "description": "Loess span given directly, as a fraction of the bins on each sequence, used when `--repliseq_smooth loess`. Overrides `--repliseq_loess_window` when set. Because it is a fraction rather than a fixed width, a long chromosome is smoothed over a proportionally wider stretch of sequence than a short one.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_roll_k": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Rolling-mean window size, in bins, used when `--repliseq_smooth roll`.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_corr_method": {
+                    "type": "string",
+                    "default": "spearman",
+                    "enum": ["spearman", "pearson"],
+                    "description": "Correlation method used by the `--repliseq_replicate_method auto` heuristic.",
+                    "fa_icon": "fas fa-square-root-alt"
+                },
+                "repliseq_pairing_threshold": {
+                    "type": "number",
+                    "default": 0.02,
+                    "description": "Under `--repliseq_replicate_method auto`, `paired` is chosen when (matched-replicate-pair average correlation - mismatched-replicate-pair average correlation) is at least this value; otherwise `pooled` is used.",
+                    "fa_icon": "fas fa-square-root-alt"
+                },
+                "repliseq_exclude_scaffolds": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Exclude scaffolds and alternate sequences from the Repli-seq RT track. deepTools `multiBamSummary` bins every sequence in the BAM header, and these are short and usually barely covered, which makes their RT values meaningless. A sequence counts as one when its name begins with `chrUn`, ends with `_random`, `_alt` or `_fix`, or contains a dot. They are dropped before CPM normalization, so the normalization reflects primary-chromosome depth only.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "repliseq_min_bin_reads": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Fewest reads a bin needs across the early and late fractions combined to appear in the `.covered` copy of the Repli-seq ratio track. A bin with no reads in either fraction still gets a ratio of exactly log2(1/1) = 0, which is indistinguishable from a genuinely mid-replicating bin, so replication-timing domains are called on the covered copy while the unfiltered track keeps every bin.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "skip_repliseq_domains": {
+                    "type": "boolean",
+                    "description": "Skip calling domains of constant replication timing from the Repli-seq ratio track.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "repliseq_domain_track": {
+                    "type": "string",
+                    "default": "both",
+                    "enum": ["smooth", "raw", "both"],
+                    "description": "Which Repli-seq ratio track to segment into replication-timing domains. The default `both` segments the raw and the smoothed track. Set `smooth` or `raw` to segment only one.",
+                    "fa_icon": "fas fa-layer-group"
+                },
+                "repliseq_domain_classification": {
+                    "type": "string",
+                    "default": "three_way",
+                    "enum": ["three_way", "binary"],
+                    "description": "How to call each replication-timing domain. `binary` calls every domain early or late from the sign of its segment mean; `three_way` additionally calls domains whose mean sits within `--repliseq_domain_threshold` of zero as intermediate, i.e. replicating throughout S phase.",
+                    "fa_icon": "fas fa-tags"
+                },
+                "repliseq_domain_threshold": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Half-width of the intermediate band around a segment mean of zero, in log2 ratio units. Only used with `--repliseq_domain_classification three_way`.",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "repliseq_domain_alpha": {
+                    "type": "number",
+                    "default": 0.01,
+                    "description": "Significance level for accepting a change point in DNAcopy's circular binary segmentation of the Repli-seq ratio track.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "repliseq_domain_min_width": {
+                    "type": "integer",
+                    "default": 2,
+                    "enum": [2, 3, 4, 5],
+                    "description": "Smallest number of bins a replication-timing domain may contain. DNAcopy's `segment()` accepts 2 to 5.",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                },
+                "repliseq_domain_undo_sd": {
+                    "type": "number",
+                    "default": 1,
+                    "description": "Merge adjacent replication-timing domains whose segment means differ by fewer than this many standard deviations. Zero or less turns the merging off.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "repliseq_domain_smooth_outliers": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Run DNAcopy's `smooth.CNA()` before segmenting, which pulls single-bin outliers towards their neighbours so that one noisy bin does not become its own domain.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_domain_seed": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Random seed for replication-timing domain calling. DNAcopy locates change points with a permutation test, so without a fixed seed the same track segments slightly differently on every run.",
+                    "fa_icon": "fas fa-dice"
+                },
+                "skip_repliseq_gene_classification": {
+                    "type": "boolean",
+                    "description": "Skip classifying genes by the S-phase fraction with the highest read density over their gene body.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "repliseq_min_gene_reads": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Fewest reads a gene needs summed over every S-phase fraction before it is classified. Genes below it are reported as `unclassified`, because with only a handful of reads the fraction with the highest density is decided by sampling noise.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "repliseq_gene_min_margin": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Fewest CPM by which the winning S-phase fraction must exceed the runner-up for a gene to be classified. Zero accepts any winner.",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "repliseq_skip_gene_plots": {
+                    "type": "boolean",
+                    "description": "Skip the diagnostic plots of the Repli-seq gene classification. The classification table and BEDs are still written.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "repliseq_skip_domain_plots": {
+                    "type": "boolean",
+                    "description": "Skip the diagnostic plots of the Repli-seq replication-timing domains. The domain BEDs and QC are still written.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "save_repliseq_intermeds": {
+                    "type": "boolean",
+                    "description": "Whether to save the intermediate files from the Repli-seq RT-track analysis step (raw counts tables and raw, unsmoothed bedGraph tracks).",
+                    "fa_icon": "fas fa-save"
+                }
+            }
+        },
+        "hr_repliseq_analysis_options": {
+            "title": "High-resolution Repli-seq analysis options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Options to adjust high-resolution (16-fraction) Repli-seq analysis.",
+            "properties": {
+                "hr_repliseq_bin_size": {
+                    "type": "integer",
+                    "default": 50000,
+                    "description": "Bin size (in bp) used by deepTools `multiBamSummary` when counting reads per window for high-resolution Repli-seq. 50 kb is the usual resolution: a 30 min BrdU pulse at a fork speed of 1.8 kb/min labels at least 50 kb per fork.",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                },
+                "hr_repliseq_normalization": {
+                    "type": "string",
+                    "default": "auto",
+                    "enum": ["auto", "none", "rpm", "g1_filter", "g1_ratio"],
+                    "description": "How each S phase fraction is normalized before the Repli-seq array is built. `g1_filter` drops the bins a `G1` whole-genome control does not cover, the mappability correction, and keeps the fractions as reads per million. `g1_ratio` additionally replaces each fraction with log2 of its ratio to the control, floored at zero: a stricter correction, but because every fraction and the control share the same mean the floor zeroes about half of each fraction, and on H1 it collapses the initiation-zone calls from ~2950 to 9, so it should not be used to call features. `rpm` corrects for sequencing depth only. `auto` uses `g1_filter` when a `G1` fraction is present in the samplesheet and `rpm` otherwise.",
+                    "fa_icon": "fas fa-balance-scale"
+                },
+                "hr_repliseq_g1_label": {
+                    "type": "string",
+                    "default": "G1",
+                    "description": "Value of the `rt_fraction` samplesheet column that marks the G1 whole-genome-sequencing control.",
+                    "fa_icon": "fas fa-tag",
+                    "hidden": true
+                },
+                "hr_repliseq_g1_min_rpm": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Bins whose G1 control coverage is at or below this many reads per million are dropped, since their ratio to the control is undefined.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "hr_repliseq_exclude_chromosomes": {
+                    "type": "string",
+                    "default": "chrX,chrY,chrM",
+                    "description": "Comma-separated sequences to drop before building the array, matched by name. The default removes the sex chromosomes, whose copy number differs from the autosomes, and the mitochondrial genome, which does not replicate on the nuclear schedule. Set to an empty string to keep every sequence.",
+                    "fa_icon": "fas fa-ban"
+                },
+                "hr_repliseq_chromosomes": {
+                    "type": "string",
+                    "description": "Comma-separated list of sequences to restrict the array to (e.g. `chr1,chr2,chr3`), which also sets the order of the output. Leave unset to use every sequence that survives the scaffold and sex-chromosome filtering.",
+                    "fa_icon": "fas fa-list"
+                },
+                "hr_repliseq_birch_threshold": {
+                    "type": "number",
+                    "default": 0.5,
+                    "description": "BIRCH clustering threshold used to group bins into replication features. Lower values split the array into more, smaller clusters.",
+                    "fa_icon": "fas fa-sitemap"
+                },
+                "hr_repliseq_birch_n_clusters": {
+                    "type": "integer",
+                    "description": "Number of BIRCH clusters to reduce the subclusters to. Leave unset to keep the subclusters themselves.",
+                    "fa_icon": "fas fa-sitemap",
+                    "hidden": true
+                },
+                "hr_repliseq_termination_max_size": {
+                    "type": "integer",
+                    "default": 100000,
+                    "description": "Valleys in the replication-timing profile up to this size (in bp) are called termination sites; larger ones are called late constant-timing regions.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "hr_repliseq_partition_priority": {
+                    "type": "string",
+                    "default": "TTR,breakage,CTR,termination,IZ",
+                    "description": "Order in which overlapping feature calls are resolved into the partition, in which every analysed bin belongs to exactly one feature. Later entries win, so the last one listed takes precedence.",
+                    "fa_icon": "fas fa-sort"
+                },
+                "hr_repliseq_s_phase_hours": {
+                    "type": "number",
+                    "default": 10,
+                    "description": "Assumed length of S phase in hours. A timing transition region is traversed by a single fork, so its length divided by the stretch of S phase it spans gives that fork's speed; this sets how long that stretch is in minutes. The method's paper assumes 10 h, the longest of the five cell lines it profiles, and reports a median of 1.7-2.0 kb/min.",
+                    "fa_icon": "fas fa-clock"
+                },
+                "hr_repliseq_plot_chromosomes": {
+                    "type": "string",
+                    "description": "Comma-separated list of chromosomes to draw a Repli-seq heatmap page for. Leave unset to draw every chromosome in the array.",
+                    "fa_icon": "fas fa-image"
+                },
+                "hr_repliseq_mqc_chromosome": {
+                    "type": "string",
+                    "description": "Chromosome whose Repli-seq heatmap is shown in the MultiQC report. Defaults to the first one drawn.",
+                    "fa_icon": "fas fa-image"
+                },
+                "hr_repliseq_example_pages": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "How many pages of example features to add to the plots PDF. Each page draws one randomly chosen instance of every feature shape: the cluster-centroid rank profile with the feature's bins picked out, over the heatmap of the same bins. Set to 0 to leave them out.",
+                    "fa_icon": "fas fa-images"
+                },
+                "hr_repliseq_example_flank_bins": {
+                    "type": "integer",
+                    "default": 4,
+                    "description": "How many bins to show either side of an example feature. Smaller zooms in on the shape itself, larger gives it more surrounding context.",
+                    "fa_icon": "fas fa-search-plus"
+                },
+                "hr_repliseq_example_seed": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Seed for choosing which feature instances the example pages show, so that a rerun draws the same ones.",
+                    "fa_icon": "fas fa-dice",
+                    "hidden": true
+                },
+                "skip_hr_repliseq_plots": {
+                    "type": "boolean",
+                    "description": "Skip the high-resolution Repli-seq heatmaps and feature summary plots.",
+                    "fa_icon": "fas fa-fast-forward"
                 }
             }
         },
@@ -1652,6 +1960,12 @@
         },
         {
             "$ref": "#/$defs/partition_and_rfd_analysis_options"
+        },
+        {
+            "$ref": "#/$defs/repliseq_analysis_options"
+        },
+        {
+            "$ref": "#/$defs/hr_repliseq_analysis_options"
         },
         {
             "$ref": "#/$defs/institutional_config_options"

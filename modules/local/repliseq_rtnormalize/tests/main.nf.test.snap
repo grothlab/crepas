@@ -1,0 +1,608 @@
+{
+    "homo_sapiens - 3 fractions - replication-timing index": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.bedGraph:md5,899c0eb7093e130802b21f279068bf2b"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.covered.bedGraph:md5,fee443295111e6d86acfd71b9e16b103"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT_index.raw.bedGraph:md5,5d9c9c1757bff6650787293e52ce4b5c"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.qc.txt:md5,7995cefa78520ca065e5c54067a79d10"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "rt_summary.tsv:md5,fb7fd3a4f786510557ea3b38def8e0ff"
+                ]
+            ],
+            {
+                "replicate_smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.early_1.coverage.smooth.bedGraph:rows,46712",
+                            "test.early_2.coverage.smooth.bedGraph:rows,46712",
+                            "test.late_1.coverage.smooth.bedGraph:rows,46712",
+                            "test.mid_1.coverage.smooth.bedGraph:rows,46712"
+                        ]
+                    ]
+                ],
+                "rt_index_smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT_index.smooth.bedGraph:rows,21671"
+                        ]
+                    ]
+                ],
+                "smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.bedGraph:rows,46712"
+                        ]
+                    ]
+                ],
+                "smooth_covered": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.covered.bedGraph:rows,2971"
+                        ]
+                    ]
+                ]
+            },
+            {
+                "versions_r": [
+                    [
+                        "REPLISEQ_RTNORMALIZE",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:13:40.254351125",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - 4 replicates - pooled, quantile-normalized, rolling-mean smoothed": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.bedGraph:md5,899c0eb7093e130802b21f279068bf2b"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.covered.bedGraph:md5,fee443295111e6d86acfd71b9e16b103"
+                ]
+            ],
+            [
+                
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.qc.txt:md5,2208bf5eddf8fac8f2df1a8193c9b130"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "rt_summary.tsv:md5,fb7fd3a4f786510557ea3b38def8e0ff"
+                ]
+            ],
+            {
+                "replicate_smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.early_1.coverage.smooth.bedGraph:rows,46710",
+                            "test.early_2.coverage.smooth.bedGraph:rows,46710",
+                            "test.late_1.coverage.smooth.bedGraph:rows,46710",
+                            "test.late_2.coverage.smooth.bedGraph:rows,46710"
+                        ]
+                    ]
+                ],
+                "rt_index_smooth": [
+                    
+                ],
+                "smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.bedGraph:rows,46710"
+                        ]
+                    ]
+                ],
+                "smooth_covered": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.covered.bedGraph:rows,2971"
+                        ]
+                    ]
+                ]
+            },
+            {
+                "versions_r": [
+                    [
+                        "REPLISEQ_RTNORMALIZE",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:11:40.636211987",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - 4 replicates - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.RT.raw.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.RT.smooth.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.RT.raw.covered.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.RT.smooth.covered.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    
+                ],
+                "5": [
+                    
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.coverage.smooth.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "7": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.qc.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "8": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "rt_summary.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "9": [
+                    [
+                        "REPLISEQ_RTNORMALIZE",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ],
+                "qc": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.qc.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "raw": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.RT.raw.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "raw_covered": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.RT.raw.covered.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "replicate_smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.coverage.smooth.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "rt_index_raw": [
+                    
+                ],
+                "rt_index_smooth": [
+                    
+                ],
+                "smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.RT.smooth.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "smooth_covered": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.RT.smooth.covered.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "summary": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "rt_summary.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_r": [
+                    [
+                        "REPLISEQ_RTNORMALIZE",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-03T13:41:36.053361985",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - 4 replicates - CPM only, loess smoothed on the ratio": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.bedGraph:md5,899c0eb7093e130802b21f279068bf2b"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.covered.bedGraph:md5,fee443295111e6d86acfd71b9e16b103"
+                ]
+            ],
+            [
+                
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.qc.txt:md5,2d24f09ac957c0ac061c1010a81cfdec"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "rt_summary.tsv:md5,fb7fd3a4f786510557ea3b38def8e0ff"
+                ]
+            ],
+            {
+                "replicate_smooth": [
+                    
+                ],
+                "rt_index_smooth": [
+                    
+                ],
+                "smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.bedGraph:rows,46712"
+                        ]
+                    ]
+                ],
+                "smooth_covered": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.covered.bedGraph:rows,2971"
+                        ]
+                    ]
+                ]
+            },
+            {
+                "versions_r": [
+                    [
+                        "REPLISEQ_RTNORMALIZE",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:11:15.591994825",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - 4 replicates - pipeline defaults (pooled, quantile-normalized, per-replicate loess)": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.bedGraph:md5,899c0eb7093e130802b21f279068bf2b"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.covered.bedGraph:md5,fee443295111e6d86acfd71b9e16b103"
+                ]
+            ],
+            [
+                
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.qc.txt:md5,114468e93e8f14c7d7e5ab74acc735f3"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "rt_summary.tsv:md5,fb7fd3a4f786510557ea3b38def8e0ff"
+                ]
+            ],
+            {
+                "replicate_smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.early_1.coverage.smooth.bedGraph:rows,46712",
+                            "test.early_2.coverage.smooth.bedGraph:rows,46712",
+                            "test.late_1.coverage.smooth.bedGraph:rows,46712",
+                            "test.late_2.coverage.smooth.bedGraph:rows,46712"
+                        ]
+                    ]
+                ],
+                "rt_index_smooth": [
+                    
+                ],
+                "smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.bedGraph:rows,46712"
+                        ]
+                    ]
+                ],
+                "smooth_covered": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.covered.bedGraph:rows,2971"
+                        ]
+                    ]
+                ]
+            },
+            {
+                "versions_r": [
+                    [
+                        "REPLISEQ_RTNORMALIZE",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:10:26.23775757",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - 4 replicates - paired replicate combination": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.bedGraph:md5,02d1e0e2f8447ef27d4c2c1f5caca1d7"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.RT.raw.covered.bedGraph:md5,6ec9db1c6491b1634a1d511b430cd454"
+                ]
+            ],
+            [
+                
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.qc.txt:md5,165a181b50a2b2fa8517160d06eb6f41"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "rt_summary.tsv:md5,467b880845a910cf606b7d835fdb3833"
+                ]
+            ],
+            {
+                "replicate_smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.early_1.coverage.smooth.bedGraph:rows,46712",
+                            "test.early_2.coverage.smooth.bedGraph:rows,46712",
+                            "test.late_1.coverage.smooth.bedGraph:rows,46712",
+                            "test.late_2.coverage.smooth.bedGraph:rows,46712"
+                        ]
+                    ]
+                ],
+                "rt_index_smooth": [
+                    
+                ],
+                "smooth": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.bedGraph:rows,46712"
+                        ]
+                    ]
+                ],
+                "smooth_covered": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            "test.RT.smooth.covered.bedGraph:rows,2971"
+                        ]
+                    ]
+                ]
+            },
+            {
+                "versions_r": [
+                    [
+                        "REPLISEQ_RTNORMALIZE",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:12:41.102134622",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

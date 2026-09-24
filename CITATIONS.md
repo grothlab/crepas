@@ -134,6 +134,10 @@
 
   > Free Software Foundation. gzip: the data compression program. GNU Project. Software documentation. URL: https://www.gnu.org/software/gzip/.
 
+- [High-Resolution Repli-Seq](https://doi.org/10.1186/s13059-020-01983-8)
+
+  > Zhao PA, Sasaki T, Gilbert DM. High-resolution Repli-Seq defines the temporal choreography of initiation, elongation and termination of replication in mammalian cells. Genome Biol. 2020 Mar 24;21(1):76. doi: 10.1186/s13059-020-01983-8. PubMed PMID: 32209126; PubMed Central PMCID: PMC7092583.
+
 - [HISAT2](https://doi.org/10.1038/s41587-019-0201-4)
 
   > Kim D, Paggi JM, Park C, Bennett C, Salzberg SL. Graph-based genome alignment and genotyping with HISAT2 and HISAT-genotype. Nat Biotechnol. 2019 Aug;37(8):907-915. doi: 10.1038/s41587-019-0201-4. PubMed PMID: 31375807; PubMed Central PMCID: PMC7605509.
@@ -346,6 +350,10 @@
 
   > Collin L, Tukaani Project. XZ Utils. Software documentation. URL: https://tukaani.org/xz/.
 
+- [scikit-learn](https://jmlr.org/papers/v12/pedregosa11a.html)
+
+  > Pedregosa F, Varoquaux G, Gramfort A, Michel V, Thirion B, Grisel O, Blondel M, Prettenhofer P, Weiss R, Dubourg V, Vanderplas J, Passos A, Cournapeau D, Brucher M, Perrot M, Duchesnay E. Scikit-learn: Machine Learning in Python. Journal of Machine Learning Research. 2011;12:2825-2830.
+
 ## R packages
 
 - [argparse](https://CRAN.R-project.org/package=argparse)
@@ -368,9 +376,17 @@
 
   > Gu Z, Eils R, Schlesner M. Complex heatmaps reveal patterns and correlations in multidimensional genomic data. Bioinformatics. 2016 Sep 15;32(18):2847-2849. doi: 10.1093/bioinformatics/btw313. PubMed PMID: 27207943.
 
+- [data.table](https://CRAN.R-project.org/package=data.table)
+
+  > Barrett T, Dowle M, Srinivasan A, Gorecki J, Chirico M, Hocking T, Schwendinger B. data.table: Extension of `data.frame`. R package.
+
 - [DESeq2](https://doi.org/10.1186/s13059-014-0550-8)
 
   > Love MI, Huber W, Anders S. Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. Genome Biol. 2014;15(12):550. PubMed PMID: 25516281; PubMed Central PMCID: PMC4302049.
+
+- [DNAcopy](https://doi.org/10.1093/biostatistics/kxh008)
+
+  > Olshen AB, Venkatraman ES, Lucito R, Wigler M. Circular binary segmentation for the analysis of array-based DNA copy number data. Biostatistics. 2004 Oct;5(4):557-72. doi: 10.1093/biostatistics/kxh008. PubMed PMID: 15475419.
 
 - [dplyr](https://CRAN.R-project.org/package=dplyr)
 
@@ -459,6 +475,10 @@
 - [viridis](https://CRAN.R-project.org/package=viridis)
 
   > Garnier S, Ross N, Rudis R, Camargo AP, Sciaini M, Scherer C. viridis: Colorblind-Friendly Color Maps for R. CRAN. URL: https://CRAN.R-project.org/package=viridis.
+
+- [zoo](https://doi.org/10.18637/jss.v014.i06)
+
+  > Zeileis A, Grothendieck G. zoo: S3 Infrastructure for Regular and Irregular Time Series. Journal of Statistical Software. 2005;14(6):1-27. doi: 10.18637/jss.v014.i06.
 
 ## Software packaging/containerisation tools
 

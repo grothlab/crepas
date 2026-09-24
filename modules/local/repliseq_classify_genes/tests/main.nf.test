@@ -1,0 +1,138 @@
+nextflow_process {
+
+    name "Test Process REPLISEQ_CLASSIFY_GENES"
+    script "../main.nf"
+    process "REPLISEQ_CLASSIFY_GENES"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "repliseq_classify_genes"
+    tag "bed_to_saf"
+    tag "subread/featurecounts"
+
+    setup {
+
+        run("BED_TO_SAF") {
+            script "../../bed_to_saf/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'genes' ],
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        run("SUBREAD_FEATURECOUNTS") {
+            script "../../../nf-core/subread/featurecounts/main.nf"
+            process {
+                """
+                input[0] = BED_TO_SAF.out.saf.map { _meta, saf ->
+                    [
+                        [ id:'test', single_end:false ],
+                        [
+                            file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.bam', checkIfExists: true),
+                            file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                            file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.methylated.sorted.bam', checkIfExists: true)
+                        ],
+                        saf
+                    ]
+                }
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - three fractions - classify gene bodies") {
+
+        when {
+            process {
+                """
+                input[0] = SUBREAD_FEATURECOUNTS.out.counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'mid', 'late' ], [ '1', '1', '1' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.mid },
+                { assert snapshot(
+                    process.out.classes,
+                    process.out.early,
+                    process.out.late,
+                    process.out.mid,
+                    process.out.unclassified,
+                    process.out.qc,
+                    process.out.summary,
+                    process.out.mqc_box,
+                    process.out.versions_r,
+                    process.out.plots.collect { entry -> file(entry[1]).name }
+                ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - early and late only - no intermediate class") {
+
+        when {
+            process {
+                """
+                input[0] = SUBREAD_FEATURECOUNTS.out.counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'early', 'late' ], [ '1', '2', '1' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.mid.size() == 0 },
+                { assert snapshot(
+                    process.out.classes,
+                    process.out.early,
+                    process.out.late,
+                    process.out.mid,
+                    process.out.unclassified,
+                    process.out.qc,
+                    process.out.summary,
+                    process.out.mqc_box,
+                    process.out.versions_r,
+                    process.out.plots.collect { entry -> file(entry[1]).name }
+                ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = SUBREAD_FEATURECOUNTS.out.counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'mid', 'late' ], [ '1', '1', '1' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

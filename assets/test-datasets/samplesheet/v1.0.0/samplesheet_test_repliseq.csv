@@ -1,0 +1,13 @@
+sample,biological_replicate,exp_type,rt_fraction,fastq_1
+mESC,1,Repli-seq,early,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/099/SRR10022299/SRR10022299.fastq.gz
+mESC,2,Repli-seq,early,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/000/SRR10022300/SRR10022300.fastq.gz
+mESC,1,Repli-seq,mid,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/001/SRR10022301/SRR10022301.fastq.gz
+mESC,2,Repli-seq,mid,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/002/SRR10022302/SRR10022302.fastq.gz
+mESC,1,Repli-seq,late,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/003/SRR10022303/SRR10022303.fastq.gz
+mESC,2,Repli-seq,late,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/004/SRR10022304/SRR10022304.fastq.gz
+2CLCs,1,Repli-seq,early,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/005/SRR10022305/SRR10022305.fastq.gz
+2CLCs,2,Repli-seq,early,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/006/SRR10022306/SRR10022306.fastq.gz
+2CLCs,1,Repli-seq,mid,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/007/SRR10022307/SRR10022307.fastq.gz
+2CLCs,2,Repli-seq,mid,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/008/SRR10022308/SRR10022308.fastq.gz
+2CLCs,1,Repli-seq,late,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/009/SRR10022309/SRR10022309.fastq.gz
+2CLCs,2,Repli-seq,late,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR100/010/SRR10022310/SRR10022310.fastq.gz

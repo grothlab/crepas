@@ -254,7 +254,7 @@ workflow PREPARE_GENOME {
         ch_spikein_barcode_table = channel.value( [ [id:'spikein_barcode_table'], file("${projectDir}/assets/barcodes/sc_spikein_barcodes.tsv", checkIfExists: true) ] )
     }
 
-    ch_sparsebed = channel.empty()
+    ch_sparsebed = channel.empty().first()
     if (sparsebed) {
         if (sparsebed.endsWith('.gz')) {
             ch_sparsebed = GUNZIP_SPARSEBED ( [ [id:'sparsebed'], file(sparsebed, checkIfExists: true) ] ).gunzip
@@ -263,7 +263,7 @@ workflow PREPARE_GENOME {
         }
     }
 
-    ch_active_regions = channel.empty()
+    ch_active_regions = channel.empty().first()
     if (active_regions) {
         if (active_regions.endsWith('.gz')) {
             ch_active_regions = GUNZIP_ACTIVE_REGIONS ( [ [id:'active_regions'], file(active_regions, checkIfExists: true) ] ).gunzip
@@ -287,7 +287,7 @@ workflow PREPARE_GENOME {
 
     //ch_blacklist = channel.value( [ [id:'blacklist'], ch_dummy_file ] )
     // Uncompress blacklist file if required
-    ch_blacklist = channel.empty()
+    ch_blacklist = channel.empty().first()
     if (blacklist) {
         if (blacklist.endsWith('.gz')) {
             ch_blacklist = GUNZIP_BLACKLIST ( [ [id:'blacklist'], file(blacklist, checkIfExists: true) ] ).gunzip
@@ -310,7 +310,7 @@ workflow PREPARE_GENOME {
     }
 
 
-    ch_okseq_rfd_file = channel.empty().first() // .first() ensures it is a value channel
+    ch_okseq_rfd_file = channel.empty().first()
     if (okseq_rfd_file) {
         if (okseq_rfd_file.endsWith('.gz')) {
             ch_okseq_rfd_file = GUNZIP_OKSEQ_RFD_FILE ( [ [id:'okseq_rfd_file'], file(okseq_rfd_file, checkIfExists: true) ] ).gunzip
@@ -319,7 +319,7 @@ workflow PREPARE_GENOME {
         }
     }
 
-    ch_initiation_zones = channel.empty().first() // .first() ensures it is a value channel
+    ch_initiation_zones = channel.empty().first()
     if (initiation_zones) {
         if (initiation_zones.endsWith('.gz')) {
             ch_initiation_zones = GUNZIP_INITIATION_ZONES ( [ [id:'initiation_zones'], file(initiation_zones, checkIfExists: true) ] ).gunzip
@@ -368,7 +368,8 @@ workflow PREPARE_GENOME {
         .combine(ch_effective_gsize)
         .first()
         .map { size, egs ->
-            egs.toDouble() / size.toDouble()
+            // khmer's stub just touches an empty kmers.txt, so egs.toDouble() would throw "empty String" under -stub
+            workflow.stubRun ? 1.0 : egs.toDouble() / size.toDouble()
         }
         .set { ch_effective_gfraction }
 

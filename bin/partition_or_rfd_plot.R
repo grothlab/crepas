@@ -68,6 +68,27 @@ sample_name_from_file <- function(path) {
 }
 
 
+# Beyond 12 colors, the other qualitative Brewer palettes are appended
+sample_palette <- function(n) {
+  pool <- unique(c(
+    RColorBrewer::brewer.pal(12, "Paired"),
+    RColorBrewer::brewer.pal(8, "Dark2"),
+    RColorBrewer::brewer.pal(9, "Set1"),
+    RColorBrewer::brewer.pal(8, "Set2"),
+    RColorBrewer::brewer.pal(12, "Set3")
+  ))
+  n_hues <- n
+  while (length(pool) < n) {
+    hues <- seq(15, 375, length.out = n_hues + 1)[seq_len(n_hues)]
+    pool <- unique(c(pool,
+                     grDevices::hcl(h = hues, c = 100,
+                                    l = rep(c(65, 45, 80), length.out = n_hues))))
+    n_hues <- n_hues * 2
+  }
+  pool[seq_len(n)]
+}
+
+
 # ===============================================================================
 # Argument parsing
 # ===============================================================================
@@ -130,7 +151,7 @@ parser$add_argument("-r", "--plot_range", action = "store",
 parser$add_argument("-z", "--iz_rm_overlap_range", action = "store",
                     default = 100,
                     type = "integer",
-                    help = "Distance (kb) around each initiation zone used to discard overlapping ones. Any initiation zone whose window of this radius overlaps another one is discarded before plotting. Independent of --plot_range, so the plotted range can be widened without discarding more initiation zones. [default: 100 kb]")
+                    help = "Distance (kb) around each initiation zone used to discard overlapping ones. Any initiation zone whose window of this radius overlaps another one is discarded before plotting. Set to 0 to skip the removal of overlapping initiation zones entirely and keep them all. Independent of --plot_range, so the plotted range can be widened without discarding more initiation zones. [default: 100 kb]")
 
 parser$add_argument("-e", "--exclude_chromosomes", action = "store",
                     default = "chrX,chrY,chrM",
@@ -140,7 +161,7 @@ parser$add_argument("-e", "--exclude_chromosomes", action = "store",
 parser$add_argument("-g", "--exclude_scaffolds", action = "store",
                     default = TRUE,
                     type = "logical",
-                    help = "Whether to exclude scaffolds from analyses. Chromosomes whose name begins with 'chrUn' or contains a dot ('.') are considered scaffolds [default: FALSE]")
+                    help = "Whether to exclude scaffolds from analyses. Chromosomes whose name begins with 'chrUn', ends with '_random', '_alt' or '_fix', or contains a dot ('.') are considered scaffolds [default: TRUE]")
 
 parser$add_argument("-w", "--only_plot_wholly_within_iz", action = "store",
                     default = FALSE,
@@ -228,16 +249,16 @@ if (num_types_with_files == 0 && !HAS_OKSEQ) {
   stop("[", Sys.time(), "] ERROR: Please provide at least one partition file or OK-seq file to create plots.")
 } else if (num_types_with_files == 0 && HAS_OKSEQ) {
   # OK-seq only
-  plot_width <- 6
+  plot_width <- 6.2
   plot_suffix <- "RFD"
 } else if (num_types_with_files == 1) {
-  plot_width <- 6
+  plot_width <- 6.2
   plot_suffix <- "partition"
 } else if (num_types_with_files == 2) {
-  plot_width <- 7
+  plot_width <- 7.2
   plot_suffix <- "partition"
 } else if (num_types_with_files == 3) {
-  plot_width <- 8
+  plot_width <- 8.2
   plot_suffix <- "partition"
 }
 
@@ -324,8 +345,7 @@ if (HAS_CHROM_SIZES) {
   # Remove scaffolds from chrom_sizes if needed
   if (opt_exclude_scaffolds) {
     message("\n[", Sys.time(), "] Removing scaffolds from chromosome sizes...")
-    chrom_sizes_df <- chrom_sizes_df[!grepl("\\.", chrom_sizes_df$chr), ]
-    chrom_sizes_df <- chrom_sizes_df[!grepl("^chrUn", chrom_sizes_df$chr), ]
+    chrom_sizes_df <- chrom_sizes_df[!grepl("^chrUn|_random$|_alt$|_fix$|\\.", chrom_sizes_df$chr), ]
   }
 
   chrom_sizes <- deframe(chrom_sizes_df)
@@ -358,35 +378,42 @@ IZ_gr <- IZ_df %>%
 # coordinates are now 1-based thanks to starts.in.df.are.0based = TRUE
 IZ_gr$interval <- paste0(seqnames(IZ_gr), ":", start(IZ_gr), "-", end(IZ_gr))
 
-message("\n[", Sys.time(), "] (", iz_base_name, ") Removing overlapping initiation zones (within ", opt_iz_rm_overlap_range, " kb upstream and ", opt_iz_rm_overlap_range, " kb downstream of another initiation zone)...")
-
 # Get original start coordinate for each initiation zone
 IZ_gr$break_start <- start(IZ_gr)
 
-# Overlapping initiation zones are discarded based on their own radius, which is independent
-# of the plotted range: widening the plot does not discard more initiation zones.
-# Resizing can generate bins with negative start positions (out-of-bound), so we trim them
-iz_overlap_gr <- trim(resize(IZ_gr, IZ_OVERLAP_LIMITS * 2, fix = "center"))
+# A radius of 0 switches overlap removal off, keeping every initiation zone
+if (opt_iz_rm_overlap_range > 0) {
 
-# Finding the nearest resized initiation zone to each resized initiation zone
-IZ_dist <- distanceToNearest(iz_overlap_gr)
+  message("\n[", Sys.time(), "] (", iz_base_name, ") Removing overlapping initiation zones (within ", opt_iz_rm_overlap_range, " kb upstream and ", opt_iz_rm_overlap_range, " kb downstream of another initiation zone)...")
 
-# Removing overlapping resized initiation zones
-overlapping_hits <- queryHits(subset(IZ_dist, IZ_dist@elementMetadata$distance == 0))
-# The following line removes overlapping IZs, and catches the case when there are no overlaps
-if (length(overlapping_hits) > 0) {
-  IZ_gr <- IZ_gr[-overlapping_hits]
+  # Overlapping initiation zones are discarded based on their own radius, which is independent
+  # of the plotted range: widening the plot does not discard more initiation zones.
+  # Resizing can generate bins with negative start positions (out-of-bound), so we trim them
+  iz_overlap_gr <- trim(resize(IZ_gr, IZ_OVERLAP_LIMITS * 2, fix = "center"))
+
+  # Finding the nearest resized initiation zone to each resized initiation zone
+  IZ_dist <- distanceToNearest(iz_overlap_gr)
+
+  # Removing overlapping resized initiation zones
+  overlapping_hits <- queryHits(subset(IZ_dist, IZ_dist@elementMetadata$distance == 0))
+  # The following line removes overlapping IZs, and catches the case when there are no overlaps
+  if (length(overlapping_hits) > 0) {
+    IZ_gr <- IZ_gr[-overlapping_hits]
+  } else {
+    message("\n[", Sys.time(), "] (", iz_base_name, ") No overlapping initiation zones found within ", opt_iz_rm_overlap_range, " kb upstream and ", opt_iz_rm_overlap_range, " kb downstream of another initiation zone.")
+  }
+
+  # Remove temporary variables
+  rm(iz_overlap_gr, IZ_dist, overlapping_hits)
+
 } else {
-  message("\n[", Sys.time(), "] (", iz_base_name, ") No overlapping initiation zones found within ", opt_iz_rm_overlap_range, " kb upstream and ", opt_iz_rm_overlap_range, " kb downstream of another initiation zone.")
+  message("\n[", Sys.time(), "] (", iz_base_name, ") --iz_rm_overlap_range is 0, so overlapping initiation zones are not removed.")
 }
 
 # The retained initiation zones are then resized to the plotted range
 IZ_gr <- trim(resize(IZ_gr, IZ_PLOT_LIMITS * 2, fix = "center"))
 
-message("\n[", Sys.time(), "] (", iz_base_name, ") The number of initiation zones after removing overlaps is: ", length(IZ_gr), ".")
-
- # Remove temporary variables
-rm(IZ_dist, overlapping_hits)
+message("\n[", Sys.time(), "] (", iz_base_name, ") The number of initiation zones retained is: ", length(IZ_gr), ".")
 
 
 if (HAS_OKSEQ) {
@@ -617,10 +644,14 @@ if (num_types_with_files > 0) {
   sample_labels <- c("OK-seq" = "OK-seq")
 }
 
-# set a color in Dark2 palette for each sample, but set OK-seq to dark gray
-dark2_colors <- RColorBrewer::brewer.pal(length(unique(partition_mean_df$sample)), "Paired")
+# set a color for each sample, but set OK-seq to dark gray
 sample_names <- unique(partition_mean_df$sample)
-sample_colors <- setNames(dark2_colors[seq_along(sample_names)], sample_names)
+sample_colors <- setNames(sample_palette(length(sample_names)), sample_names)
+
+# A legend with many samples takes up more of the figure, so widen it to keep the panel readable
+if (length(sample_names) > 15) {
+  plot_width <- plot_width + 3
+}
 # Only set OK-seq to grey if there are partition files
 if (num_types_with_files > 0) {
   sample_colors["OK-seq"] <- "grey60"

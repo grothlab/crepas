@@ -4,7 +4,7 @@ process DESEQ2_QC {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/bioconductor-biocparallel_bioconductor-complexheatmap_bioconductor-deseq2_bioconductor-tximport_pruned:95aef8e10f40bd25' :
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/8c/8c37c28e94cb08e049263519febbc9fb2a665247c53487c0bbbe1c78068f84a1/data' :
         'community.wave.seqera.io/library/bioconductor-biocparallel_bioconductor-complexheatmap_bioconductor-deseq2_bioconductor-tximport_pruned:734b06a8a49c9ab7' }"
 
     input:

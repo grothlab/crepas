@@ -52,6 +52,7 @@ process FASTQ_EXTRACT_SPIKEIN_BARCODES {
         ' "\$barcode_tsv" -
     }
 
+    # Both R1 and R2 are searched because the barcoded side of nucleosome may be ligated in either direction relative to the P5 or P7 adapters.
     count_barcodes_with_awk "${reads[0]}" "${barcode_table}" > r1_counts.tsv
     count_barcodes_with_awk "${reads[1]}" "${barcode_table}" > r2_counts.tsv
 

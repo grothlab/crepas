@@ -1,0 +1,13 @@
+#id: 'repliseq_gene_class'
+#section_name: 'MERGED LIB: Repli-seq gene classification'
+#description: "counts how many genes were assigned to each S-phase fraction, taking for each gene
+#              the fraction with the highest read density over its gene body. Genes are counted as
+#              <code>unclassified</code> when they carry too few reads to call. The plot below shows where each class
+#              falls relative to an early/late ratio of zero."
+#plot_type: 'bargraph'
+#anchor: 'repliseq_gene_class'
+#pconfig:
+#    id: 'repliseq_gene_class_plot'
+#    title: 'Repli-seq: genes per replication-timing class'
+#    ylab: 'Genes'
+#    namespace: 'Repli-seq'

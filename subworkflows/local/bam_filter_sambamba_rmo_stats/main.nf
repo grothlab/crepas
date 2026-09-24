@@ -126,10 +126,11 @@ workflow BAM_FILTER_SAMBAMBA_RMO_STATS {
         ch_flagstat
     )
 
-    // Extract the total mapped reads from the text file
+    // Extract the total mapped reads from the text file. Under -stub, BAM_FLAGSTAT_MAPPED's
+    // output is just an empty touched file, so splitCsv() would return no rows at all.
     BAM_FLAGSTAT_MAPPED.out.txt
         .map { meta, total ->
-            [meta, total.splitCsv(header: false)[0][0]]
+            [meta, workflow.stubRun ? '1' : total.splitCsv(header: false)[0][0]]
         }
         .set { ch_total_reads }
 

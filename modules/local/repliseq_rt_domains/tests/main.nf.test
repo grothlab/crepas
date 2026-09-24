@@ -1,0 +1,136 @@
+nextflow_process {
+
+    name "Test Process REPLISEQ_RT_DOMAINS"
+    script "../main.nf"
+    process "REPLISEQ_RT_DOMAINS"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "repliseq_rt_domains"
+    tag "repliseq_rtnormalize"
+    tag "deeptools/multibamsummary"
+
+    setup {
+
+        run("DEEPTOOLS_MULTIBAMSUMMARY") {
+            script "../../../nf-core/deeptools/multibamsummary/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ],
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.markduplicates.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.recalibrated.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.markduplicates.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.recalibrated.sorted.bam', checkIfExists: true)
+                    ],
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.markduplicates.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.recalibrated.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.markduplicates.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.recalibrated.sorted.bam.bai', checkIfExists: true)
+                    ],
+                    [ 'early_1', 'early_2', 'late_1', 'late_2' ]
+                ]
+                input[1] = [ [:], [] ]
+                """
+            }
+        }
+
+        run("REPLISEQ_RTNORMALIZE") {
+            script "../../repliseq_rtnormalize/main.nf"
+            process {
+                """
+                input[0] = DEEPTOOLS_MULTIBAMSUMMARY.out.raw_counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'early', 'late', 'late' ], [ '1', '2', '1', '2' ] ]
+                }
+                """
+            }
+        }
+
+    }
+
+    test("homo_sapiens - smoothed ratio - three-way classification") {
+
+        when {
+            process {
+                """
+                input[0] = REPLISEQ_RTNORMALIZE.out.smooth_covered
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.domains,
+                    process.out.early,
+                    process.out.late,
+                    process.out.mid,
+                    process.out.qc,
+                    process.out.mqc_box,
+                    process.out.versions_r,
+                    process.out.versions_dnacopy,
+                    process.out.plots.collect { entry -> file(entry[1]).name }
+                ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - raw ratio - binary classification, no segment merging") {
+
+        config "./nextflow_binary.config"
+
+        when {
+            process {
+                """
+                input[0] = REPLISEQ_RTNORMALIZE.out.raw_covered
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.mid.size() == 0 },
+                { assert snapshot(
+                    process.out.domains,
+                    process.out.early,
+                    process.out.late,
+                    process.out.mid,
+                    process.out.qc,
+                    process.out.mqc_box,
+                    process.out.versions_r,
+                    process.out.versions_dnacopy,
+                    process.out.plots.collect { entry -> file(entry[1]).name }
+                ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - smoothed ratio - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = REPLISEQ_RTNORMALIZE.out.smooth_covered
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

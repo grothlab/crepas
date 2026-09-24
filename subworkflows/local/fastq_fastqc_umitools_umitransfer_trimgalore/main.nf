@@ -119,7 +119,9 @@ workflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE {
             .join(trim_log, remainder: true)
             .map {
                 meta, read, log ->
-                    if (log) {
+                    // Under -stub, TrimGalore's log is just an empty file: parsing it
+                    // would report 0 reads and silently filter every stub sample out below.
+                    if (log && !workflow.stubRun) {
                         def num_reads = getTrimGaloreReadsAfterFiltering(meta.single_end ? log : log[-1])
                         [ meta, read, num_reads ]
                     } else {

@@ -1,0 +1,178 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "repliseq_rtnormalize"
+description: Calculate and normalize a replication-timing (E/L ratio) track for one Repli-seq sample from a multi-replicate, multi-phase read-count table, with a choice of replicate-combination strategy, normalization, and smoothing
+keywords:
+  - repli-seq
+  - replication timing
+  - loess
+  - quantile normalization
+  - cpm
+  - bedgraph
+tools:
+  - "R":
+      description: |
+        The R environment for statistical computing. `repliseq_rtnormalize.R` uses only base R
+        (`loess()` for smoothing, and a direct implementation of quantile normalization),
+        data.table to hold the binned counts, and zoo for rolling-mean smoothing.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/other-docs.html
+      licence: ["GPL-2.0-or-later"]
+      identifier: "biotools:R"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample (condition) information
+          e.g. [ id:'test' ]
+    - counts:
+        type: file
+        description: |
+          Raw per-window read-count table (chr, start, end, then one column per replicate), e.g.
+          `DEEPTOOLS_MULTIBAMSUMMARY`'s `--outRawCounts` output; its one header line is always
+          skipped. Column order must match `phases`/`breps`.
+        pattern: "*.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+    - phases:
+        type: list
+        description: |
+          Fraction ('early', 'mid' or 'late') of each count column, in the same order as `counts`.
+          Intermediate fractions take no part in the early/late ratio and are used only by the
+          replication-timing index.
+    - breps:
+        type: list
+        description: |
+          Biological replicate identifier of each count column, in the same order as `counts`.
+          Used to match early/late replicate pairs for `--method paired`.
+output:
+  raw:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT.raw.bedGraph":
+          type: file
+          description: Raw (unsmoothed) replication-timing log2(early/late) ratio track
+          pattern: "*.RT.raw.bedGraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  smooth:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT.smooth.bedGraph":
+          type: file
+          description: |
+            Smoothed replication-timing track (loess or rolling-mean, per `task.ext.args`
+            `--smooth`; identical to the raw track when `--smooth none`)
+          pattern: "*.RT.smooth.bedGraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  rt_index_raw:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT_index.raw.bedGraph":
+          type: file
+          description: |
+            Raw (unsmoothed) replication-timing index: per bin, the weighted-mean S-phase fraction
+            rescaled to 0 (replicating entirely in the earliest fraction) .. 1 (entirely in the
+            latest). Only emitted when at least three fractions were supplied, since with only
+            early and late it carries nothing the ratio does not
+          pattern: "*.RT_index.raw.bedGraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  rt_index_smooth:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT_index.smooth.bedGraph":
+          type: file
+          description: |
+            Smoothed replication-timing index, smoothed consistently with `--smooth_stage`. Only
+            emitted when at least three fractions were supplied
+          pattern: "*.RT_index.smooth.bedGraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  replicate_smooth:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.coverage.smooth.bedGraph":
+          type: file
+          description: |
+            Smoothed, normalized coverage track for one input replicate (named
+            `<prefix>.<phase>_<brep>.coverage.smooth.bedGraph`), i.e. the per-replicate track that
+            feeds into `RT.smooth.bedGraph`. Only emitted under `--smooth_stage replicate`
+            (the default) with `--smooth` other than `none`, since that is the only combination
+            where an individual replicate's coverage is itself smoothed rather than the combined
+            ratio
+          pattern: "*.coverage.smooth.bedGraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  qc:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.qc.txt":
+          type: file
+          description: |
+            QC/provenance report: chosen replicate-combination method (and, when `--method auto`,
+            the matched/mismatched replicate-pair correlations behind that choice), normalization,
+            smoothing settings, and number of bins used
+          pattern: "*.qc.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_2330" # textual format
+  summary:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "rt_summary.tsv":
+          type: file
+          description: |
+            The same summary as `*.qc.txt` as a two-line TSV (column names, then one row for this
+            sample), ready to have a MultiQC custom-content header concatenated on top of it. The
+            filename is deliberately not prefixed with the sample name, so that it sorts after the
+            header file when the two are concatenated in filename order
+          pattern: "rt_summary.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_r:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version | head -1 | sed 's/R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version | head -1 | sed 's/R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

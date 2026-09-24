@@ -38,9 +38,12 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
+                // BAM/SAM md5s are not reproducible: the @PG header records the setup
+                // collate thread count and samtools version. Snapshot names and record count.
                 { assert snapshot(
-                    process.out.bam,
-                    process.out.sam,
+                    file(process.out.bam[0][1]).name,
+                    file(process.out.sam[0][1]).name,
+                    path(process.out.sam[0][1]).readLines().count { !it.startsWith("@") },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -76,9 +79,12 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
+                // BAM/SAM md5s are not reproducible: the @PG header records the setup
+                // collate thread count and samtools version. Snapshot names and record count.
                 { assert snapshot(
-                    process.out.bam,
-                    process.out.sam,
+                    file(process.out.bam[0][1]).name,
+                    file(process.out.sam[0][1]).name,
+                    path(process.out.sam[0][1]).readLines().count { !it.startsWith("@") },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )

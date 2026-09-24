@@ -18,7 +18,7 @@ lint:
   modules_config: false
   multiqc_config: false
   nf_test_content: false
-nf_core_version: 4.0.2
+nf_core_version: 4.1.0
 repository_type: pipeline
 template:
   author: "Samuel Ruiz-P\xE9rez, Qian Du, Alva Biran, Anja Groth, Nicolas Alcaraz"

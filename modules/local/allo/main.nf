@@ -4,7 +4,7 @@ process ALLO {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/allo_samtools:9c6e229f802e6c51' :
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/91/914cb9bc84bbefb15ab39f49f200878bb8f3600b3e7f4c98580232fe6b0019df/data' :
         'community.wave.seqera.io/library/allo_samtools:0cfc6883c80e7505' }"
 
     input:

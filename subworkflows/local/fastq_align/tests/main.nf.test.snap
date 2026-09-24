@@ -25,14 +25,14 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.stats:md5,450a86fb31befcd76d3b69dadd7f8367"
+                    "test.stats:md5,702a960aaa3a53754e4e4f004b95ca43"
                 ]
             ]
         ],
-        "timestamp": "2026-07-21T14:18:31.69414476",
+        "timestamp": "2026-09-24T10:17:10.608066944",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "fastq_align_bwa": {
@@ -61,14 +61,14 @@
                         "id": "test",
                         "single_end": true
                     },
-                    "test.stats:md5,7c10668cdb0921c83fe9bd2dc43bcf4f"
+                    "test.stats:md5,e3c011fa2d63bdb3c3265421b0ab5fb5"
                 ]
             ]
         ],
-        "timestamp": "2026-07-21T14:01:38.777512202",
+        "timestamp": "2026-09-24T10:16:01.559438634",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "fastq_align_star": {
@@ -173,10 +173,10 @@
                 ]
             ]
         ],
-        "timestamp": "2026-07-21T14:03:46.331035362",
+        "timestamp": "2026-09-24T13:50:55.985491408",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     }
 }

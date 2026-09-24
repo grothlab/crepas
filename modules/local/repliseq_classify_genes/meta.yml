@@ -1,0 +1,195 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "repliseq_classify_genes"
+description: Classify each gene by the S-phase fraction with the highest read density over its gene body, and report how far each class sits from the early/late boundary
+keywords:
+  - repli-seq
+  - replication timing
+  - gene classification
+  - featurecounts
+tools:
+  - "R":
+      description: |
+        The R environment for statistical computing. `repliseq_classify_genes.R` uses base R and
+        data.table to normalize the per-fraction gene counts, pick the fraction with the highest
+        density for each gene, and summarize the result, and ggplot2 to draw the diagnostic plots.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/other-docs.html
+      licence: ["GPL-2.0-or-later"]
+      identifier: "biotools:R"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample (condition) information
+          e.g. [ id:'test' ]
+    - counts:
+        type: file
+        description: |
+          featureCounts output over gene bodies: Geneid, Chr, Start, End, Strand and Length,
+          followed by one count column per replicate
+        pattern: "*.featureCounts.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+    - phases:
+        type: list
+        description: |
+          Fraction ('early', 'mid' or 'late') of each count column, in the same order as the count
+          columns of `counts`
+    - breps:
+        type: list
+        description: Biological replicate identifier of each count column, in the same order as the count columns of `counts`
+output:
+  classes:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.gene_RT_class.tsv":
+          type: file
+          description: |
+            One row per gene: coordinates, length, total reads, the CPM and per-kilobase density
+            of each fraction, the assigned class, how far the winning fraction led the runner-up,
+            and the log2(early/late) ratio with the call it implies
+          pattern: "*.gene_RT_class.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  early:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.gene_RT_class.early.bed":
+          type: file
+          description: Genes whose highest read density is in the earliest fraction, as BED6
+          pattern: "*.gene_RT_class.early.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  late:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.gene_RT_class.late.bed":
+          type: file
+          description: Genes whose highest read density is in the latest fraction, as BED6
+          pattern: "*.gene_RT_class.late.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  mid:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.gene_RT_class.mid.bed":
+          type: file
+          description: |
+            Genes whose highest read density is in an intermediate fraction, as BED6. Only emitted
+            when an intermediate fraction was supplied
+          pattern: "*.gene_RT_class.mid.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  unclassified:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.gene_RT_class.unclassified.bed":
+          type: file
+          description: |
+            Genes left unclassified because they fell below the read floor or the winning fraction
+            did not lead by enough, as BED6
+          pattern: "*.gene_RT_class.unclassified.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  qc:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.gene_RT_class.qc.txt":
+          type: file
+          description: |
+            Gene counts per class and, for each class, the median log2(early/late) ratio of its
+            genes. Agreement between the two calls cannot be measured directly on the early and
+            late classes, because the fraction with the highest density being `early` already
+            implies that early exceeds late; what the classes can be checked on instead is whether
+            the intermediate one sits closer to a log2 ratio of zero than the other two
+          pattern: "*.gene_RT_class.qc.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_2330" # textual format
+  summary:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "rt_gene_class_counts.tsv":
+          type: file
+          description: |
+            Gene counts per class as a one-row table for MultiQC, which stacks the numeric columns
+            into one bar per sample. The filename is deliberately not prefixed with the sample
+            name, so that it sorts after the header file when the two are concatenated in filename
+            order
+          pattern: "rt_gene_class_counts.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  plots:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.gene_RT_class.plots.pdf":
+          type: file
+          description: |
+            Diagnostic plots: genes per class, the early/late ratio of each class, and early
+            against late coverage coloured by class
+          pattern: "*.gene_RT_class.plots.pdf"
+          ontologies:
+            - edam: "http://edamontology.org/format_3508" # PDF
+  mqc_png:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*_mqc.png":
+          type: file
+          description: |
+            The early/late ratio plot as an image for MultiQC, which embeds any file whose name
+            ends in `_mqc.png` as a report section
+          pattern: "*_mqc.png"
+          ontologies:
+            - edam: "http://edamontology.org/format_3603" # image
+  versions_r:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version | head -1 | sed 's/R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version | head -1 | sed 's/R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -50,7 +50,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test_endo.sarscov2.bam:md5,8523fc9cfaa273422362ed4e17f94b08"
+                    [
+                        "test_endo.sarscov2.bam:readsMD5,894549ee3ced6b5ca2eed2563a985217"
+                    ]
                 ]
             ],
             {
@@ -63,7 +65,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-09T13:20:06.369559613",
+        "timestamp": "2026-09-24T10:02:56.782742068",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
@@ -77,7 +79,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test_exo.spikein.bam:md5,6caac6389315157a3eab1821d67dea60"
+                    [
+                        "test_exo.spikein.bam:readsMD5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
                 ]
             ],
             {
@@ -90,7 +94,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-09T13:20:17.196720217",
+        "timestamp": "2026-09-24T10:03:07.91907451",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"

@@ -1,0 +1,66 @@
+nextflow_process {
+
+    name "Test Process BED_TO_SAF"
+    script "../main.nf"
+    process "BED_TO_SAF"
+
+    tag "modules"
+    tag "modules_local"
+    tag "bed_to_saf"
+
+    test("sarscov2 - bed with name and strand") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'genes' ],
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            def saf = path(process.out.saf.get(0).get(1)).readLines()
+            def records = saf.drop(1).collect { line -> line.split('\t') }
+            assertAll(
+                { assert process.success },
+                { assert saf[0] == "GeneID\tChr\tStart\tEnd\tStrand" },
+                { assert records.size() > 0 },
+                { assert records.every { fields -> fields.size() == 5 } },
+                // SAF is 1-based inclusive, so no start may be 0 and none may run past its end
+                { assert records.every { fields -> (fields[2] as int) >= 1 } },
+                { assert records.every { fields -> (fields[2] as int) <= (fields[3] as int) } },
+                { assert records.every { fields -> fields[4] in ['+', '-', '.'] } },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'genes' ],
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

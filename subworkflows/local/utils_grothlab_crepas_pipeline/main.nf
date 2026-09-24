@@ -130,10 +130,42 @@ workflow INPUT_CHECK {
 
     main:
 
+    ch_fastq = ch_fastq.map { meta, fastqs ->
+        def meta_clone = meta.clone()
+        if (meta.rt_fraction) {
+            meta_clone.rt_condition = meta.id
+            meta_clone.id = "${meta.id}_${meta.rt_fraction}"
+        }
+        [ meta_clone, fastqs ]
+    }
 
     // TODO: print for debugging
     ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
         .collectFile(name: 'ch_fastq_1.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+    // A Repli-seq sample is either E/L (early/mid/late) or high-resolution (S1..S16, with an
+    // optional G1 control).
+    ch_fastq
+        .filter { meta, _fastqs -> meta.rt_fraction }
+        .map { meta, _fastqs -> [ meta.rt_condition, meta.rt_fraction ] }
+        .groupTuple(by: 0)
+        .map { condition, fractions ->
+            def el = fractions.findAll { f -> f in rtElFractions() }.unique().sort { f -> rtFractionOrder(f) }
+            def hr = fractions.findAll { f -> f in rtHrFractions() }.unique().sort { f -> rtFractionOrder(f) }
+            if (el && hr) {
+                log.warn("Repli-seq sample '${condition}' carries both early/late fractions (${el.join(', ')}) and high-resolution ones (${hr.join(', ')}), so both analyses will run for it. Each takes only its own fractions and writes to its own directory, so nothing is merged across the two designs.")
+            }
+            if (el && !(el.contains('early') && el.contains('late'))) {
+                error("ERROR: Repli-seq sample '${condition}' has fractions ${el.join(', ')}. An E/L track is a ratio, so both an 'early' and a 'late' fraction are needed.")
+            }
+            if (hr && hr == ['G1']) {
+                error("ERROR: Repli-seq sample '${condition}' has a 'G1' control but no S-phase fractions.")
+            }
+            [ condition, fractions ]
+        }
+        .set { ch_rt_design_check }
+    ch_rt_design_check.map { condition, fractions -> "${condition}\t${fractions}" }
+        .collectFile(name: 'ch_rt_design.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
 
 
     // Check if within each biological replicate all technical replicates are set
@@ -348,6 +380,14 @@ workflow INPUT_CHECK {
             } else if (meta.strandedness) {
                 error("ERROR: `strandedness` must not be specified for samples other than SCAR-seq, OK-seq and eSPAN. Check sample: ${meta.id}")
             }
+            // Repli-seq checks
+            if (meta.exp_type == 'Repli-seq') {
+                if (!meta.rt_fraction) {
+                    error("ERROR: `rt_fraction` must be specified ('early', 'mid', 'late', 'G1' or 'S1'..'S16') for Repli-seq samples. Check sample: ${meta.id}")
+                }
+            } else if (meta.rt_fraction) {
+                error("ERROR: `rt_fraction` must not be specified for samples other than Repli-seq. Check sample: ${meta.id}")
+            }
             // Antibody checks
             if (['ChIP-seq', 'ChIP-exo', 'ChOR-seq', 'SCAR-seq', 'eSPAN', 'CUTandTag', 'CUTandRUN', 'TIP-seq'].contains(meta.exp_type)) {
                 if (!meta.antibody && !meta.is_input_control) {
@@ -447,6 +487,37 @@ workflow PIPELINE_COMPLETION {
 //
 // Get attribute from genome config file e.g. fasta
 //
+//
+// Repli-seq fraction vocabularies. `early`/`mid`/`late` describe an E/L experiment; `S1`..`S16`
+// (with an optional `G1` whole-genome control) describe a high-resolution one.
+//
+def rtElFractions() {
+    return [ 'early', 'mid', 'late' ]
+}
+
+def rtHrFractions() {
+    return [ 'G1' ] + (1..16).collect { i -> "S${i}".toString() }
+}
+
+//
+// Sort key placing fractions in replication order. Needed because the fraction names do not sort
+// that way as strings: `S10` precedes `S2`, and `late` precedes `mid`.
+//
+def rtFractionOrder(fraction) {
+    def el = rtElFractions().indexOf(fraction)
+    if (el >= 0) {
+        return el + 1
+    }
+    if (fraction == 'G1') {
+        return 0
+    }
+    def hr = fraction =~ /^S(\d+)$/
+    if (hr) {
+        return hr[0][1] as Integer
+    }
+    error("ERROR: unrecognized `rt_fraction` value: ${fraction}")
+}
+
 def getGenomeAttribute(attribute) {
     if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
         if (params.genomes[ params.genome ].containsKey(attribute)) {
@@ -497,6 +568,12 @@ def validateInputParameters() {
 
     if (params.spikein_genome && params.strobealign_index && !params.hybrid_fasta) {
         error("A pre-built strobealign index (`--strobealign_index`) has been provided along with a spike-in genome (`--spikein_genome`). `--hybrid_fasta` must also be provided in this case.")
+    }
+
+    // The DeNOPA container installs the tool under /root, which is unreadable when
+    // Singularity/Apptainer run the container as a regular user
+    if (params.peak_callers?.tokenize(',')?.contains('denopa') && workflow.containerEngine in ['singularity', 'apptainer']) {
+        error("The `denopa` peak caller is not compatible with Singularity or Apptainer. Remove `denopa` from `--peak_callers`, or run the pipeline with Docker.")
     }
 
     if (!params.gtf && !params.gff) {

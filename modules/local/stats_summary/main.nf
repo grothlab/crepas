@@ -3,7 +3,7 @@ process STATS_SUMMARY {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/r-argparse_r-dplyr_r-forcats_r-ggplot2_pruned:e5fd467d162d4cbc'
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/e4/e467b0d8acd4e9f2efcc04855cd4f9796278de135ccd3a357246c8b800aa1790/data'
         : 'community.wave.seqera.io/library/r-argparse_r-dplyr_r-forcats_r-ggplot2_pruned:0969cc079210fc80'}"
 
     input:

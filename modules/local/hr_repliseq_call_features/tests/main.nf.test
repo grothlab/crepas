@@ -1,0 +1,119 @@
+nextflow_process {
+
+    name "Test Process HR_REPLISEQ_CALL_FEATURES"
+    script "../main.nf"
+    process "HR_REPLISEQ_CALL_FEATURES"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "hr_repliseq_call_features"
+    tag "hr_repliseq_make_array"
+    tag "deeptools/multibamsummary"
+
+    setup {
+
+        run("DEEPTOOLS_MULTIBAMSUMMARY") {
+            script "../../../nf-core/deeptools/multibamsummary/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ],
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.markduplicates.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.recalibrated.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.markduplicates.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.recalibrated.sorted.bam', checkIfExists: true)
+                    ],
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.markduplicates.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.recalibrated.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.markduplicates.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.recalibrated.sorted.bam.bai', checkIfExists: true)
+                    ],
+                    [ 'S1_1', 'S2_1', 'S3_1', 'S4_1' ]
+                ]
+                input[1] = [ [:], [] ]
+                """
+            }
+        }
+
+        run("HR_REPLISEQ_MAKE_ARRAY") {
+            script "../../hr_repliseq_make_array/main.nf"
+            process {
+                """
+                input[0] = DEEPTOOLS_MULTIBAMSUMMARY.out.raw_counts.map { meta, counts ->
+                    [ meta, counts, [ 'S1', 'S2', 'S3', 'S4' ] ]
+                }
+                """
+            }
+        }
+
+    }
+
+    test("homo_sapiens - 4 fractions - default feature calling") {
+
+        when {
+            process {
+                """
+                input[0] = HR_REPLISEQ_MAKE_ARRAY.out.array
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - 4 fractions - both breakage/TTR partitions emitted") {
+
+        when {
+            process {
+                """
+                input[0] = HR_REPLISEQ_MAKE_ARRAY.out.array
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.breakage_disjoint[0][1]).readLines().toSet()
+                         .every { line -> line in path(process.out.breakage[0][1]).readLines().toSet() } },
+                { assert path(process.out.qc[0][1]).text.contains('partition_overlap_TTR_regions') },
+                { assert path(process.out.qc[0][1]).text.contains('partition_disjoint_TTR_regions') },
+                { assert path(process.out.qc[0][1]).text.contains('partition_disjoint_origin_free_fraction_of_bp') },
+                { assert path(process.out.qc[0][1]).text.contains('partition_flanked_TTR_regions') },
+                { assert path(process.out.qc[0][1]).text.contains('ttr_speed_uninterrupted_n') }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - 4 fractions - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = HR_REPLISEQ_MAKE_ARRAY.out.array
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}
