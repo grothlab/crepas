@@ -1,0 +1,54 @@
+---
+// Every page exists for every version: /<version>/<page>/ for each release and dev, and the
+// latest version (the newest release, or dev if there is none) is also served at the root.
+import MarkdownPage from "../components/MarkdownPage.astro";
+import ParametersPage from "../components/ParametersPage.astro";
+import PipelineSidebar from "../components/PipelineSidebar.astro";
+import ReleasesPage from "../components/ReleasesPage.astro";
+import PipelineLayout from "../layouts/PipelineLayout.astro";
+import { renderRepoMarkdown } from "../lib/markdown";
+import { getLatestVersion, getVersion, getVersions, type Page, PAGES } from "../lib/repo";
+
+export function getStaticPaths() {
+    const paths: { params: { path: string | undefined }; props: { versionId: string; page: Page } }[] = [];
+    const add = (prefix: string, versionId: string) => {
+        for (const page of PAGES) {
+            const path = [prefix, page].filter(Boolean).join("/");
+            paths.push({ params: { path: path || undefined }, props: { versionId, page } });
+        }
+    };
+    add("", getLatestVersion().id);
+    for (const version of getVersions()) add(version.id, version.id);
+    return paths;
+}
+
+const { versionId, page } = Astro.props as { versionId: string; page: Page };
+const version = getVersion(versionId);
+const titles: Record<Page, string> = {
+    "": "Introduction",
+    usage: "Usage",
+    parameters: "Parameters",
+    output: "Output",
+    releases: "Releases & Statistics",
+};
+const intro = page === "" ? await renderRepoMarkdown("README.md", version, true) : undefined;
+---
+
+<PipelineLayout title={titles[page]} version={version} page={page}>
+    {
+        page === "" && intro && (
+            <div class="row">
+                <article class="col-12 col-md-8 col-xxl-9 pt-3 markdown-content">
+                    <Fragment set:html={intro.html} />
+                </article>
+                <div class="col-12 col-md-4 col-xxl-3">
+                    <PipelineSidebar version={version} />
+                </div>
+            </div>
+        )
+    }
+    {page === "usage" && <MarkdownPage file="docs/usage.md" version={version} />}
+    {page === "output" && <MarkdownPage file="docs/output.md" version={version} />}
+    {page === "parameters" && <ParametersPage version={version} />}
+    {page === "releases" && <ReleasesPage version={version} />}
+</PipelineLayout>

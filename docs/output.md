@@ -1,7 +1,7 @@
 # grothlab/crepas: Output
 
 > [!IMPORTANT]
-> Please read this documentation on the grothlab/crepas repository: [https://github.com/grothlab/crepas/blob/dev/docs/output.md](https://github.com/grothlab/crepas/blob/dev/docs/output.md)
+> Please read this documentation on the grothlab/crepas website: [https://crepas.grothlab.workers.dev/output/](https://crepas.grothlab.workers.dev/output/)
 
 ## Table of Contents
 
@@ -92,7 +92,7 @@ Unique molecular identifiers (UMIs) are short sequences that are added to the 5'
 
 </details>
 
-[Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. See [`usage.md`](usage.md) for more details about the trimming options.
+[Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. See [`usage.md`](https://crepas.grothlab.workers.dev/usage/) for more details about the trimming options.
 
 ![MultiQC - Cutadapt trimmed sequence plot](images/mqc_cutadapt_plot.png)
 
@@ -442,7 +442,7 @@ track. A sample with three or more fractions also gets a replication-timing inde
 weighted-mean fraction per bin rescaled from 0 (earliest) to 1 (latest), which unlike the ratio uses
 every fraction. The covered track is segmented into domains of constant timing, and genes are
 classified by the fraction with the highest read density over their gene body. See
-[Repli-seq replication-timing tracks](usage.md#repli-seq-replication-timing-tracks) in the usage
+[Repli-seq replication-timing tracks](https://crepas.grothlab.workers.dev/usage/#repli-seq-replication-timing-tracks) in the usage
 documentation for the parameters controlling each step.
 
 ### High-resolution Repli-seq

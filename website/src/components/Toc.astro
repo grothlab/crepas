@@ -1,0 +1,30 @@
+---
+import type { Heading } from "../lib/markdown";
+
+export interface Props {
+    headings: Heading[];
+}
+
+const { headings } = Astro.props;
+---
+
+{
+    headings.length > 0 && (
+        <nav class="toc sticky-top pt-3" aria-label="On this page">
+            <p class="text-body-secondary small text-uppercase fw-semibold mb-2">
+                <i class="fa-solid fa-list-ul me-2" />
+                On this page
+            </p>
+            <ul class="list-unstyled small mb-0">
+                {headings.map((heading) => (
+                    <li class:list={[{ "ms-3": heading.depth === 3 }]}>
+                        <a class="d-block py-1 text-body-secondary text-decoration-none" href={`#${heading.slug}`}>
+                            {heading.text}
+                        </a>
+                    </li>
+                ))}
+            </ul>
+            <slot />
+        </nav>
+    )
+}
