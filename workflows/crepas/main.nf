@@ -1285,7 +1285,7 @@ workflow CREPAS {
         .mix(topic_versions_string)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
-            name: 'grothlab' + 'crepas_software_' + 'mqc_' + 'versions.yml',
+            name: 'grothlab_' + 'crepas_software_' + 'mqc_' + 'versions.yml',
             sort: true,
             newLine: true,
         )

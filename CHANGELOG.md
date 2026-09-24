@@ -107,6 +107,8 @@ Development version of grothlab/crepas.
 - `TRIMGALORE_HARDTRIM` output files colliding with its own input; its outputs are now prefixed `<sample>_hardtrim`.
 - `denopa` failing under Singularity and Apptainer; the pipeline now stops early and asks to remove `denopa` from `--peak_callers` or to run with Docker.
 - HISAT2 alignment failing under Singularity and Apptainer, because the `hisat2/align` module's `oras://` image could no longer be pulled; the module is updated to its current nf-core version, which uses an `https://` image.
+- `denopa` failing under Docker, because its container was given as `docker://hepingshiming2007/denopa:latest`, which Docker rejects.
+- The software versions file for MultiQC being named `grothlabcrepas_software_mqc_versions.yml`; it is now `grothlab_crepas_software_mqc_versions.yml`.
 
 ## [[1.0.0](https://github.com/grothlab/crepas/releases/tag/1.0.0)] - Mercurian Cinnabar - 2026-06-21
 

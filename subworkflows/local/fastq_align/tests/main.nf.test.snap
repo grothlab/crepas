@@ -164,10 +164,16 @@
     "fastq_align_hisat2": {
         "content": [
             [
-                
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,e02354daf90ca3031a500bee1ab1ec10"
+                ]
             ]
         ],
-        "timestamp": "2026-09-24T10:18:13.784024791",
+        "timestamp": "2026-09-24T13:50:55.985491408",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
