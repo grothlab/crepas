@@ -138,9 +138,18 @@ function rehypeRepoLinks(options: { sourceFile: string; version: SiteVersion }) 
 
 function rehypeBootstrap(options: { headings?: Heading[] }) {
     return (tree: HastRoot) => {
-        visit(tree, "element", (node: Element) => {
+        visit(tree, "element", (node: Element, index, parent) => {
             if (node.tagName === "table") {
                 node.properties.className = ["table", "table-sm", "table-hover"];
+                // Wide tables (e.g. the example samplesheets) scroll inside the column instead of overflowing it.
+                if (parent && index !== undefined && !(parent.type === "element" && parent.tagName === "div")) {
+                    parent.children[index] = {
+                        type: "element",
+                        tagName: "div",
+                        properties: { className: ["table-responsive"] },
+                        children: [node],
+                    };
+                }
             }
             if (options.headings && (node.tagName === "h2" || node.tagName === "h3")) {
                 const slug = node.properties?.id;

@@ -299,3 +299,14 @@ body.show-hidden li.param-hidden {
         max-width: 2200px;
     }
 }
+
+/* Long code lines scroll inside the block rather than widening the page */
+.markdown-content pre {
+    overflow-x: auto;
+}
+
+/* Grid columns must be allowed to shrink below their content's width for the scrolling to apply */
+.markdown-content,
+.row > [class*="col-"] {
+    min-width: 0;
+}
