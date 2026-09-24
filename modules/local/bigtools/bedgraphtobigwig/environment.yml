@@ -2,4 +2,4 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconda::bigtools=0.5.6
+  - bioconda::bigtools=0.5.4

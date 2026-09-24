@@ -570,6 +570,12 @@ def validateInputParameters() {
         error("A pre-built strobealign index (`--strobealign_index`) has been provided along with a spike-in genome (`--spikein_genome`). `--hybrid_fasta` must also be provided in this case.")
     }
 
+    // The DeNOPA container installs the tool under /root, which is unreadable when
+    // Singularity/Apptainer run the container as a regular user
+    if (params.peak_callers?.tokenize(',')?.contains('denopa') && workflow.containerEngine in ['singularity', 'apptainer']) {
+        error("The `denopa` peak caller is not compatible with Singularity or Apptainer. Remove `denopa` from `--peak_callers`, or run the pipeline with Docker.")
+    }
+
     if (!params.gtf && !params.gff) {
         if (params.refgenie_ignore && params.igenomes_ignore) {
             error("No GTF (`--gtf`) or GFF3 (`--gff`) annotation has been provided, and reference genomes are being ignored (`--refgenie_ignore true` and `--igenomes_ignore true`). The pipeline requires at least one of these files.")

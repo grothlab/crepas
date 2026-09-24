@@ -277,8 +277,8 @@
                         "single_end": false
                     },
                     [
-                        "test_1.10bp_5prime.fq.gz:md5,14571907bbcc845bff02f579b84e5f77",
-                        "test_2.10bp_5prime.fq.gz:md5,0e8260248b2666ce75953cca27c0996e"
+                        "test_hardtrim_1.10bp_5prime.fq.gz:md5,14571907bbcc845bff02f579b84e5f77",
+                        "test_hardtrim_2.10bp_5prime.fq.gz:md5,0e8260248b2666ce75953cca27c0996e"
                     ]
                 ]
             ],
@@ -301,10 +301,10 @@
                 ]
             ]
         ],
-        "timestamp": "2026-07-21T14:17:59.505512669",
+        "timestamp": "2026-09-24T10:20:43.523021354",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "test single end read with UMI - stub": {
@@ -446,7 +446,14 @@
         "content": [
             {
                 "0": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true,
+                            "sep_umi_fq": true
+                        },
+                        "test_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
                 ],
                 "1": [
                     
@@ -458,7 +465,7 @@
                             "single_end": true,
                             "sep_umi_fq": true
                         },
-                        0
+                        2.0
                     ]
                 ],
                 "11": [
@@ -564,7 +571,14 @@
                     
                 ],
                 "reads": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true,
+                            "sep_umi_fq": true
+                        },
+                        "test_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
                 ],
                 "sep_umi_fq_log": [
                     [
@@ -596,7 +610,7 @@
                             "single_end": true,
                             "sep_umi_fq": true
                         },
-                        0
+                        2.0
                     ]
                 ],
                 "trim_unpaired": [
@@ -607,10 +621,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-21T14:02:46.237316845",
+        "timestamp": "2026-09-24T10:21:36.909754436",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "test paired end read without UMI - stub": {
@@ -744,7 +758,17 @@
         "content": [
             {
                 "0": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "extract_umi": true
+                        },
+                        [
+                            "test_1_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test_2_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
                 ],
                 "1": [
                     
@@ -756,7 +780,7 @@
                             "single_end": false,
                             "extract_umi": true
                         },
-                        0
+                        2.0
                     ]
                 ],
                 "11": [
@@ -872,7 +896,17 @@
                     ]
                 ],
                 "reads": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "extract_umi": true
+                        },
+                        [
+                            "test_1_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test_2_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
                 ],
                 "sep_umi_fq_log": [
                     
@@ -900,7 +934,7 @@
                             "single_end": false,
                             "extract_umi": true
                         },
-                        0
+                        2.0
                     ]
                 ],
                 "trim_unpaired": [
@@ -911,10 +945,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-21T14:02:35.987353291",
+        "timestamp": "2026-09-24T10:21:23.854953841",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "test single end read with UMI": {
@@ -991,7 +1025,16 @@
         "content": [
             {
                 "0": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_hardtrim_1_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test_hardtrim_2_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
                 ],
                 "1": [
                     [
@@ -1008,7 +1051,7 @@
                             "id": "test",
                             "single_end": false
                         },
-                        0
+                        2.0
                     ]
                 ],
                 "11": [
@@ -1021,7 +1064,16 @@
                     
                 ],
                 "14": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_hardtrim_1.fastq.gz_trimming_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_hardtrim_2.fastq.gz_trimming_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
                 ],
                 "2": [
                     
@@ -1075,7 +1127,16 @@
                     
                 ],
                 "htrim_log": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_hardtrim_1.fastq.gz_trimming_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_hardtrim_2.fastq.gz_trimming_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
                 ],
                 "htrim_unpaired": [
                     
@@ -1087,7 +1148,16 @@
                     
                 ],
                 "reads": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_hardtrim_1_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test_hardtrim_2_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
                 ],
                 "sep_umi_fq_log": [
                     
@@ -1113,7 +1183,7 @@
                             "id": "test",
                             "single_end": false
                         },
-                        0
+                        2.0
                     ]
                 ],
                 "trim_unpaired": [
@@ -1124,10 +1194,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-21T14:02:55.794746139",
+        "timestamp": "2026-09-24T10:21:49.318085733",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "test skip all steps": {
@@ -1152,7 +1222,13 @@
         "content": [
             {
                 "0": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
                 ],
                 "1": [
                     
@@ -1163,7 +1239,7 @@
                             "id": "test",
                             "single_end": true
                         },
-                        0
+                        2.0
                     ]
                 ],
                 "11": [
@@ -1257,7 +1333,13 @@
                     
                 ],
                 "reads": [
-                    
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_trimmed.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
                 ],
                 "sep_umi_fq_log": [
                     
@@ -1280,7 +1362,7 @@
                             "id": "test",
                             "single_end": true
                         },
-                        0
+                        2.0
                     ]
                 ],
                 "trim_unpaired": [
@@ -1291,10 +1373,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-21T14:02:22.61631145",
+        "timestamp": "2026-09-24T10:21:07.013076534",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     }
 }

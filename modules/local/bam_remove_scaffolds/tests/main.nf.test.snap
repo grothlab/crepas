@@ -64,7 +64,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.flTsfds.bam:md5,65eef77f9d7231126cd56bc732a36f7f"
+                    [
+                        "test.flTsfds.bam:readsMD5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
                 ]
             ],
             {
@@ -84,7 +86,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-08T13:51:13.140873866",
+        "timestamp": "2026-09-24T10:01:59.772321595",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
@@ -98,7 +100,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.flTsfds.bam:md5,17078e40e4aee3724512bb1c1f22100a"
+                    [
+                        "test.flTsfds.bam:readsMD5,2f11e4fe3390b8ad0a1852616fd1da04"
+                    ]
                 ]
             ],
             {
@@ -118,7 +122,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-08T13:51:00.801607598",
+        "timestamp": "2026-09-24T10:01:48.781050666",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"

@@ -7,7 +7,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.forward.bam:md5,688a1baf15ac17a6998619dcad1f0602"
+                    [
+                        "test.forward.bam:readsMD5,ac10e241b96e72c51fd0f0c1f7128b5"
+                    ]
                 ]
             ],
             [
@@ -16,7 +18,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.reverse.bam:md5,da65152835685b86914208a2e19f993b"
+                    [
+                        "test.reverse.bam:readsMD5,75de1a7dae116e83f0aed5ac7a40ce80"
+                    ]
                 ]
             ],
             {
@@ -29,10 +33,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-09T12:50:34.40162794",
+        "timestamp": "2026-09-24T10:03:41.784589877",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - espan - paired end - stub": {
@@ -104,7 +108,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.forward.bam:md5,6fcc606cadee29e2f67860a48975b6bf"
+                    [
+                        "test.forward.bam:readsMD5,75de1a7dae116e83f0aed5ac7a40ce80"
+                    ]
                 ]
             ],
             [
@@ -113,7 +119,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.reverse.bam:md5,f7d5ddbc1632ac6d38f5f157671fe78e"
+                    [
+                        "test.reverse.bam:readsMD5,ac10e241b96e72c51fd0f0c1f7128b5"
+                    ]
                 ]
             ],
             {
@@ -126,10 +134,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-09T12:51:00.293242728",
+        "timestamp": "2026-09-24T10:04:15.22483381",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - espan - single end": {
@@ -140,7 +148,9 @@
                         "id": "test",
                         "single_end": true
                     },
-                    "test.forward.bam:md5,3bff7fb4df48da4f7270acb04e43b079"
+                    [
+                        "test.forward.bam:readsMD5,6d4daff75ae58d106b49043e74956f16"
+                    ]
                 ]
             ],
             [
@@ -149,7 +159,9 @@
                         "id": "test",
                         "single_end": true
                     },
-                    "test.reverse.bam:md5,03f8d0b2ab38f34b373517c3d5f0d5d7"
+                    [
+                        "test.reverse.bam:readsMD5,d6e95975745381163d5de3172d4959f3"
+                    ]
                 ]
             ],
             {
@@ -162,10 +174,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-09T12:51:08.737841816",
+        "timestamp": "2026-09-24T10:04:26.249821698",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - scarseq - forward strandedness": {
@@ -176,7 +188,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.forward.bam:md5,7bd72b50891b1c65f508c30587981ec5"
+                    [
+                        "test.forward.bam:readsMD5,75de1a7dae116e83f0aed5ac7a40ce80"
+                    ]
                 ]
             ],
             [
@@ -185,7 +199,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.reverse.bam:md5,2f7b84180157054bd1fafca5e0028d07"
+                    [
+                        "test.reverse.bam:readsMD5,ac10e241b96e72c51fd0f0c1f7128b5"
+                    ]
                 ]
             ],
             {
@@ -198,10 +214,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-09T12:50:23.716368863",
+        "timestamp": "2026-09-24T10:03:30.533862799",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - scarseq - single end - forward strandedness": {
@@ -212,7 +228,9 @@
                         "id": "test",
                         "single_end": true
                     },
-                    "test.forward.bam:md5,fbe9ff9f36f68853dff329e85cdcf888"
+                    [
+                        "test.forward.bam:readsMD5,6d4daff75ae58d106b49043e74956f16"
+                    ]
                 ]
             ],
             [
@@ -221,7 +239,9 @@
                         "id": "test",
                         "single_end": true
                     },
-                    "test.reverse.bam:md5,b8eabcc525edfc2814ce2e7d31ef4ea1"
+                    [
+                        "test.reverse.bam:readsMD5,d6e95975745381163d5de3172d4959f3"
+                    ]
                 ]
             ],
             {
@@ -234,10 +254,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-09T12:50:43.465947046",
+        "timestamp": "2026-09-24T10:03:53.305711986",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - okseq - forward strandedness": {
@@ -248,7 +268,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.forward.bam:md5,7bd72b50891b1c65f508c30587981ec5"
+                    [
+                        "test.forward.bam:readsMD5,75de1a7dae116e83f0aed5ac7a40ce80"
+                    ]
                 ]
             ],
             [
@@ -257,7 +279,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.reverse.bam:md5,2f7b84180157054bd1fafca5e0028d07"
+                    [
+                        "test.reverse.bam:readsMD5,ac10e241b96e72c51fd0f0c1f7128b5"
+                    ]
                 ]
             ],
             {
@@ -270,10 +294,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-09T12:50:51.88401661",
+        "timestamp": "2026-09-24T10:04:04.13769827",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - scarseq - forward strandedness - stub": {

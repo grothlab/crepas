@@ -904,7 +904,7 @@
                     "type": "string",
                     "default": "macs3",
                     "description": "Comma-separated list of peak calling algorithms to use.",
-                    "help_text": "One or more of `macs3`, `genrich`, `consenrich`, `epic2`, `mace`, `dpeak`, `dpos`, `dregion`, `dtriple`, `edd`, `denopa`, `seacr`, given as a comma-separated list without spaces, e.g. `--peak_callers macs3,genrich`. Every listed peak caller is run on all applicable samples. Use `--skip_peak_calling` to switch peak calling off entirely.",
+                    "help_text": "One or more of `macs3`, `genrich`, `consenrich`, `epic2`, `mace`, `dpeak`, `dpos`, `dregion`, `dtriple`, `edd`, `denopa`, `seacr`, given as a comma-separated list without spaces, e.g. `--peak_callers macs3,genrich`. Every listed peak caller is run on all applicable samples. Use `--skip_peak_calling` to switch peak calling off entirely. `denopa` is not compatible with Singularity or Apptainer; run the pipeline with Docker to use it.",
                     "fa_icon": "fas fa-chart-area",
                     "pattern": "^(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr)(,(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr))*$"
                 },

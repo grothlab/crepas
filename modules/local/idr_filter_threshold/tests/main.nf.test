@@ -20,9 +20,9 @@ nextflow_process {
                         file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/narrowpeak/test.narrowPeak', checkIfExists: true),
                         file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/narrowpeak/test2.narrowPeak', checkIfExists: true)
                     ],
+                    'narrowPeak',
                     []
                 ]
-                input[1] = 'narrowPeak'
                 """
             }
         }

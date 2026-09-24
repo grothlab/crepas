@@ -16,7 +16,6 @@ nextflow_process {
                 input[0] = [
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
-                    'SCAR-seq',
                     'forward'
                 ]
                 """
@@ -27,8 +26,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.f_bam,
-                    process.out.r_bam,
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -44,7 +43,6 @@ nextflow_process {
                 input[0] = [
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
-                    'SCAR-seq',
                     'reverse'
                 ]
                 """
@@ -55,8 +53,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.f_bam,
-                    process.out.r_bam,
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -72,7 +70,6 @@ nextflow_process {
                 input[0] = [
                     [ id:'test', single_end:true ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.single_end.sorted.bam', checkIfExists: true),
-                    'SCAR-seq',
                     'forward'
                 ]
                 """
@@ -83,8 +80,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.f_bam,
-                    process.out.r_bam,
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -101,7 +98,6 @@ nextflow_process {
                 input[0] = [
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
-                    'OK-seq',
                     'forward'
                 ]
                 """
@@ -112,8 +108,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.f_bam,
-                    process.out.r_bam,
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -130,8 +126,7 @@ nextflow_process {
                 input[0] = [
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
-                    'eSPAN',
-                    null
+                    'forward' // eSPAN defaults to forward
                 ]
                 """
             }
@@ -141,8 +136,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.f_bam,
-                    process.out.r_bam,
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -159,8 +154,7 @@ nextflow_process {
                 input[0] = [
                     [ id:'test', single_end:true ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.single_end.sorted.bam', checkIfExists: true),
-                    'eSPAN',
-                    null
+                    'forward' // eSPAN defaults to forward
                 ]
                 """
             }
@@ -170,8 +164,8 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.f_bam,
-                    process.out.r_bam,
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -189,7 +183,6 @@ nextflow_process {
                 input[0] = [
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
-                    'SCAR-seq',
                     'forward'
                 ]
                 """
@@ -215,8 +208,7 @@ nextflow_process {
                 input[0] = [
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
-                    'eSPAN',
-                    null
+                    'forward' // eSPAN defaults to forward
                 ]
                 """
             }

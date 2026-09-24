@@ -102,6 +102,11 @@ Development version of grothlab/crepas.
 - `plotPCA`, `plotCorrelation` and the plotFingerprint quality metrics never reaching MultiQC, and the gene-body and consensus-peak `plotProfile` outputs sharing a single section.
 - Stub runs (`-stub`) stopping early or failing, because the pipeline parsed the empty stub output of some modules as real content: the khmer genome size in `PREPARE_GENOME`, the TrimGalore read count (which silently filtered out every sample), and the `BAM_FLAGSTAT_MAPPED` total. `STATS_TRANSPOSE`'s stub also named its output differently from the real run, so outputs of different stages collided in `STATS_CAT`.
 - Nextflow warnings when optional reference inputs (blacklist, sparse BED, active regions, OK-seq RFD file) are not provided; their placeholder channels are now value channels.
+- The nf-test suite failing on GitHub Actions: `tests/nextflow.config` now caps resources to the runner limits, and the tests exposed by that were fixed (stale module input shapes, include paths and snapshots; BAM outputs are now compared by read checksum instead of file md5).
+- The MACE Docker container tag, which did not exist, and the bigtools Docker container and conda environment, which did not match the Singularity image version.
+- `TRIMGALORE_HARDTRIM` output files colliding with its own input; its outputs are now prefixed `<sample>_hardtrim`.
+- `denopa` failing under Singularity and Apptainer; the pipeline now stops early and asks to remove `denopa` from `--peak_callers` or to run with Docker.
+- HISAT2 alignment failing under Singularity and Apptainer, because the `hisat2/align` module's `oras://` image could no longer be pulled; the module is updated to its current nf-core version, which uses an `https://` image.
 
 ## [[1.0.0](https://github.com/grothlab/crepas/releases/tag/1.0.0)] - Mercurian Cinnabar - 2026-06-21
 

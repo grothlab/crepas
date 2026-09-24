@@ -7,7 +7,9 @@
                         "id": "test_se",
                         "single_end": true
                     },
-                    "test_se.bam:md5,96038a1120f63dd535e5f856e8e5616a"
+                    [
+                        "test_se.bam:readsMD5,40e544c361870a1c9033672b27023ff5"
+                    ]
                 ]
             ],
             {
@@ -20,10 +22,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-06T11:44:23.579119522",
+        "timestamp": "2026-09-24T10:07:50.410964026",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - paired_end": {
@@ -34,7 +36,9 @@
                         "id": "test",
                         "single_end": false
                     },
-                    "test.bam:md5,0195ac3e6d01119e4446c6cd86d77759"
+                    [
+                        "test.bam:readsMD5,370adea92dc13fbd1f92d6b38e1c787f"
+                    ]
                 ]
             ],
             {
@@ -47,10 +51,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-06T11:44:09.794080122",
+        "timestamp": "2026-09-24T10:07:38.544768575",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - paired_end - stub": {

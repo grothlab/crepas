@@ -27,7 +27,7 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.bam,
+                    process.out.bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -48,7 +48,7 @@ nextflow_process {
                         [ id:'test', single_end:false ], // meta map
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.bam', checkIfExists: true)
                     ]
-                    input[1] = [ [ id:'test' ], [] ]
+                    input[1] = [ [ id:'test' ], [], [] ]
                     input[2] = ''
                     """
                 }
@@ -68,7 +68,7 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.bam,
+                    process.out.bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
@@ -94,7 +94,7 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.bam,
+                    process.out.bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
