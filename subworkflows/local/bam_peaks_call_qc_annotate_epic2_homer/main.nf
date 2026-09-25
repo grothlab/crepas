@@ -195,7 +195,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
                         meta_new.id = exp_type
                         meta_new.exp_type = exp_type
                         meta_new.genome = genome
-                        [ meta_new, anns ]
+                        def sorted_anns = anns.sort { it -> it.name }
+                        [ meta_new, sorted_anns ]
                 }
                 .set { ch_homer_annotatepeaks_grouped }
             //

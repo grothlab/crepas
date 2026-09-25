@@ -159,7 +159,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
                     exp_type, metas, peaks ->
                         def meta_new = metas[0].clone()
                         meta_new.id = exp_type
-                        [ meta_new, peaks ]
+                        def sorted_peaks = peaks.sort { it -> it.name }
+                        [ meta_new, sorted_peaks ]
                 }
                 .set { ch_macs3_peaks_grouped }
 
@@ -185,7 +186,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
                     exp_type, metas, anns ->
                         def meta_new = metas[0].clone()
                         meta_new.id = exp_type
-                        [ meta_new, anns ]
+                        def sorted_anns = anns.sort { it -> it.name }
+                        [ meta_new, sorted_anns ]
                 }
                 .set { ch_homer_annotatepeaks_grouped }
             //

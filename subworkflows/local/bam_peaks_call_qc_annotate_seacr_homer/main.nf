@@ -111,7 +111,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER {
                     exp_type, metas, anns ->
                         def meta_new = metas[0].clone()
                         meta_new.id = exp_type
-                        [ meta_new, anns ]
+                        def sorted_anns = anns.sort { it -> it.name }
+                        [ meta_new, sorted_anns ]
                 }
                 .set { ch_homer_annotatepeaks_grouped }
             //

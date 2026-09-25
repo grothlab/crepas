@@ -14,7 +14,7 @@
 
 ## Introduction
 
-**crepas** is a bioinformatics pipeline for comprehensive analysis of bulk chromatin sequencing data. It supports multiple experimental techniques, including [ChIP-seq](https://doi.org/10.1038/nmeth1068), [ChOR-seq](https://doi.org/10.1038/s41596-021-00585-3), [ChIP-exo](https://doi.org/10.1016/j.cell.2011.11.013), [SCAR-seq](https://doi.org/10.1038/s41596-021-00585-3), [eSPAN](https://doi.org/10.1038/s41596-021-00520-6), [OK-seq](https://doi.org/10.1038/ncomms10208), [ATAC-seq](https://doi.org/10.1002/0471142727.mb2129s109), [CUT&RUN](https://doi.org/10.7554/eLife.46314), [CUT&Tag](https://doi.org/10.1038/s41467-019-09982-5) and [TIP-seq](https://doi.org/10.1083/jcb.202103078):
+**crepas** is a bioinformatics pipeline for comprehensive analysis of bulk chromatin sequencing data. It supports multiple experimental techniques, including [ChIP-seq](https://doi.org/10.1038/nmeth1068), [ChOR-seq](https://doi.org/10.1038/s41596-021-00585-3), [ChIP-exo](https://doi.org/10.1016/j.cell.2011.11.013), [SCAR-seq](https://doi.org/10.1038/s41596-021-00585-3), [eSPAN](https://doi.org/10.1038/s41596-021-00520-6), [OK-seq](https://doi.org/10.1038/ncomms10208), [ATAC-seq](https://doi.org/10.1002/0471142727.mb2129s109), [CUT&RUN](https://doi.org/10.7554/eLife.46314), [CUT&Tag](https://doi.org/10.1038/s41467-019-09982-5), [TIP-seq](https://doi.org/10.1083/jcb.202103078), [E/L Repli-seq](https://doi.org/10.1038/nprot.2017.148) and [high-resolution Repli-seq](https://doi.org/10.1186/s13059-020-01983-8):
 
 ![crepas metro map](./docs/images/grothlab_crepas_metro_map.png)
 
@@ -132,9 +132,28 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 <br>
 
-25. Create IGV session file containing coverage tracks and peaks for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
+<details>
+<summary><b>25. Repli-seq downstream analyses</b></summary>
 
-26. Present QC and stats for raw reads, alignments and peak-calling ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
+- Counting reads per genomic window across the S-phase fractions of each sample ([`deepTools`](https://deeptools.readthedocs.io/en/latest/content/tools/multiBamSummary.html))
+
+- Early/late Repli-seq: calculating normalized replication-timing (RT) tracks from the early/late ratio, with optional loess or rolling-mean smoothing, and an RT index when more fractions are provided ([`repliseq_rtnormalize.R`](./bin/repliseq_rtnormalize.R))
+
+- Calling domains of constant replication timing ([`repliseq_rt_domains.R`](./bin/repliseq_rt_domains.R))
+
+- Classifying genes as early, mid or late replicating ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/), [`repliseq_classify_genes.R`](./bin/repliseq_classify_genes.R))
+
+- Creating BigWig files of the RT tracks ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+
+- High-resolution Repli-seq: building the smoothed, scaled Repli-seq array, optionally normalized to a G1 control ([`hr_repliseq_make_array.py`](./bin/hr_repliseq_make_array.py)), calling initiation zones, timing transition regions, breakages, termination sites and late constant-timing regions ([`hr_repliseq_call_features.py`](./bin/hr_repliseq_call_features.py)), and plotting per-chromosome heatmaps ([`hr_repliseq_plot.py`](./bin/hr_repliseq_plot.py))
+
+</details>
+
+<br>
+
+26. Create IGV session file containing coverage tracks and peaks for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
+
+27. Present QC and stats for raw reads, alignments and peak-calling ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
 ## Quick start
 

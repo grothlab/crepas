@@ -1,12 +1,27 @@
 .DS_Store
-multiqc/multiqc_data/fastqc_top_overrepresented_sequences_table.txt
-multiqc/multiqc_data/multiqc.parquet
-multiqc/multiqc_data/multiqc.log
-multiqc/multiqc_data/multiqc_data.json
-multiqc/multiqc_data/multiqc_sources.txt
-multiqc/multiqc_data/multiqc_software_versions.txt
-multiqc/multiqc_data/llms-full.txt
-multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
-multiqc/multiqc_report.html
-fastqc/*_fastqc.{html,zip}
-pipeline_info/*.{html,json,txt,yml}
+# Files listed here are excluded from the content (md5) snapshot of the pipeline-level test,
+# because their content changes between identical runs; their paths are still checked.
+
+# Run metadata, reports and channel dumps with timestamps or absolute work paths
+pipeline_info/**
+.debug/**
+multiqc/**
+igv/**
+
+# Formats that embed timestamps, random identifiers or compression headers
+**/*.{pdf,png,svg,html,zip,RData,Rdata,rds,npz}
+**/*.mat.gz
+genome/*.gz
+
+# Tool outputs whose headers record dates, command lines or input paths
+**/picard_markduplicates/*.metrics.txt
+**/picard_metrics/*
+**/*.featureCounts.tsv
+**/*.featureCounts.tsv.summary
+**/*.annotatePeaks.txt
+
+# Values from random sampling or floating-point differences between runs
+**/plotFingerprint/*.raw.txt
+**/coverage/**/summary/*.tsv
+**/*.plotHeatmap.mat.tab
+**/deseq2/*.{txt,tsv}
