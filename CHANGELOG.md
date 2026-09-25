@@ -106,9 +106,8 @@ Development version of grothlab/crepas.
 - The nf-test suite failing on GitHub Actions: `tests/nextflow.config` now caps resources to the runner limits, and the tests exposed by that were fixed (stale module input shapes, include paths and snapshots; BAM outputs are now compared by read checksum instead of file md5).
 - The MACE Docker container tag, which did not exist, and the bigtools Docker container and conda environment, which did not match the Singularity image version.
 - `TRIMGALORE_HARDTRIM` output files colliding with its own input; its outputs are now prefixed `<sample>_hardtrim`.
-- `denopa` failing under Singularity and Apptainer; the pipeline now stops early and asks to remove `denopa` from `--peak_callers` or to run with Docker.
+- `denopa` is marked as unsupported for now: its only container installs DeNOPA under `/root`, which is not readable when the container runs as a regular user (Singularity, Apptainer, and Docker with the pipeline's run options). The pipeline stops early if `denopa` is requested, and its module tests are skipped.
 - HISAT2 alignment failing under Singularity and Apptainer, because the `hisat2/align` module's `oras://` image could no longer be pulled; the module is updated to its current nf-core version, which uses an `https://` image.
-- `denopa` failing under Docker, because its container was given as `docker://hepingshiming2007/denopa:latest`, which Docker rejects.
 - The software versions file for MultiQC being named `grothlabcrepas_software_mqc_versions.yml`; it is now `grothlab_crepas_software_mqc_versions.yml`.
 - The MACS3 and HOMER peak QC summary tables listing samples in a random order between runs; their input files are now sorted by name.
 
