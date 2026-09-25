@@ -17,7 +17,7 @@ authors:
     given-names: "Nicolas"
     orcid: "https://orcid.org/0000-0003-0839-8423"
 title: "CREPAS: a reproducible nascent chromatin sequencing analysis pipeline for epigenome replication studies."
-version: 1.0.0
+version: 1.1.0
 doi: 10.5281/zenodo.20788108
-date-released: 2026-06-21
+date-released: 2026-09-25
 url: "https://github.com/grothlab/crepas"
