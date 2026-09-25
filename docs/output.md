@@ -441,8 +441,8 @@ every biological replicate, normalized, combined and turned into a log2(early/la
 track. A sample with three or more fractions also gets a replication-timing index track, the
 weighted-mean fraction per bin rescaled from 0 (earliest) to 1 (latest), which unlike the ratio uses
 every fraction. The covered track is segmented into domains of constant timing, and genes are
-classified by the fraction with the highest read density over their gene body. See
-[Repli-seq replication-timing tracks](https://crepas.grothlab.workers.dev/usage/#repli-seq-replication-timing-tracks) in the usage
+classified by the fraction with the highest read density over their gene body. See the
+[Repli-seq analysis options](https://crepas.grothlab.workers.dev/usage/#repli-seq-analysis-options) in the usage
 documentation for the parameters controlling each step.
 
 ### High-resolution Repli-seq
