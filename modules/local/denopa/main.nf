@@ -3,9 +3,7 @@ process DENOPA {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'docker://hepingshiming2007/denopa:latest' :
-        'docker.io/hepingshiming2007/denopa:latest' }"
+    container "docker.io/hepingshiming2007/denopa:latest"
 
     input:
     tuple val(meta), path(bam), path(bai)
