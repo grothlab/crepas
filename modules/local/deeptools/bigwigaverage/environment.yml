@@ -4,5 +4,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconda::deeptools=3.5.5
-  - bioconda::samtools=1.20
+  - bioconda::deeptools=3.5.6
+  - conda-forge::pip=24.3.1
+  - conda-forge::python=3.12.8
+  - conda-forge::setuptools=75.8.0

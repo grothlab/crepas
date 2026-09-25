@@ -3,7 +3,10 @@
 channels:
   - conda-forge
 dependencies:
+  - conda-forge::pip=25.0.1
+  - conda-forge::python=3.13.3
   - conda-forge::r-argparse=2.2.5
+  - conda-forge::r-base=4.4.3
   - conda-forge::r-dplyr=1.1.4
   - conda-forge::r-forcats=1.0.0
   - conda-forge::r-ggplot2=3.5.2

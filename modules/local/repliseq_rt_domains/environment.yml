@@ -6,6 +6,7 @@ channels:
 dependencies:
   - bioconda::bioconductor-dnacopy=1.86.0
   - conda-forge::libblas=3.11.0=*blis
+  - conda-forge::python=3.14.7
   - conda-forge::r-argparse=2.3.1
   - conda-forge::r-base=4.5.3
   - conda-forge::r-data.table=1.18.4

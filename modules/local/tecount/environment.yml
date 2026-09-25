@@ -4,5 +4,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconda::tetranscripts=2.2.3
   - conda-forge::pigz=2.8
+  - conda-forge::python=3.10.8
+  - conda-forge::r-base=3.6.3
+  - bioconda::tetranscripts=2.2.3

@@ -5,3 +5,6 @@ channels:
   - bioconda
 dependencies:
   - "bioconda::macs3=3.0.1"
+  - conda-forge::pip=24.0
+  - conda-forge::python=3.11.9
+  - conda-forge::setuptools=70.0.0
