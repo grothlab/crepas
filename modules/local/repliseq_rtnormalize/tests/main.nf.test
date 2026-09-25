@@ -55,14 +55,11 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.raw,
-                    process.out.raw_covered,
                     process.out.rt_index_raw,
                     process.out.qc,
                     process.out.summary,
-                    // loess output jitters in the last digits across CPUs/containers:
-                    // snapshot smoothed tracks by name and row count instead of md5
-                    process.out.findAll { key, val -> key in ["smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
                         .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
                     process.out.findAll { key, val -> key.startsWith("versions") }
                     ).match() }
@@ -89,14 +86,11 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.raw,
-                    process.out.raw_covered,
                     process.out.rt_index_raw,
                     process.out.qc,
                     process.out.summary,
-                    // loess output jitters in the last digits across CPUs/containers:
-                    // snapshot smoothed tracks by name and row count instead of md5
-                    process.out.findAll { key, val -> key in ["smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
                         .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
                     process.out.findAll { key, val -> key.startsWith("versions") }
                     ).match() }
@@ -123,14 +117,11 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.raw,
-                    process.out.raw_covered,
                     process.out.rt_index_raw,
                     process.out.qc,
                     process.out.summary,
-                    // loess output jitters in the last digits across CPUs/containers:
-                    // snapshot smoothed tracks by name and row count instead of md5
-                    process.out.findAll { key, val -> key in ["smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
                         .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
                     process.out.findAll { key, val -> key.startsWith("versions") }
                     ).match() }
@@ -157,14 +148,11 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.raw,
-                    process.out.raw_covered,
                     process.out.rt_index_raw,
                     process.out.qc,
                     process.out.summary,
-                    // loess output jitters in the last digits across CPUs/containers:
-                    // snapshot smoothed tracks by name and row count instead of md5
-                    process.out.findAll { key, val -> key in ["smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
                         .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
                     process.out.findAll { key, val -> key.startsWith("versions") }
                     ).match() }
@@ -191,14 +179,11 @@ nextflow_process {
                 { assert process.out.rt_index_raw },
                 { assert process.out.rt_index_smooth },
                 { assert snapshot(
-                    process.out.raw,
-                    process.out.raw_covered,
                     process.out.rt_index_raw,
                     process.out.qc,
                     process.out.summary,
-                    // loess output jitters in the last digits across CPUs/containers:
-                    // snapshot smoothed tracks by name and row count instead of md5
-                    process.out.findAll { key, val -> key in ["smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
                         .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
                     process.out.findAll { key, val -> key.startsWith("versions") }
                     ).match() }

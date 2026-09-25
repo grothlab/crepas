@@ -4,4 +4,6 @@ channels:
   - conda-forge
 dependencies:
   - conda-forge::coreutils=9.5
+  - conda-forge::pip=24.3.1
   - conda-forge::python=3.8.3
+  - conda-forge::setuptools=75.3.0
