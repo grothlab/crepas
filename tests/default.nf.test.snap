@@ -181,7 +181,7 @@
                     "ucsc": 482
                 },
                 "Workflow": {
-                    "grothlab/crepas": "v1.1.0"
+                    "grothlab/crepas": "v1.2.0dev"
                 }
             },
             [
