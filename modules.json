@@ -388,7 +388,7 @@
                     },
                     "umicollapse": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "0fd93feb0513677fba6a295f5cebf9d63e8a9112",
                         "installed_by": ["modules"]
                     },
                     "umitools/dedup": {
