@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "mace_preprocessor"
+description: Convert BAM alignments into strand-separated wiggle (wig) tracks, as a preprocessing step for MACE border/nucleosome detection
+keywords:
+  - mace
+  - wig
+  - bam
+  - preprocessing
+tools:
+  - mace:
+      description: |
+        MACE (Model-based Analysis of ChIP-Exo) detects protein-DNA interaction borders from
+        strand-separated signal. `preprocessor.py` (bundled with MACE) converts BAM alignments
+        into the strand-separated forward/reverse wiggle tracks that `mace.py` consumes.
+      homepage: https://github.com/liguowang/mace
+      documentation: https://github.com/liguowang/mace
+      tool_dev_url: https://github.com/liguowang/mace
+      doi: "10.1093/bioinformatics/btu676"
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: One or more sorted BAM files (merged replicates are concatenated by the tool via a comma-separated file list)
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - bai:
+        type: file
+        description: BAM index file(s) matching `bam`
+        pattern: "*.bai"
+        ontologies:
+          - edam: "http://edamontology.org/format_3327" # BAI
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing chromosome sizes sample information
+          e.g. [ id:'genome' ]
+    - chrom_sizes:
+        type: file
+        description: "Chromosome sizes file (2-column TSV: name, length)"
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  forward_wig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*_Forward.wig":
+          type: file
+          description: Forward-strand wiggle track
+          pattern: "*_Forward.wig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3005" # WIG
+  reverse_wig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*_Reverse.wig":
+          type: file
+          description: Reverse-strand wiggle track
+          pattern: "*_Reverse.wig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3005" # WIG
+  versions_mace:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "mace":
+          type: string
+          description: The name of the tool
+      - "preprocessor.py --version 2>&1 | sed 's/^preprocessor\\.py //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "mace":
+          type: string
+          description: The name of the tool
+      - "preprocessor.py --version 2>&1 | sed 's/^preprocessor\\.py //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

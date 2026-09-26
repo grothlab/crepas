@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "plot_macs3_qc"
+description: Generate summary plots (peak count, length, fold-enrichment, significance) and a summary table from MACS3 peak calls
+keywords:
+  - macs3
+  - qc
+  - peaks
+tools:
+  - r-base:
+      description: |
+        The R programming language, used here (via the bundled `bin/plot_macs3_qc.r` script)
+        to summarise and plot MACS3 narrowPeak/broadPeak calls
+        across samples: peak count, peak length, fold-enrichment, and significance
+        (p/q-value) distributions, plus a per-sample summary statistics table.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/other-docs.html
+      licence: ["GPL-2.0-or-later"]
+      identifier: "biotools:r-base"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - peaks:
+        type: file
+        description: One or more MACS3 narrowPeak/broadPeak files to summarise together
+        pattern: "*.{narrowPeak,broadPeak}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+  - - is_narrow_peak:
+        type: boolean
+        description: Whether `peaks` are narrowPeak (true) or broadPeak (false) files
+output:
+  txt:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.txt":
+          type: file
+          description: Per-sample peak summary statistics table (fold-enrichment, q-value, p-value, length)
+          pattern: "*.summary.txt"
+  pdf:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.pdf":
+          type: file
+          description: PDF report with peak count, length, fold-enrichment, and significance distribution plots
+          pattern: "*.plots.pdf"
+          ontologies:
+            - edam: "http://edamontology.org/format_3508" # PDF
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@JoseEspinosa"
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

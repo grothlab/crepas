@@ -3,7 +3,7 @@ process SPIKEIN_BARCODE_MERGE {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/5d/5d4b9eb3e405ac6ec68a83c8529e725b3fb318c29a34efd117e2f2c27602c8ab/data' :
         'community.wave.seqera.io/library/bioconductor-complexheatmap_r-argparse_r-circlize_r-tidyverse:a65ce78f73a78e8c' }"
 
@@ -12,7 +12,7 @@ process SPIKEIN_BARCODE_MERGE {
 
     output:
     tuple val(meta), path("*.tsv"), emit: merged_counts
-    path  "versions.yml"          , emit: versions
+    tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*\$//'"), emit: versions_rbase, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,20 +27,10 @@ process SPIKEIN_BARCODE_MERGE {
             ${args} \\
             --count_tables ${count_files.join(' ')} \\
             --prefix ${prefix}
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-        END_VERSIONS
         """
     } else {
         """
         ln -s ${count_files[0]} ${prefix}.tsv
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-        END_VERSIONS
         """
     }
 
@@ -48,10 +38,5 @@ process SPIKEIN_BARCODE_MERGE {
     def prefix = task.ext.prefix ?: "${meta.id}.spikein_barcode_merged"
     """
     touch ${prefix}.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-    END_VERSIONS
     """
 }

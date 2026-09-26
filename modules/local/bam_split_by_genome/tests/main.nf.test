@@ -1,0 +1,94 @@
+nextflow_process {
+
+    name "Test Process BAM_SPLIT_BY_GENOME"
+    script "../main.nf"
+    process "BAM_SPLIT_BY_GENOME"
+
+    tag "modules"
+    tag "modules_local"
+    tag "bam_split_by_genome"
+
+    test("sarscov2 - bam - keep endo") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
+                ]
+                input[1] = 'sarscov2'
+                input[2] = 'spikein'
+                input[3] = 'endo'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - keep exo") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
+                ]
+                input[1] = 'sarscov2'
+                input[2] = 'spikein'
+                input[3] = 'exo'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - keep endo - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
+                ]
+                input[1] = 'sarscov2'
+                input[2] = 'spikein'
+                input[3] = 'endo'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

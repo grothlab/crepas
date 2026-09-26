@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "samtools_stats_summary"
+description: |
+  Transpose each sample's samtools stats table, concatenate them across samples and summarise
+  into a single tabular report
+keywords:
+  - samtools
+  - stats
+  - summary
+components:
+  - stats_transpose
+  - stats_cat
+  - stats_summary
+input:
+  - ch_stats:
+      description: |
+        Samtools stats files, one per sample
+        Structure: [ val(meta), path(stats) ]
+  - genome:
+      type: string
+      description: Endogenous genome identifier, e.g. 'hg38'
+  - spikein_genome:
+      type: string
+      description: Spike-in genome identifier, e.g. 'mm10'
+output:
+  - summary:
+      description: |
+        Combined samtools stats summary table across all samples
+        Structure: [ val(meta), path(tsv) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

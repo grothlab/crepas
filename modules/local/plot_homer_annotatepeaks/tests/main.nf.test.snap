@@ -1,0 +1,96 @@
+{
+    "sarscov2 - 2 samples - homer annotatepeaks plots": {
+        "content": [
+            "test_group.summary.txt",
+            "test_group.plots.pdf",
+            "test_group.summary_mqc.tsv",
+            {
+                "versions_rbase": [
+                    [
+                        "PLOT_HOMER_ANNOTATEPEAKS",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:25:54.632354324",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - 2 samples - homer annotatepeaks plots - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.summary_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        "PLOT_HOMER_ANNOTATEPEAKS",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ],
+                "pdf": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tsv": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.summary_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "txt": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "PLOT_HOMER_ANNOTATEPEAKS",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:26:06.801228091",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

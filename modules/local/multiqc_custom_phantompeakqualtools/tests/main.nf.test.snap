@@ -1,0 +1,161 @@
+{
+    "sarscov2 - phantompeakqualtools - multiqc custom content": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.mLb.mkD.flT1.flT3.spp_nsc_mqc.tsv:md5,79ffe4f7c03188205e07e199134ab474"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.mLb.mkD.flT1.flT3.spp_rsc_mqc.tsv:md5,2b6fc04d2dba1fca38079a47ed0a4644"
+                ]
+            ],
+            "test.mLb.mkD.flT1.flT3.spp_correlation_mqc.tsv",
+            413,
+            {
+                "versions_coreutils": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "gawk",
+                        "5.4.1"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "r-base",
+                        "4.6.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T14:14:21.610737806",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - phantompeakqualtools - multiqc custom content - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3.spp_nsc_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3.spp_rsc_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3.spp_correlation_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "r-base",
+                        "4.6.1"
+                    ]
+                ],
+                "4": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "gawk",
+                        "5.4.1"
+                    ]
+                ],
+                "5": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "correlation": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3.spp_correlation_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "nsc": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3.spp_nsc_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "rsc": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3.spp_rsc_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "gawk",
+                        "5.4.1"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS",
+                        "r-base",
+                        "4.6.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T14:14:32.572519884",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

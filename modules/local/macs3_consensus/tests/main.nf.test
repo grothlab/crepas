@@ -1,0 +1,73 @@
+nextflow_process {
+
+    name "Test Process MACS3_CONSENSUS"
+    script "../main.nf"
+    process "MACS3_CONSENSUS"
+
+    tag "modules"
+    tag "modules_local"
+    tag "macs3_consensus"
+
+    test("homo_sapiens - narrowPeak - consensus") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/narrowpeak/test.narrowPeak', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/narrowpeak/test2.narrowPeak', checkIfExists: true)
+                    ]
+                ]
+                input[1] = true
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.bed,
+                    process.out.saf,
+                    process.out.txt,
+                    process.out.boolean_txt,
+                    process.out.intersect_txt,
+                    file(process.out.pdf[0][1]).name,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - narrowPeak - consensus - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/narrowpeak/test.narrowPeak', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/narrowpeak/test2.narrowPeak', checkIfExists: true)
+                    ]
+                ]
+                input[1] = true
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

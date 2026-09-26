@@ -7,7 +7,7 @@ process TAGALIGN_SELF_PSEUDOREPLICATES {
     label 'process_low'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/d6/d6696567851b54790cac3acd1e6744ca336f21d809e6fa3a1342cd3dae688198/data' :
         'community.wave.seqera.io/library/coreutils_gawk_openssl:8729727b42757e72' }"
 
@@ -17,7 +17,9 @@ process TAGALIGN_SELF_PSEUDOREPLICATES {
     output:
     tuple val(meta), path("*spr1.tagAlign"), emit: tagalign1
     tuple val(meta), path("*spr2.tagAlign"), emit: tagalign2
-    path  "versions.yml"          , emit: versions
+    tuple val("${task.process}"), val('gawk'), eval("awk -Wversion | sed '1!d; s/.*Awk //; s/,.*//'"), emit: versions_gawk, topic: versions
+    tuple val("${task.process}"), val('coreutils'), eval("shuf --version | head -1 | sed 's/.*coreutils) //'"), emit: versions_coreutils, topic: versions
+    tuple val("${task.process}"), val('openssl'), eval("openssl version | sed 's/^OpenSSL //; s/ .*//'"), emit: versions_openssl, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -25,7 +27,7 @@ process TAGALIGN_SELF_PSEUDOREPLICATES {
     script:
     def args  = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    
+
     if (meta.single_end) {
         """
         # Get total number of read pairs
@@ -38,15 +40,10 @@ process TAGALIGN_SELF_PSEUDOREPLICATES {
             | split -d -l \${nlines} - ${prefix}.shuf.split.tagAlign
 
         # Convert reads into standard tagAlign file
-        gzip -nc “${prefix}.shuf.split.tagAlign00" > ${prefix}.spr1.tagAlign
+        gzip -nc "${prefix}.shuf.split.tagAlign00" > ${prefix}.spr1.tagAlign
         rm "${prefix}.shuf.split.tagAlign00"
-        gzip -nc “${prefix}.shuf.split.tagAlign01" > ${prefix}.spr2.tagAlign
+        gzip -nc "${prefix}.shuf.split.tagAlign01" > ${prefix}.spr2.tagAlign
         rm "${prefix}.shuf.split.tagAlign01"
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-        END_VERSIONS
         """
     } else {
         """
@@ -67,14 +64,9 @@ process TAGALIGN_SELF_PSEUDOREPLICATES {
 
         awk 'BEGIN{OFS="\\t"}{printf "%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n",\$1,\$2,\$3,\$4,\$5,\$6,\$7,\$8,\$9,\$10,\$11,\$12}' "${prefix}.shuf.split.tagAlign01" \\
             > ${prefix}.spr2.tagAlign
-        
+
         rm "${prefix}.shuf.split.tagAlign00"
         rm "${prefix}.shuf.split.tagAlign01"
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-        END_VERSIONS
         """
     }
 
@@ -83,10 +75,5 @@ process TAGALIGN_SELF_PSEUDOREPLICATES {
     """
     touch  ${prefix}.spr1.tagAlign
     touch  ${prefix}.spr2.tagAlign
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-    END_VERSIONS
     """
 }

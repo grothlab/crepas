@@ -1,0 +1,62 @@
+nextflow_process {
+
+    name "Test Process BEDGRAPH_SIGNAL_OVER_INPUT"
+    script "../main.nf"
+    process "BEDGRAPH_SIGNAL_OVER_INPUT"
+
+    tag "modules"
+    tag "modules_local"
+    tag "bedgraph_signal_over_input"
+
+    test("homo_sapiens - bedgraph - K27me3 over IgG") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'delete_me/bedgraph/K27me3_1_to_chr20.bedgraph', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'delete_me/bedgraph/IgG_1_to_chr20.bedgraph', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.bedgraph,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - bedgraph - K27me3 over IgG - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'delete_me/bedgraph/K27me3_1_to_chr20.bedgraph', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'delete_me/bedgraph/IgG_1_to_chr20.bedgraph', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

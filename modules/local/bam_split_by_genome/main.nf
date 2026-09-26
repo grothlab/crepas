@@ -6,7 +6,7 @@ process BAM_SPLIT_BY_GENOME {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/samtools:1.21--h50ea8bc_0' :
         'biocontainers/samtools:1.21--h50ea8bc_0' }"
 
@@ -18,7 +18,7 @@ process BAM_SPLIT_BY_GENOME {
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val('samtools'), eval("samtools version | sed '1!d;s/.* //'"), emit: versions_samtools, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -40,13 +40,8 @@ process BAM_SPLIT_BY_GENOME {
             --bam \\
             ${prefix}.${endo_genome}.sam \\
             > ${prefix}.${endo_genome}.bam
-        
-        rm ${prefix}.${endo_genome}.sam
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-        END_VERSIONS
+        rm ${prefix}.${endo_genome}.sam
         """
     } else if (reads_to_keep == 'exo') {
         """
@@ -65,13 +60,8 @@ process BAM_SPLIT_BY_GENOME {
             --bam \\
             ${prefix}.${exo_genome}.sam \\
             > ${prefix}.${exo_genome}.bam
-        
-        rm ${prefix}.${exo_genome}.sam
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-        END_VERSIONS
+        rm ${prefix}.${exo_genome}.sam
         """
     }
 
@@ -79,11 +69,5 @@ process BAM_SPLIT_BY_GENOME {
     def prefix = task.ext.prefix ?: "${meta.id}_${reads_to_keep}"
     """
     touch ${prefix}.${reads_to_keep}.bam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
     """
-    
 }

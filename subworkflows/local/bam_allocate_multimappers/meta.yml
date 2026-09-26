@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_allocate_multimappers"
+description: |
+  Allocate multimapping reads in a BAM file using ALLO or MMR, then coordinate-sort, index and
+  run samtools stats, flagstat and idxstats
+keywords:
+  - multimapper
+  - allocation
+  - bam
+components:
+  - allo
+  - mmr
+  - samtools/sort
+  - bam_sort_stats_samtools
+input:
+  - ch_bam:
+      description: |
+        Input BAM file
+        Structure: [ val(meta), path(bam) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - allocation_method:
+      type: string
+      description: Multimapper allocation method to use, e.g. 'allo' or 'mmr'
+output:
+  - bam:
+      description: |
+        BAM file with multimappers allocated
+        Structure: [ val(meta), path(bam) ]
+  - index:
+      description: |
+        Index of the allocated BAM file
+        Structure: [ val(meta), path(index) ]
+  - stats:
+      description: |
+        File containing samtools stats output
+        Structure: [ val(meta), path(stats) ]
+  - flagstat:
+      description: |
+        File containing samtools flagstat output
+        Structure: [ val(meta), path(flagstat) ]
+  - idxstats:
+      description: |
+        File containing samtools idxstats output
+        Structure: [ val(meta), path(idxstats) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

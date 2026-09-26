@@ -1,0 +1,127 @@
+{
+    "sarscov2 - 2 samples - qc long/summary tables and heatmap": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test_group"
+                    },
+                    "test_group.spikein_barcode_summary.long.tsv:md5,d71e4635637b36c144b8ea42ba08fd97"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test_group"
+                    },
+                    "test_group.spikein_barcode_summary.summary.tsv:md5,1331c7cbf89a2feb831c7401f5d339ec"
+                ]
+            ],
+            "test_group.spikein_barcode_summary.heatmap.pdf",
+            "test_group.spikein_barcode_summary.heatmap.png",
+            {
+                "versions_rbase": [
+                    [
+                        "SPIKEIN_BARCODE_QC",
+                        "r-base",
+                        "4.5.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T13:09:08.767724914",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - 2 samples - qc long/summary tables and heatmap - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.spikein_barcode_summary.long.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.spikein_barcode_summary.summary.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.spikein_barcode_summary.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.spikein_barcode_summary.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        "SPIKEIN_BARCODE_QC",
+                        "r-base",
+                        "4.5.2"
+                    ]
+                ],
+                "long": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.spikein_barcode_summary.long.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "plot_pdf": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.spikein_barcode_summary.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "plot_png": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.spikein_barcode_summary.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "summary": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.spikein_barcode_summary.summary.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "SPIKEIN_BARCODE_QC",
+                        "r-base",
+                        "4.5.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:28:06.461829585",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

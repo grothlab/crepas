@@ -3,7 +3,7 @@ process ROCCO {
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/a0/a0526a7f7adf6fa2e99db65b1da7b13e60dc50568378c5ed02a40f87901725a2/data' :
         'community.wave.seqera.io/library/bedtools_deeptoolsintervals_pybedtools_samtools_pruned:4e193f772646372f' }"
 
@@ -18,7 +18,7 @@ process ROCCO {
     tuple val(meta), path("*.counts.tsv"),    optional:true,    emit: counts
     tuple val(meta), path("*.narrowPeak"),    optional:true,    emit: narrow_peak
     tuple val(meta), path("*.mps"),           optional:true,    emit: model_mps
-    path "versions.yml",                                        emit: versions
+    tuple val("${task.process}"), val('rocco'), eval("pip show rocco | sed -n 's/^Version: //p'"), emit: versions_rocco, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -32,7 +32,6 @@ process ROCCO {
     def sizes_arg       = chrom_sizes           ? "--chrom_sizes_file ${chrom_sizes}" : ""
     def egsize_arg      = effective_genome_size ? "--effective_genome_size ${effective_genome_size}" : ""
     def params_arg      = params_file           ? "--params ${params_file}" : ""
-    def VERSION = '1.6.3' // WARN: Version information not provided by tool on CLI. Please update this string when bumping container versions.
     """
     echo "${bamlist_txt}" | tr ',' '\\n' > ${prefix}.bamlist.txt
 
@@ -47,26 +46,15 @@ process ROCCO {
         ${params_arg} \\
         ${egsize_arg} \\
         --outfile ${prefix}.bed
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        rocco: ${VERSION}
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def VERSION = '1.6.3' // WARN: Version information not provided by tool on CLI. Please update this string when bumping container versions.
     """
     touch ${prefix}.bed
     touch ${prefix}.counts.tsv
     touch ${prefix}.narrowPeak
     touch ${prefix}.mps
     touch ${prefix}.bamlist.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        rocco: ${VERSION}
-    END_VERSIONS
     """
 }

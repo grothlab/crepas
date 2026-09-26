@@ -3,8 +3,8 @@ process DESEQ2_QC {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/bioconductor-biocparallel_bioconductor-complexheatmap_bioconductor-deseq2_bioconductor-tximport_pruned:95aef8e10f40bd25' :
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/8c/8c37c28e94cb08e049263519febbc9fb2a665247c53487c0bbbe1c78068f84a1/data' :
         'community.wave.seqera.io/library/bioconductor-biocparallel_bioconductor-complexheatmap_bioconductor-deseq2_bioconductor-tximport_pruned:734b06a8a49c9ab7' }"
 
     input:
@@ -22,7 +22,8 @@ process DESEQ2_QC {
     path "*sample.dists_mqc.tsv", optional:true, emit: dists_multiqc
     path "*.log"                , optional:true, emit: log
     path "size_factors"         , optional:true, emit: size_factors
-    path "versions.yml"         , emit: versions
+    tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*\$//'"), topic: versions, emit: versions_rbase
+    tuple val("${task.process}"), val('bioconductor-deseq2'), eval("Rscript -e 'library(DESeq2); cat(as.character(packageVersion(\"DESeq2\")))'"), topic: versions, emit: versions_deseq2
 
     when:
     task.ext.when == null || task.ext.when
@@ -38,21 +39,15 @@ process DESEQ2_QC {
         --cores $task.cpus \\
         $args
 
-    sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
-    sed -i -e 's/DESeq2 /${meta.id} DESeq2 /g' tmp.txt
-    cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+    sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.pca.txt
+    sed -i -e 's/DESeq2 /${meta.id} DESeq2 /g' tmp.pca.txt
+    cat tmp.pca.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
 
-    sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
-    sed -i -e 's/DESeq2 /${meta.id} DESeq2 /g' tmp.txt
-    cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-        bioconductor-deseq2: \$(Rscript -e "library(DESeq2); cat(as.character(packageVersion('DESeq2')))")
-    END_VERSIONS
+    sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.clustering.txt
+    sed -i -e 's/DESeq2 /${meta.id} DESeq2 /g' tmp.clustering.txt
+    cat tmp.clustering.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
     """
-    
+
     stub:
     prefix = task.ext.prefix ?: "${meta.id}"
     """
@@ -65,11 +60,5 @@ process DESEQ2_QC {
     touch ${prefix}.sample.dists_mqc.tsv
     touch ${prefix}.log
     touch size_factors
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-        bioconductor-deseq2: \$(Rscript -e "library(DESeq2); cat(as.character(packageVersion('DESeq2')))")
-    END_VERSIONS
     """
 }

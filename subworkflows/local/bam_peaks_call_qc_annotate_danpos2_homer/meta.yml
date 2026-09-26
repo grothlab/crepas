@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_qc_annotate_danpos2_homer"
+description: |
+  Call nucleosome/chromatin peaks with DANPOS2, removing scaffold contigs first. The specific
+  DANPOS2 mode (dpeak, dpos, dregion or dtriple) is selected per sample from `meta.peak_caller`,
+  which CALL_PEAKS sets from the peak_callers parameter.
+keywords:
+  - danpos2
+  - nucleosome
+  - peak-calling
+components:
+  - bam_remove_scaffolds
+  - danpos2/dpeak
+  - danpos2/dpos
+  - danpos2/dregion
+  - danpos2/dtriple
+input:
+  - ch_bam:
+      description: |
+        IP BAM file(s) and matched input control. `meta.peak_caller` selects the DANPOS2 mode to
+        run for that sample: 'dpeak', 'dpos', 'dregion' or 'dtriple'
+        Structure: [ val(meta), [ path(ip_bam) ], [ path(control_bam) ] ]
+output:
+  - dpeak_pooled_xls:
+      description: |
+        Pooled DANPOS2 dpeak XLS output, for the samples whose `meta.peak_caller` is 'dpeak'
+        Structure: [ val(meta), path(xls) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -1,0 +1,129 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "fastq_extract_spikein_barcodes"
+description: |
+  Count occurrences of spike-in barcode sequences (EpiCypher) in each mate of a
+  paired-end FASTQ file, for quality control of CUT&RUN/CUT&Tag reactions
+keywords:
+  - spike-in
+  - barcode
+  - cut&run
+  - cut&tag
+  - awk
+tools:
+  - gawk:
+      description: |
+        This module uses GNU Awk (gawk) to scan the sequence line of every read in each FASTQ
+        mate and count, for every barcode listed in a reference table, how many reads contain
+        that barcode sequence as a substring. Counts for both mates are then combined into a
+        single per-barcode summary table with `paste`.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - reads:
+        type: list
+        description: List of 2 gzipped FASTQ files `[ read1, read2 ]` to scan for spike-in barcode sequences
+        pattern: "*.{fastq.gz}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1930" # FASTQ
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing barcode table information
+          e.g. [ id:'spikein_barcodes' ]
+    - barcode_table:
+        type: file
+        description: |
+          Tab-delimited table of spike-in barcodes with a header row and columns
+          `barcode_target`, `barcode_id`, `barcode_sequence` (e.g. EpiCypher's SNAP-CUTANA
+          panel barcodes).
+        pattern: "*.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  counts:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          type: file
+          description: |
+            Tab-delimited table with one row per barcode (`barcode_target`, `barcode_id`,
+            `barcode_sequence`) and the number of reads in which that barcode sequence was
+            found in read 1 (`R1_count`) and read 2 (`R2_count`)
+          pattern: "*.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_pigz:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "pigz":
+          type: string
+          description: The name of the tool
+      - "pigz --version 2>&1 | sed 's/pigz //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env paste --version | head -1 | sed 's/^paste (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "pigz":
+          type: string
+          description: The name of the tool
+      - "pigz --version 2>&1 | sed 's/pigz //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env paste --version | head -1 | sed 's/^paste (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

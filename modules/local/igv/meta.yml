@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "igv"
+description: Build an IGV session XML file referencing a list of tracks (BED/bigWig/TDF/GTF) and their display colours, plus the reference genome FASTA
+keywords:
+  - igv
+  - session
+  - visualization
+tools:
+  - igv:
+      description: |
+        Creates an Integrative Genomics Viewer (IGV) session file from a list of track files and
+        associated display colours, via a bundled python script (`igv_files_to_session.py`,
+        adapted from nf-core/atacseq) rather than the IGV application itself.
+      homepage: https://igv.org/
+      documentation: https://igvteam.github.io/igv.js/doc/doc-igvjs.html
+      tool_dev_url: https://github.com/igvteam/igv.js
+      licence: ["MIT"]
+      identifier: ""
+input:
+  - - files:
+        type: file
+        description: List of track files to include in the IGV session (staged only so relative paths resolve; the session references `outpaths`, not these staged copies)
+        pattern: "*.{bed,bw,bigwig,tdf,gtf}"
+    - outpaths:
+        type: list
+        description: List of file paths (e.g. final published locations), one per entry in `files`, in the same order, to reference in the session XML
+    - colors:
+        type: list
+        description: List of RGB colour strings (e.g. `255,105,180`), one per entry in `files`, in the same order
+  - - fasta:
+        type: file
+        description: Reference genome FASTA file (staged only; `fasta_outpath` is what's written into the session)
+        pattern: "*.{fa,fasta}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1929" # FASTA
+    - fasta_outpath:
+        type: string
+        description: File path (e.g. final published location) or IGV genome shorthand (e.g. `hg19`) to reference as the session's reference genome
+output:
+  txt:
+    - - "*files.txt":
+          type: file
+          description: Tab-separated intermediate file of outpaths and colours, one line per track
+  xml:
+    - - "*.xml":
+          type: file
+          description: IGV session XML file
+          pattern: "*.xml"
+  versions_python:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "python":
+          type: string
+          description: The name of the tool
+      - "python --version 2>&1 | sed 's/^Python //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "python":
+          type: string
+          description: The name of the tool
+      - "python --version 2>&1 | sed 's/^Python //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@drpatelh"
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

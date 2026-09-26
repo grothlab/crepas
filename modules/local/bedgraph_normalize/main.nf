@@ -3,9 +3,9 @@ process BEDGRAPH_NORMALIZE {
     label 'process_low'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/ubuntu:22.04' :
-        'nf-core/ubuntu:22.04' }"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/ed/ed4799c386bc676b388fb01df7e97792ed9dd5e84c8f20ef568feca5dc2cccdb/data' :
+        'community.wave.seqera.io/library/gawk:5.4.0--0877e7a42fa88325' }"
 
     input:
     tuple val(meta), path(bdg)
@@ -13,7 +13,7 @@ process BEDGRAPH_NORMALIZE {
 
     output:
     tuple val(meta), path("*.${extension}") , emit: normalized
-    path  "versions.yml"                , emit: versions
+    tuple val("${task.process}"), val('awk'), eval("awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'"), emit: versions_awk, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -40,21 +40,11 @@ process BEDGRAPH_NORMALIZE {
         print }' \\
         ${bdg} \\
         > ${prefix}.${extension}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch  ${prefix}.${extension}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-    END_VERSIONS
     """
 }

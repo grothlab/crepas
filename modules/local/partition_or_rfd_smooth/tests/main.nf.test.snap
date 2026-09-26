@@ -1,0 +1,69 @@
+{
+    "sarscov2 - partition - smooth - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "PARTITION_OR_RFD_SMOOTH",
+                        "perl",
+                        "5.26.2"
+                    ]
+                ],
+                "rfd": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_perl": [
+                    [
+                        "PARTITION_OR_RFD_SMOOTH",
+                        "perl",
+                        "5.26.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T14:41:35.641369476",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - partition - smooth": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.tsv:md5,0824b4c202308a6db2a009e997d47ca7"
+                ]
+            ],
+            {
+                "versions_perl": [
+                    [
+                        "PARTITION_OR_RFD_SMOOTH",
+                        "perl",
+                        "5.26.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T14:41:22.474755388",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

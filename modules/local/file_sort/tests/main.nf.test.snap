@@ -1,0 +1,69 @@
+{
+    "sarscov2 - bed - sort - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.sorted:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "FILE_SORT",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "sorted": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.sorted:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "FILE_SORT",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:42:44.90169066",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bed - sort": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.sorted:md5,fe4053cf4de3aebbdfc3be2efb125a74"
+                ]
+            ],
+            {
+                "versions_coreutils": [
+                    [
+                        "FILE_SORT",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:42:36.24180906",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

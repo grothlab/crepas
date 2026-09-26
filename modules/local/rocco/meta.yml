@@ -1,0 +1,148 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "rocco"
+description: Call multi-sample consensus open chromatin/peak regions from BAM or bigWig coverage tracks via convex optimization
+keywords:
+  - rocco
+  - peak calling
+  - consensus peaks
+  - chromatin accessibility
+  - convex optimization
+  - atac-seq
+  - chip-seq
+tools:
+  - rocco:
+      description: |
+        ROCCO (Robust Open Chromatin Detection via Convex Optimization) identifies consensus
+        open chromatin/peak regions across multiple samples simultaneously by solving a
+        constrained convex optimization problem over per-sample coverage signals, rather than
+        calling peaks independently per sample and merging them afterwards.
+      homepage: https://github.com/nolan-h-hamilton/ROCCO
+      documentation: https://github.com/nolan-h-hamilton/ROCCO#readme
+      tool_dev_url: https://github.com/nolan-h-hamilton/ROCCO
+      doi: "10.1093/bioinformatics/btad725"
+      licence: ["MIT"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bams_or_bws:
+        type: file
+        description: One or more BAM alignment files or a single bigWig coverage/signal track to call consensus peaks on (`--input_files`)
+        pattern: "*.{bam,bw,bigWig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+          - edam: "http://edamontology.org/format_3006" # bigWig
+    - bamlist:
+        type: file
+        description: |
+          Optional BAM files used to score peaks and enable narrowPeak-format output
+          (`--narrowPeak --bamlist_txt`). Leave empty to skip narrowPeak/counts generation.
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - bailist:
+        type: file
+        description: BAM index (.bai) files corresponding to `bamlist` (optional, staged alongside the BAM files)
+        pattern: "*.bai"
+        ontologies: []
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing reference/genome information
+          e.g. [ id:'genome' ]
+    - chrom_sizes:
+        type: file
+        description: Tab-delimited chromosome sizes file (chromosome name, chromosome length)
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3587" # chrominfo
+  - - meta3:
+        type: map
+        description: |
+          Groovy Map containing parameter file information
+          e.g. [ id:'rocco_params' ]
+    - params_file:
+        type: file
+        description: Optional ROCCO parameter file (`--params`) overriding per-chromosome budget/gamma settings
+        pattern: "*.csv"
+        ontologies: []
+  - effective_genome_size:
+      type: integer
+      description: Optional effective genome size passed to `--effective_genome_size`
+      pattern: ""
+output:
+  bed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bed":
+          type: file
+          description: BED file of consensus peak regions
+          pattern: "*.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  counts:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.counts.tsv":
+          type: file
+          description: Optional per-sample read/signal counts within each consensus peak region
+          pattern: "*.counts.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  narrow_peak:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.narrowPeak":
+          type: file
+          description: Optional narrowPeak-format file with per-peak scores, generated when `bamlist` is supplied
+          pattern: "*.narrowPeak"
+          ontologies: []
+  model_mps:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.mps":
+          type: file
+          description: Optional saved MPS-format linear programming model file (`--save_model`)
+          pattern: "*.mps"
+          ontologies: []
+  versions_rocco:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "rocco":
+          type: string
+          description: The name of the tool
+      - "pip show rocco | sed -n 's/^Version: //p'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "rocco":
+          type: string
+          description: The name of the tool
+      - "pip show rocco | sed -n 's/^Version: //p'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

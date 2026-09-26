@@ -1,0 +1,148 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "multiqc_custom_phantompeakqualtools"
+description: Build MultiQC custom-content tables (NSC, RSC and cross-correlation) from phantompeakqualtools output
+keywords:
+  - multiqc
+  - custom-content
+  - phantompeakqualtools
+  - nsc
+  - rsc
+  - cross-correlation
+tools:
+  - r-base:
+      description: |
+        R is a free software environment for statistical computing and graphics. Used here to
+        load the phantompeakqualtools `.Rdata` object and write out the strand cross-correlation
+        profile as a MultiQC custom-content table.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - spp:
+        type: file
+        description: phantompeakqualtools cross-correlation scores file (NSC in column 9, RSC in column 10)
+        pattern: "*.spp.out"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+    - rdata:
+        type: file
+        description: phantompeakqualtools R data object containing the `crosscorr` cross-correlation profile
+        pattern: "*.Rdata"
+  - nsc_header:
+      type: file
+      description: MultiQC custom-content header file for the NSC table
+      pattern: "*.txt"
+  - rsc_header:
+      type: file
+      description: MultiQC custom-content header file for the RSC table
+      pattern: "*.txt"
+  - correlation_header:
+      type: file
+      description: MultiQC custom-content header file for the cross-correlation table
+      pattern: "*.txt"
+output:
+  nsc:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.spp_nsc_mqc.tsv":
+          type: file
+          description: MultiQC custom-content file with the sample's normalized strand coefficient (NSC)
+          pattern: "*.spp_nsc_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  rsc:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.spp_rsc_mqc.tsv":
+          type: file
+          description: MultiQC custom-content file with the sample's relative strand coefficient (RSC)
+          pattern: "*.spp_rsc_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  correlation:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.spp_correlation_mqc.tsv":
+          type: file
+          description: MultiQC custom-content file with the sample's strand cross-correlation profile
+          pattern: "*.spp_correlation_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_gawk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "cat --version | head -1 | sed 's/^cat (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "cat --version | head -1 | sed 's/^cat (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

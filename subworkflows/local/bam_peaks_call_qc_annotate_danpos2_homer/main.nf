@@ -7,15 +7,13 @@ include { BAM_REMOVE_SCAFFOLDS      } from '../../../modules/local/bam_remove_sc
 include { DANPOS2_DPEAK             } from '../../../modules/local/danpos2/dpeak/main'
 include { DANPOS2_DPOS              } from '../../../modules/local/danpos2/dpos/main'
 include { DANPOS2_DREGION           } from '../../../modules/local/danpos2/dregion/main'
+include { DANPOS2_DTRIPLE           } from '../../../modules/local/danpos2/dtriple/main'
 
 workflow BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER {
     take:
     ch_bam                            // channel: [ val(meta), [ ip_bam ], [ control_bam ] ]
-    peak_caller
 
     main:
-
-    ch_versions = channel.empty()
 
     //
     // MODULE: Remove scaffolds from BAM files
@@ -23,8 +21,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER {
     BAM_REMOVE_SCAFFOLDS (
         ch_bam
     )
-    ch_versions = ch_versions.mix(BAM_REMOVE_SCAFFOLDS.out.versions.first())
-
 
     // Branch channels based on if input control is present
     BAM_REMOVE_SCAFFOLDS.out.bam
@@ -70,43 +66,40 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER {
         }
         .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER" )
 
-    ch_dpeak_pooled_xls = channel.empty()
-    if (peak_caller == 'dpeak') {
-        //
-        // MODULE: Call peaks with DANPOS2 dpeak
-        //
-        DANPOS2_DPEAK (
-            ch_ip_control_bam_merged_reps
-        )
-        ch_dpeak_pooled_xls = DANPOS2_DPEAK.out.pooled_xls
-        ch_versions = ch_versions.mix(DANPOS2_DPEAK.out.versions.first())
-    }
 
-    
-    if (peak_caller == 'dpos') {
-        //
-        // MODULE: call peaks with DANPOS2 dpos
-        //
-        DANPOS2_DPOS (
-            ch_ip_control_bam_merged_reps
-        )
-        ch_versions = ch_versions.mix(DANPOS2_DPOS.out.versions.first())
-    }
-    
-    if (peak_caller == 'dregion') {
-        //
-        // MODULE: call peaks with DANPOS2 dpos
-        //
-        DANPOS2_DREGION (
-            ch_ip_control_bam_merged_reps
-        )
-        ch_versions = ch_versions.mix(DANPOS2_DREGION.out.versions.first())
-    }
-    
+    ch_dpeak_pooled_xls = channel.empty()
+    //
+    // MODULE: Call peaks with DANPOS2 dpeak
+    //
+    DANPOS2_DPEAK (
+        ch_ip_control_bam_merged_reps.filter { it -> it[0].peak_caller == 'dpeak' }
+    )
+    ch_dpeak_pooled_xls = DANPOS2_DPEAK.out.pooled_xls
+
+    //
+    // MODULE: call peaks with DANPOS2 dpos
+    //
+    DANPOS2_DPOS (
+        ch_ip_control_bam_merged_reps.filter { it -> it[0].peak_caller == 'dpos' }
+    )
+
+    //
+    // MODULE: call peaks with DANPOS2 dregion
+    //
+    DANPOS2_DREGION (
+        ch_ip_control_bam_merged_reps.filter { it -> it[0].peak_caller == 'dregion' }
+    )
+
+    //
+    // MODULE: call peaks with DANPOS2 dtriple
+    //
+    DANPOS2_DTRIPLE (
+        ch_ip_control_bam_merged_reps.filter { it -> it[0].peak_caller == 'dtriple' }
+    )
+
 
     emit:
 
-    dpeak_pooled_xls                        = ch_dpeak_pooled_xls
+    dpeak_pooled_xls    = ch_dpeak_pooled_xls
 
-    versions                     = ch_versions                      // channel: [ versions.yml ]
 }

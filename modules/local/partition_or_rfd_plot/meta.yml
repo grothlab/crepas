@@ -1,0 +1,203 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "partition_or_rfd_plot"
+description: Plot averaged SCAR-seq partition or OK-seq RFD profiles around replication initiation zones using an R/Bioconductor script
+keywords:
+  - scar-seq
+  - ok-seq
+  - rfd
+  - partition
+  - initiation-zones
+  - plot
+tools:
+  - r-base:
+      description: |
+        R is a free software environment for statistical computing and graphics. Runs the bundled
+        `partition_or_rfd_plot.R` script (tidyverse + ggplot2 + GenomicAlignments/GenomicFeatures)
+        to plot raw and smoothed partition/RFD profiles centred on initiation zones and to write
+        per-sample mean value tables.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - partition:
+        type: file
+        description: Optional SCAR-seq partition table (12-column) to plot
+        pattern: "*.{tsv,bed}"
+    - strandedinput:
+        type: file
+        description: Optional stranded-input partition table (12-column)
+        pattern: "*.{tsv,bed}"
+    - scarminusinput:
+        type: file
+        description: Optional SCAR-minus-input partition table (12-column)
+        pattern: "*.{tsv,bed}"
+    - okseq_rfd_file:
+        type: file
+        description: Optional OK-seq RFD partition table (12-column)
+        pattern: "*.{tsv,bed}"
+    - initiation_zones:
+        type: file
+        description: BED file of initiation zones to centre the profiles on (required)
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing blacklist information
+          e.g. [ id:'blacklist' ]
+    - blacklist:
+        type: file
+        description: Optional BED file of regions to exclude
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+  - - meta3:
+        type: map
+        description: |
+          Groovy Map containing genome information
+          e.g. [ id:'genome' ]
+    - chrom_sizes:
+        type: file
+        description: "Chromosome sizes file (2-column TSV: name, length)"
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  plot_smoothed_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_smoothed.pdf":
+          type: file
+          description: Raw partition/RFD profile plot, without the standard deviation ribbon (PDF)
+          pattern: "*_plot_smoothed.pdf"
+  plot_smoothed_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_smoothed.png":
+          type: file
+          description: Raw partition/RFD profile plot, without the standard deviation ribbon (PNG)
+          pattern: "*_plot_smoothed.png"
+  plot_smoothed_sd_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_smoothed.sd.pdf":
+          type: file
+          description: Raw partition/RFD profile plot, with the standard deviation ribbon (PDF)
+          pattern: "*_plot_smoothed.sd.pdf"
+  plot_smoothed_sd_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_smoothed.sd.png":
+          type: file
+          description: Raw partition/RFD profile plot, with the standard deviation ribbon (PNG)
+          pattern: "*_plot_smoothed.sd.png"
+  plot_smoothed_gam_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_smoothed.gam.pdf":
+          type: file
+          description: Smoothed partition/RFD profile plot (PDF)
+          pattern: "*_plot_smoothed.gam.pdf"
+  plot_smoothed_gam_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_smoothed.gam.png":
+          type: file
+          description: Smoothed partition/RFD profile plot (PNG)
+          pattern: "*_plot_smoothed.gam.png"
+  plot_raw_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_raw.pdf":
+          type: file
+          description: Unsmoothed partition/RFD profile plot, without the standard deviation ribbon (PDF)
+          pattern: "*_plot_raw.pdf"
+  plot_raw_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_raw.png":
+          type: file
+          description: Unsmoothed partition/RFD profile plot, without the standard deviation ribbon (PNG)
+          pattern: "*_plot_raw.png"
+  plot_raw_sd_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_raw.sd.pdf":
+          type: file
+          description: Unsmoothed partition/RFD profile plot, with the standard deviation ribbon (PDF)
+          pattern: "*_plot_raw.sd.pdf"
+  plot_raw_sd_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_raw.sd.png":
+          type: file
+          description: Unsmoothed partition/RFD profile plot, with the standard deviation ribbon (PNG)
+          pattern: "*_plot_raw.sd.png"
+  mean_values:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_mean_values.tsv":
+          type: file
+          description: Per-sample mean partition/RFD value table
+          pattern: "*_mean_values.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  scatter_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*.scatter_plot.pdf":
+          type: file
+          description: Optional SCAR-vs-OK-seq scatter plot (PDF)
+          pattern: "*.scatter_plot.pdf"
+  scatter_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*.scatter_plot.png":
+          type: file
+          description: Optional SCAR-vs-OK-seq scatter plot (PNG)
+          pattern: "*.scatter_plot.png"
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

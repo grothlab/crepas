@@ -2,8 +2,8 @@ include { SAMTOOLS_SORT                                         } from '../../..
 include { BEDTOOLS_BAMTOBED                                     } from '../../../modules/nf-core/bedtools/bamtobed/main'
 include { BED_TO_TAGALIGN                                       } from '../../../modules/local/bed_to_tagalign/main'
 include { TAGALIGN_SELF_PSEUDOREPLICATES                        } from '../../../modules/local/tagalign_self_pseudoreplicates/main'
-include { CAT_CAT as TAGALIGN_POOL                              } from '../../../modules/nf-core/cat/cat/main'
-include { PHANTOMPEAKQUALTOOLS as PHANTOMPEAKQUALTOOLS_SPP      } from '../../../modules/nf-core/phantompeakqualtools/main'
+include { FIND_CONCATENATE as TAGALIGN_POOL                     } from '../../../modules/nf-core/find/concatenate/main'
+include { PHANTOMPEAKQUALTOOLS as PHANTOMPEAKQUALTOOLS_SPP      } from '../../../modules/local/phantompeakqualtools/main'
 include { BED_FILTER_BLACKLIST as PEAKS_FILTER_BLACKLIST        } from '../../../modules/local/bed_filter_blacklist/main'
 include { IDR                                                   } from '../../../modules/nf-core/idr/main'
 include { IDR_FILTER_THRESHOLD                                  } from '../../../modules/local/idr_filter_threshold/main'
@@ -14,24 +14,22 @@ include { TAGALIGN_FRIP_SCORE                                   } from '../../..
 workflow BAM_ENCODE_PIPELINE {
     take:
     ch_bam                            // channel: [ val(meta), [ ip_bam ], [ control_bam ] ]
-    ch_fasta                          // channel: [ val(meta), path(fasta) ]
+    ch_fasta_fai                      // channel: [ val(meta), path(fasta), path(fai) ]
     ch_chromsizes                     // channel: [ val(meta), path(chromsizes) ]
     ctl_depth_ratio_threshold
-    peak_type
+    val_peak_type
     ch_blacklist
     idr_filtering_threshold
     encode_peak_max_score
 
     main:
 
-    ch_versions = channel.empty()
-
     //
     // MODULE: Name-sorting BAM files
     //
     SAMTOOLS_SORT (
         ch_bam,
-        ch_fasta,
+        ch_fasta_fai,
         ''
     )
 
@@ -48,7 +46,6 @@ workflow BAM_ENCODE_PIPELINE {
     BED_TO_TAGALIGN (
         BEDTOOLS_BAMTOBED.out.bed
     )
-    ch_versions = ch_versions.mix(BED_TO_TAGALIGN.out.versions.first())
 
 
     BED_TO_TAGALIGN
@@ -64,7 +61,6 @@ workflow BAM_ENCODE_PIPELINE {
     TAGALIGN_SELF_PSEUDOREPLICATES (
         ch_tagalign_ips_for_pseudoreps
     )
-    ch_versions = ch_versions.mix(TAGALIGN_SELF_PSEUDOREPLICATES.out.versions.first())
 
     // Add pseudoreplicate to metadata
     TAGALIGN_SELF_PSEUDOREPLICATES.out.tagalign1
@@ -74,7 +70,7 @@ workflow BAM_ENCODE_PIPELINE {
                 .map { meta, tagalign -> [ meta + [ pseudoreplicate: '2' ], tagalign ] }
         )
         .set {ch_self_pseudoreps}
-    
+
 
     // Create channel: [ meta, tagaligns ] to pool replicates and pseudoreplicates
     BED_TO_TAGALIGN
@@ -82,7 +78,7 @@ workflow BAM_ENCODE_PIPELINE {
         .tagalign
         .mix(ch_self_pseudoreps)
         .set { ch_tas_reps_and_pseudoreps }
-        
+
     ch_tas_reps_and_pseudoreps
         .map { meta, tagalign ->
             def meta_clone = meta.clone()
@@ -108,7 +104,7 @@ workflow BAM_ENCODE_PIPELINE {
         .map { meta, tagaligns ->
             "${meta}\t${tagaligns}"
         }
-        .collectFile(name: 'ch_tas_reps_and_pseudoreps_to_pool.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")    
+        .collectFile(name: 'ch_tas_reps_and_pseudoreps_to_pool.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")
 
     //
     // MODULE: Pool replicates and pseudoreplicates with cat
@@ -123,7 +119,7 @@ workflow BAM_ENCODE_PIPELINE {
         .map { meta, tagaligns ->
             "${meta}\t${tagaligns}"
         }
-        .collectFile(name: 'ch_tas_reps_and_pseudoreps_pooled.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")    
+        .collectFile(name: 'ch_tas_reps_and_pseudoreps_pooled.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")
 
     //
     // Create channel: [ meta, tagalign ] with metadata indicating whether to use pooled control or not for each sample
@@ -163,7 +159,7 @@ workflow BAM_ENCODE_PIPELINE {
             def meta_clone = ip_meta.clone()
             if (ctl_depth_ratio_threshold_exceeded) {
                 meta_clone.input_control = pooled_ipcontrol_id
-            } 
+            }
             meta_clone.ctl_depth_max = ctl_depth_max
             meta_clone.ctl_depth_min = ctl_depth_min
             meta_clone.ctl_depth_ratio = ctl_depth_ratio
@@ -172,13 +168,13 @@ workflow BAM_ENCODE_PIPELINE {
             [ meta_clone, ip_tagalign]
         }
         .set { ch_tas_reps_and_pseudoreps_ips_with_ipcontrol }
-    
+
     // TODO: save for debugging
     ch_tas_reps_and_pseudoreps_ips_with_ipcontrol
         .map { meta, ip_tagalign ->
             "${meta}\t${ip_tagalign}"
         }
-        .collectFile(name: 'ch_tas_reps_and_pseudoreps_ips_with_ipcontrol.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")    
+        .collectFile(name: 'ch_tas_reps_and_pseudoreps_ips_with_ipcontrol.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")
 
     // We remove id and antibody (used when branching above) to mix below
     ch_tas_reps_and_pseudoreps_by_type
@@ -187,8 +183,8 @@ workflow BAM_ENCODE_PIPELINE {
             [ meta, tagalign ]
         }
         .set { ch_tas_reps_and_pseudoreps_ipcontrols }
-        
-    // We mix back the rest with the ips now with updated pooled/non-pooled control metadata 
+
+    // We mix back the rest with the ips now with updated pooled/non-pooled control metadata
     ch_tas_reps_and_pseudoreps_by_type.ips_wo_ipcontrol
         .mix(ch_tas_reps_and_pseudoreps_pooled)
         .mix(ch_tas_reps_and_pseudoreps_ips_with_ipcontrol)
@@ -222,7 +218,7 @@ workflow BAM_ENCODE_PIPELINE {
         .map { meta, ip_tagalign, ipcontrol_tagalign ->
             "${meta}\t${ip_tagalign}\t${ipcontrol_tagalign}"
         }
-        .collectFile(name: 'ch_tagalign_for_spp.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")    
+        .collectFile(name: 'ch_tagalign_for_spp.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")
 
     //
     // MODULE: Call peaks with phantompeakqualtools SPP
@@ -230,7 +226,6 @@ workflow BAM_ENCODE_PIPELINE {
     PHANTOMPEAKQUALTOOLS_SPP (
         ch_tagalign_for_spp
     )
-    ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS_SPP.out.versions.first())
 
     //
     // MODULE: Filter peaks by blacklist, chromosomes, and max score
@@ -239,7 +234,7 @@ workflow BAM_ENCODE_PIPELINE {
         PHANTOMPEAKQUALTOOLS_SPP.out.regionpeak,
         ch_blacklist,
         true, // filter_chr
-        peak_type,
+        val_peak_type,
         encode_peak_max_score
     )
 
@@ -340,7 +335,7 @@ workflow BAM_ENCODE_PIPELINE {
         }
         .collectFile(name: 'ch_spp_peaks_self_pseudoreps_for_idr.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")
 
-        
+
     // Use IDR to compare all pairs of matched replicates
     // (1) True replicates narrowPeak files: ${REP1_PEAK_FILE} vs. ${REP2_PEAK_FILE} IDR results transferred to Pooled-replicates narrowPeak file  ${POOLED_PEAK_FILE}
     // (2) Pooled-pseudoreplicates: ${PPR1_PEAK_FILE} vs. ${PPR2_PEAK_FILE} IDR results transferred to Pooled-replicates narrowPeak file ${POOLED_PEAK_FILE}
@@ -350,15 +345,15 @@ workflow BAM_ENCODE_PIPELINE {
         .mix(ch_spp_peaks_pooled_pseudoreps_for_idr)
         .mix(ch_spp_peaks_self_pseudoreps_for_idr)
         .map { meta, peaks, pooled_peak ->
-            [ meta + [ peak_consensus_type: 'idr' ], peaks, pooled_peak ]
+            [ meta + [ peak_consensus_type: 'idr' ], peaks, val_peak_type, pooled_peak ]
         }
         .set { ch_for_idr }
 
-        
+
     // TODO: save for debugging
     ch_for_idr
-        .map { meta, peaks, pooled_peak ->
-            "${meta}\t${peaks}\t${pooled_peak}"
+        .map { meta, peaks, peak_type, pooled_peak ->
+            "${meta}\t${peaks}\t${peak_type}\t${pooled_peak}"
         }
         .collectFile(name: 'ch_for_idr.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_ENCODE_PIPELINE")
 
@@ -366,23 +361,21 @@ workflow BAM_ENCODE_PIPELINE {
     // MODULE: IDR analysis
     //
     IDR (
-        ch_for_idr,
-        peak_type
+        ch_for_idr
     )
-    ch_versions = ch_versions.mix(IDR.out.versions.first())
 
     //
     // MODULE: Filter peaks by IDR threshold
     //
     IDR_FILTER_THRESHOLD (
         IDR.out.idr,
-        peak_type,
+        val_peak_type,
         idr_filtering_threshold
     )
 
 
     ch_for_idr
-        .map { meta, peaks, pooled_peak ->
+        .map { meta, peaks, peak_type, pooled_peak ->
             [ meta + [ peak_consensus_type: 'naive_overlap' ], peaks, pooled_peak ]
         }
         .set { ch_for_naive_overlap }
@@ -393,7 +386,7 @@ workflow BAM_ENCODE_PIPELINE {
     //
     PEAKS_NAIVE_OVERLAP (
         ch_for_naive_overlap,
-        peak_type
+        val_peak_type
     )
 
     IDR_FILTER_THRESHOLD
@@ -409,7 +402,7 @@ workflow BAM_ENCODE_PIPELINE {
             ch_peaks_for_fltbl,
             ch_blacklist,
             true, // filter_chr
-            peak_type,
+            val_peak_type,
             encode_peak_max_score
     )
     ch_peaks_fltbl = CONSENSUS_FILTER_BLACKLIST.out.peaks
@@ -523,8 +516,14 @@ workflow BAM_ENCODE_PIPELINE {
         ch_chromsizes
     )
 
-
     emit:
-
-    versions                     = ch_versions                      // channel: [ versions.yml ]
+    tagalign            = ch_tagalign                                // channel: [ val(meta), path(tagalign) ]
+    ccscores            = PHANTOMPEAKQUALTOOLS_SPP.out.ccscores       // channel: [ val(meta), path(ccscores) ]
+    spp_peaks           = PEAKS_FILTER_BLACKLIST.out.peaks            // channel: [ val(meta), path(peak) ]
+    idr                 = IDR.out.idr                                // channel: [ val(meta), path(idr) ]
+    idr_peaks           = IDR_FILTER_THRESHOLD.out.peaks              // channel: [ val(meta), path(peak) ]
+    naive_overlap_peaks = PEAKS_NAIVE_OVERLAP.out.peak_overlap        // channel: [ val(meta), path(peak) ]
+    consensus_peaks     = CONSENSUS_FILTER_BLACKLIST.out.peaks        // channel: [ val(meta), path(peak) ]
+    frip_bed            = TAGALIGN_FRIP_SCORE.out.bed                 // channel: [ val(meta), path(bed) ]
+    frip                = TAGALIGN_FRIP_SCORE.out.frip                // channel: [ val(meta), path(frip_txt) ]
 }

@@ -1,0 +1,105 @@
+nextflow_process {
+
+    name "Test Process TELOCAL"
+    script "../main.nf"
+    process "TELOCAL"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "telocal/telocal"
+    tag "telocal/indexer"
+    tag "gunzip"
+
+    setup {
+
+        run("GUNZIP", alias: "GUNZIP_TE_GTF") {
+            script "../../../../nf-core/gunzip/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'te_gtf' ], // meta map
+                    file('https://www.dropbox.com/scl/fo/jdpgn6fl8ngd3th3zebap/APUNcAKNeBtX0lVj7kClUtc/TEtranscripts/TE_GTF/dm6_rmsk_TE.gtf.gz?rlkey=41oz6ppggy82uha5i3yo1rnlx&dl=1', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        run("TELOCAL_INDEXER", alias: "INDEX_GENE") {
+            script "../../indexer/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'gene_index' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.gtf', checkIfExists: true)
+                ]
+                input[1] = 'gene'
+                """
+            }
+        }
+
+        run("TELOCAL_INDEXER", alias: "INDEX_TE") {
+            script "../../indexer/main.nf"
+            process {
+                """
+                input[0] = GUNZIP_TE_GTF.out.gunzip
+                input[1] = 'TE'
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - bam - telocal counts") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
+                ]
+                input[1] = INDEX_GENE.out.index
+                input[2] = INDEX_TE.out.index
+                input[3] = false
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert file(process.out.counts[0][1]).name.endsWith('.cntTable.gz') }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - telocal counts - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
+                ]
+                input[1] = INDEX_GENE.out.index
+                input[2] = INDEX_TE.out.index
+                input[3] = false
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert file(process.out.counts[0][1]).name.endsWith('.cntTable.gz') }
+            )
+        }
+
+    }
+
+}

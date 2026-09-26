@@ -1,0 +1,107 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "telocal"
+description: Quantify transposable element expression at individual genomic loci and gene expression from a BAM file, using TElocal
+keywords:
+  - telocal
+  - transposable-element
+  - quantification
+tools:
+  - telocal:
+      description: |
+        A locus-level extension of TEtranscripts for quantifying transposable element expression
+        at individual genomic loci, alongside gene-level counts, from a BAM file.
+      homepage: https://github.com/mhammell-laboratory/TElocal
+      documentation: https://github.com/mhammell-laboratory/TElocal
+      tool_dev_url: https://github.com/mhammell-laboratory/TElocal
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: Coordinate-sorted BAM file to quantify
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing gene index information
+          e.g. [ id:'gene_index' ]
+    - genic_gtf_or_index:
+        type: file
+        description: Gene annotation GTF file, or a pre-built TElocal gene index (`.ind`) from TELOCAL_INDEXER
+        pattern: "*.{gtf,ind}"
+  - - meta3:
+        type: file
+        description: |
+          Groovy Map containing TE locus index information
+          e.g. [ id:'te_index' ]
+    - te_gtf_or_index:
+        type: file
+        description: TE locus annotation GTF file, or a pre-built TElocal locus index (`.locInd`) from TELOCAL_INDEXER
+        pattern: "*.{gtf,locInd}"
+  - - skip_gz:
+        type: boolean
+        description: If true, leave the output count table uncompressed instead of gzip-compressing it
+output:
+  counts:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.cntTable*":
+          type: file
+          description: Gene and TE-locus count table, gzip-compressed unless `skip_gz` is true
+          pattern: "*.cntTable{,.gz}"
+          ontologies: []
+  versions_telocal:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "TElocal":
+          type: string
+          description: The name of the tool
+      - "TElocal --version 2>&1 | grep -Eo 'TElocal[[:space:]]+[0-9]+(\\.[0-9]+)+' | tail -n 1 | sed 's/^TElocal[[:space:]]*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_gzip:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gzip":
+          type: string
+          description: The name of the tool
+      - "gzip --version | sed -n '1s/.*gzip[[:space:]]*//p'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "TElocal":
+          type: string
+          description: The name of the tool
+      - "TElocal --version 2>&1 | grep -Eo 'TElocal[[:space:]]+[0-9]+(\\.[0-9]+)+' | tail -n 1 | sed 's/^TElocal[[:space:]]*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gzip":
+          type: string
+          description: The name of the tool
+      - "gzip --version | sed -n '1s/.*gzip[[:space:]]*//p'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

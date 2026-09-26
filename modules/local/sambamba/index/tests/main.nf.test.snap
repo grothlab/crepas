@@ -1,0 +1,72 @@
+{
+    "sarscov2 - bam - index": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.bai:md5,145d63734be7bd248efbdf4561f98fa3"
+                ]
+            ],
+            {
+                "versions_sambamba": [
+                    [
+                        "SAMBAMBA_INDEX",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T11:49:11.187938427",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - index - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "SAMBAMBA_INDEX",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ],
+                "bai": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_sambamba": [
+                    [
+                        "SAMBAMBA_INDEX",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T11:49:22.701860597",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

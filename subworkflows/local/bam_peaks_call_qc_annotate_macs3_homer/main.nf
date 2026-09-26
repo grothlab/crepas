@@ -34,8 +34,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
 
     main:
 
-    ch_versions = channel.empty()
-
     //
     // Call peaks with MACS3
     //
@@ -43,7 +41,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         ch_bam,
         macs_gsize
     )
-    ch_versions = ch_versions.mix(MACS3_CALLPEAK.out.versions.first())
 
     //
     // Filter out samples with 0 MACS3 peaks called
@@ -68,7 +65,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         MACS3_BDGCMP (
             ch_bdgs
         )
-        ch_versions = ch_versions.mix(MACS3_BDGCMP.out.versions.first())
 
         BEDTOOLS_SLOP (
             MACS3_BDGCMP.out.bdg,
@@ -78,7 +74,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         AWK_FIX_MACS3_BDGCMP (
             BEDTOOLS_SLOP.out.bed,
         )
-        ch_versions = ch_versions.mix(AWK_FIX_MACS3_BDGCMP.out.versions.first())
 
         UCSC_BEDCLIP (
             AWK_FIX_MACS3_BDGCMP.out.bed,
@@ -90,13 +85,11 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             UCSC_BEDCLIP.out.bedgraph,
             'sorted'
         )
-        ch_versions = ch_versions.mix(FILE_SORT.out.versions.first())
 
         BIGTOOLS_BEDGRAPHTOBIGWIG (
             FILE_SORT.out.sorted,
             ch_chrom_sizes
         )
-        ch_versions = ch_versions.mix(BIGTOOLS_BEDGRAPHTOBIGWIG.out.versions.first())
     }
 
 
@@ -116,7 +109,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     FRIP_SCORE (
         ch_bam_peaks
     )
-    ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
     // Create channels: [ meta, peaks, frip ]
     ch_bam_peaks
@@ -135,7 +127,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         ch_peak_count_header_multiqc,
         ch_frip_score_multiqc
     )
-    ch_versions = ch_versions.mix(MULTIQC_CUSTOM_PEAKS.out.versions.first())
 
     ch_homer_annotatepeaks          = channel.empty()
     ch_plot_macs3_qc_txt            = channel.empty()
@@ -153,7 +144,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             ch_gtf.map { it -> it[1] }
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
         if (!skip_peak_qc) {
 
@@ -169,10 +159,11 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
                     exp_type, metas, peaks ->
                         def meta_new = metas[0].clone()
                         meta_new.id = exp_type
-                        [ meta_new, peaks ]
+                        def sorted_peaks = peaks.sort { it -> it.name }
+                        [ meta_new, sorted_peaks ]
                 }
                 .set { ch_macs3_peaks_grouped }
-            
+
             //
             // MACS3 QC plots with R
             //
@@ -182,7 +173,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             )
             ch_plot_macs3_qc_txt = PLOT_MACS3_QC.out.txt
             ch_plot_macs3_qc_pdf = PLOT_MACS3_QC.out.pdf
-            ch_versions = ch_versions.mix(PLOT_MACS3_QC.out.versions)
 
             // Create channels: [ meta, [ anns ] ]
             // Where meta = [ id:exp_type, exp_type:exp_type ]
@@ -196,7 +186,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
                     exp_type, metas, anns ->
                         def meta_new = metas[0].clone()
                         meta_new.id = exp_type
-                        [ meta_new, anns ]
+                        def sorted_anns = anns.sort { it -> it.name }
+                        [ meta_new, sorted_anns ]
                 }
                 .set { ch_homer_annotatepeaks_grouped }
             //
@@ -210,7 +201,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             ch_plot_homer_annotatepeaks_txt = PLOT_HOMER_ANNOTATEPEAKS.out.txt
             ch_plot_homer_annotatepeaks_pdf = PLOT_HOMER_ANNOTATEPEAKS.out.pdf
             ch_plot_homer_annotatepeaks_tsv = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
-            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
         }
     }
 
@@ -235,6 +225,4 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     plot_homer_annotatepeaks_txt = ch_plot_homer_annotatepeaks_txt  // channel: [ txt ]
     plot_homer_annotatepeaks_pdf = ch_plot_homer_annotatepeaks_pdf  // channel: [ pdf ]
     plot_homer_annotatepeaks_tsv = ch_plot_homer_annotatepeaks_tsv  // channel: [ tsv ]
-
-    versions                     = ch_versions                      // channel: [ versions.yml ]
 }

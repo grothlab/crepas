@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Original script by Maria Dalby <mdalbydk@gmail.com> and Robin Andersson <robin@bio.ku.dk> (https://github.com/anderssonlab/Replication_SCARseq/blob/78ffbabbfc8149cdc5bc5b5717878b26ebd4d8f1/README.md)
-# Firstly modified by Nicolás Alcaraz <nicolas.alcaraz@cpr.ku.dk> (https://github.com/grothlab/SCARseq_Pipeline/blob/a4b327f1901ae6a980767d05ec7af79896a604c9/libs/partition_smooth.pl)
+# Firstly modified by Nicolas Alcaraz <nicolas.alcaraz@cpr.ku.dk> (https://github.com/grothlab/SCARseq_Pipeline/blob/a4b327f1901ae6a980767d05ec7af79896a604c9/libs/partition_smooth.pl)
 # Most recently modified by Samuel Ruiz-Pérez <samper@cancer.dk> (2025)
 
 ## Usage:

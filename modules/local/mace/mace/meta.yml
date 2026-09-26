@@ -1,0 +1,134 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "mace_mace"
+description: Detect protein-DNA interaction borders and pair them into peaks from strand-separated bigWig signal
+keywords:
+  - mace
+  - bigwig
+  - peaks
+  - border-detection
+tools:
+  - mace:
+      description: |
+        MACE (Model-based Analysis of ChIP-Exo) detects protein-DNA interaction borders from
+        strand-separated signal and pairs them into peak-like regions, taking forward/reverse
+        bigWig tracks (see MACE_PREPROCESSOR) as input.
+      homepage: https://github.com/liguowang/mace
+      documentation: https://github.com/liguowang/mace
+      tool_dev_url: https://github.com/liguowang/mace
+      doi: "10.1093/bioinformatics/btu676"
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - forward_bw:
+        type: file
+        description: Forward-strand bigWig signal track
+        pattern: "*.{bw,bigwig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3006" # bigWig
+    - reverse_bw:
+        type: file
+        description: Reverse-strand bigWig signal track
+        pattern: "*.{bw,bigwig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3006" # bigWig
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing chromosome sizes sample information
+          e.g. [ id:'genome' ]
+    - chrom_sizes:
+        type: file
+        description: "Chromosome sizes file (2-column TSV: name, length)"
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  border:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.border.bed":
+          type: file
+          description: Detected protein-DNA interaction borders
+          pattern: "*.border.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  border_cluster:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.border_cluster.bed":
+          type: file
+          description: Clustered borders
+          pattern: "*.border_cluster.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  border_pair_elite:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.border_pair_elite.bed":
+          type: file
+          description: High-confidence paired borders
+          pattern: "*.border_pair_elite.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  border_pair:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.border_pair.bed":
+          type: file
+          description: Paired borders (peak regions)
+          pattern: "*.border_pair.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  border_pair_peak:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.border_pair.peak":
+          type: file
+          description: Paired borders reformatted as a 7-column narrowPeak-like file (chrom, start, end, name, score, strand, signalValue)
+          pattern: "*.border_pair.peak"
+  versions_mace:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "mace":
+          type: string
+          description: The name of the tool
+      - "mace.py --version 2>&1 | sed 's/^mace\\.py //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "mace":
+          type: string
+          description: The name of the tool
+      - "mace.py --version 2>&1 | sed 's/^mace\\.py //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

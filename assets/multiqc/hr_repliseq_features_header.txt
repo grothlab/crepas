@@ -1,0 +1,14 @@
+#id: 'hr_repliseq_features'
+#section_name: 'MERGED LIB: High-resolution Repli-seq features'
+#description: "counts the replication features called from the 16-fraction Repli-seq array:
+#              initiation zones (<code>IZ</code>), timing transition regions (<code>TTR</code>),
+#              <code>breakage</code> points where the transition reverses direction, termination
+#              sites, and late constant-timing regions (<code>CTR</code>). These are the raw calls,
+#              which may overlap; the partition BED assigns every bin to exactly one of them."
+#plot_type: 'bargraph'
+#anchor: 'hr_repliseq_features'
+#pconfig:
+#    id: 'hr_repliseq_features_plot'
+#    title: 'High-resolution Repli-seq: features called'
+#    ylab: 'Features'
+#    namespace: 'Repli-seq'

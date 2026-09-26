@@ -1,0 +1,95 @@
+{
+    "sarscov2 - 1 replicate - symlink counts through unchanged": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.spikein_barcode_merged.tsv:md5,951d4370643b74014ceda1435fc1f07a"
+                ]
+            ],
+            {
+                "versions_rbase": [
+                    [
+                        "SPIKEIN_BARCODE_MERGE",
+                        "r-base",
+                        "4.5.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:27:29.459902213",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - 2 resequenced replicates - merge counts - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.spikein_barcode_merged.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "SPIKEIN_BARCODE_MERGE",
+                        "r-base",
+                        "4.5.2"
+                    ]
+                ],
+                "merged_counts": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.spikein_barcode_merged.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "SPIKEIN_BARCODE_MERGE",
+                        "r-base",
+                        "4.5.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:27:40.091346391",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - 2 resequenced replicates - merge counts": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.spikein_barcode_merged.tsv:md5,44ecd20c448eab5e817bd06ab137849c"
+                ]
+            ],
+            {
+                "versions_rbase": [
+                    [
+                        "SPIKEIN_BARCODE_MERGE",
+                        "r-base",
+                        "4.5.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:27:08.559337386",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

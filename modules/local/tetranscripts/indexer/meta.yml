@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "tetranscripts_indexer"
+description: Build a TEtranscripts gene or transposable-element index (pickle) from a GTF file, for use by TEcount
+keywords:
+  - tetranscripts
+  - transposable-element
+  - index
+tools:
+  - tetranscripts:
+      description: |
+        A package for including transposable elements in differential enrichment analysis of
+        sequencing datasets. Used here via the bundled `bin/TEtranscripts_indexer.py` script to
+        pre-build the gene- or TE-annotation index (`.ind`) that `TEcount` otherwise builds on
+        every run, so it can instead be built once and reused across samples.
+      homepage: https://github.com/mhammell-laboratory/TEtranscripts
+      documentation: https://hammelllab.labsites.cshl.edu/software/#TEtranscripts
+      tool_dev_url: https://github.com/mhammell-laboratory/TEtranscripts
+      doi: "10.1093/bioinformatics/btv422"
+      licence: ["GPL-3.0-or-later"]
+      identifier: "biotools:tetranscripts"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - gtf:
+        type: file
+        description: Gene or transposable-element annotation GTF file to index
+        pattern: "*.gtf"
+        ontologies:
+          - edam: "http://edamontology.org/format_2306" # GTF
+  - - index_type:
+        type: string
+        description: Type of annotation being indexed, passed to `--itype` (e.g. 'gene' or 'te')
+output:
+  index:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test' ]
+      - "*.ind":
+          type: file
+          description: TEtranscripts index file, for use as `--TE`/gene index input to TEcount
+          pattern: "*.ind"
+          ontologies: []
+  versions_tetranscripts_indexer:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "TEtranscripts_indexer":
+          type: string
+          description: The name of the tool
+      - "TEtranscripts_indexer.py --version | sed 's/TEtranscripts_indexer //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "TEtranscripts_indexer":
+          type: string
+          description: The name of the tool
+      - "TEtranscripts_indexer.py --version | sed 's/TEtranscripts_indexer //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

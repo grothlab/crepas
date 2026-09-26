@@ -1,0 +1,239 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "prepare_genome"
+description: |
+  Prepare all reference genome files needed by the pipeline: uncompress/build the endogenous,
+  spike-in and hybrid fasta files and their indices/chromosome sizes, prepare the GTF/gene BED
+  annotation, compute effective genome size/fraction, build indices for every supported aligner,
+  and prepare TE-counting (TEcount/TElocal) and OK-seq/SCAR-seq (initiation zones) inputs
+keywords:
+  - reference
+  - genome
+  - index
+  - fasta
+  - gtf
+components:
+  - gunzip
+  - untar
+  - build_hybrid_fasta
+  - fasta_split_by_genome
+  - genome_whitelist_regions
+  - gffread
+  - samtools/faidx
+  - bwa/index
+  - bwamem2/index
+  - minibwa/index
+  - bowtie/build
+  - bowtie2/build
+  - chromap/index
+  - star/genomegenerate
+  - hisat2/build
+  - hisat2/extractsplicesites
+  - minimap2/index
+  - khmer/uniquekmers
+  - rfd_to_iz
+  - gff3sort
+  - htslib/bgziptabix
+  - eautils/gtf2bed
+input:
+  - genome:
+      type: string
+      description: Endogenous genome name/identifier
+  - spikein_genome:
+      type: string
+      description: Spike-in genome name/identifier
+  - prepare_tool_index:
+      type: string
+      description: Aligner to prepare a genome index for
+  - fasta:
+      type: file
+      description: Path to the endogenous genome fasta file (optionally gzipped)
+  - spikein_fasta:
+      type: file
+      description: Path to the spike-in genome fasta file (optionally gzipped)
+  - hybrid_fasta:
+      type: file
+      description: Path to a pre-built hybrid (endogenous + spike-in) genome fasta file
+  - gtf:
+      type: file
+      description: Path to the genome GTF annotation file (optionally gzipped)
+  - gff:
+      type: file
+      description: Path to the genome GFF annotation file, used to derive a GTF if gtf isn't given
+  - blacklist:
+      type: file
+      description: Path to a blacklist regions BED file
+  - spikein_barcode_table:
+      type: file
+      description: Path to a spike-in barcode table TSV file
+  - read_length:
+      type: integer
+      description: Read length, used by khmer/uniquekmers to compute the effective genome size
+  - macs_gsize:
+      type: string
+      description: Effective genome size for MACS3, used when a genome-specific value isn't known
+  - sparsebed:
+      type: file
+      description: Path to a sparse regions BED file, used by Consenrich
+  - active_regions:
+      type: file
+      description: Path to an active regions BED file, used by Consenrich
+  - rocco_params:
+      type: file
+      description: Path to a ROCCO parameters file
+  - skip_gtf_index:
+      type: boolean
+      description: Skip bgzip/tabix-indexing the GTF file
+      pattern: "true|false"
+  - gene_bed:
+      type: file
+      description: Path to a gene BED file, used instead of deriving one from the GTF
+  - bwa_index:
+      type: file
+      description: Path to a pre-built BWA index directory
+  - bwamem2_index:
+      type: file
+      description: Path to a pre-built BWA-MEM2 index directory
+  - minibwa_index:
+      type: file
+      description: Path to a pre-built minibwa index directory
+  - bowtie_index:
+      type: file
+      description: Path to a pre-built Bowtie (v1) index directory
+  - bowtie2_index:
+      type: file
+      description: Path to a pre-built Bowtie2 index directory
+  - chromap_index:
+      type: file
+      description: Path to a pre-built Chromap index file
+  - star_index:
+      type: file
+      description: Path to a pre-built STAR index directory
+  - hisat2_index:
+      type: file
+      description: Path to a pre-built HISAT2 index directory
+  - minimap2_index:
+      type: file
+      description: Path to a pre-built minimap2 index
+  - strobealign_index:
+      type: file
+      description: Path to a pre-built strobealign index
+  - splicesites:
+      type: file
+      description: Path to a HISAT2 splice sites file, used instead of extracting one from the GTF
+  - okseq_rfd_file:
+      type: file
+      description: Path to an OK-seq RFD (replication fork directionality) BED file
+  - initiation_zones:
+      type: file
+      description: Path to a replication initiation zones BED file, derived from okseq_rfd_file if not given
+  - skip_te_counting:
+      type: boolean
+      description: Skip preparing TEcount/TElocal indices
+      pattern: "true|false"
+  - skip_telocal:
+      type: boolean
+      description: Skip preparing the TElocal index
+      pattern: "true|false"
+  - te_counting_gene_gtf:
+      type: file
+      description: Path to the gene GTF used for TE counting
+  - tecount_gene_index:
+      type: file
+      description: Path to a pre-built TEcount gene index
+  - telocal_gene_index:
+      type: file
+      description: Path to a pre-built TElocal gene index
+  - te_gtf:
+      type: file
+      description: Path to the transposable element GTF
+  - tecount_te_index:
+      type: file
+      description: Path to a pre-built TEcount TE index
+  - telocal_te_index:
+      type: file
+      description: Path to a pre-built TElocal TE index
+output:
+  - fasta_to_align:
+      description: Fasta file to align reads against (endogenous or hybrid, depending on spike-in usage)
+  - fai_to_align:
+      description: Index of fasta_to_align
+  - chromsizes_to_align:
+      description: Chromosome sizes file matching fasta_to_align
+  - endo_fasta:
+      description: Endogenous genome fasta file
+  - endo_fai:
+      description: Index of the endogenous genome fasta file
+  - spikein_fasta:
+      description: Spike-in genome fasta file
+  - spikein_fai:
+      description: Index of the spike-in genome fasta file
+  - hybrid_fasta:
+      description: Hybrid (endogenous + spike-in) genome fasta file
+  - hybrid_fai:
+      description: Index of the hybrid genome fasta file
+  - gtf:
+      description: Genome GTF annotation file
+  - gene_bed:
+      description: Gene BED file
+  - endo_chromsizes:
+      description: Endogenous genome chromosome sizes file
+  - spikein_chromsizes:
+      description: Spike-in genome chromosome sizes file
+  - hybrid_chromsizes:
+      description: Hybrid genome chromosome sizes file
+  - effective_gsize:
+      description: Effective genome size
+  - effective_gfraction:
+      description: Effective genome size as a fraction of the total genome size
+  - whitelist:
+      description: Whitelist (non-blacklist) regions BED file
+  - blacklist:
+      description: Blacklist regions BED file
+  - spikein_barcode_table:
+      description: Spike-in barcode table
+  - sparsebed:
+      description: Sparse regions BED file
+  - active_regions:
+      description: Active regions BED file
+  - rocco_params:
+      description: ROCCO parameters file
+  - okseq_rfd_file:
+      description: OK-seq RFD BED file
+  - initiation_zones:
+      description: Replication initiation zones BED file
+  - bwa_index:
+      description: BWA index directory
+  - bwamem2_index:
+      description: BWA-MEM2 index directory
+  - minibwa_index:
+      description: minibwa index directory
+  - bowtie_index:
+      description: Bowtie (v1) index directory
+  - bowtie2_index:
+      description: Bowtie2 index directory
+  - chromap_index:
+      description: Chromap index file
+  - star_index:
+      description: STAR index directory
+  - hisat2_index:
+      description: HISAT2 index directory
+  - minimap2_index:
+      description: minimap2 index
+  - strobealign_index:
+      description: strobealign index
+  - splicesites:
+      description: HISAT2 splice sites file
+  - te_counting_gene_gtf:
+      description: Gene GTF used for TE counting
+  - tecount_gene_index:
+      description: TEcount gene index
+  - telocal_gene_index:
+      description: TElocal gene index
+  - tecount_te_index:
+      description: TEcount TE index
+  - telocal_te_index:
+      description: TElocal TE index
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -1,0 +1,142 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "deseq2_qc"
+description: Run PCA and sample-clustering QC on a feature count matrix with DESeq2, and produce MultiQC-ready summary tables
+keywords:
+  - deseq2
+  - differential-expression
+  - qc
+  - pca
+tools:
+  - deseq2:
+      description: |
+        R/Bioconductor package for differential gene expression analysis based on the negative
+        binomial distribution. Used here (via the bundled `bin/deseq2_qc.r` script) purely for
+        its QC outputs: a variance-stabilised PCA plot and a sample-to-sample distance heatmap,
+        rather than for differential expression testing itself.
+      homepage: https://bioconductor.org/packages/release/bioc/html/DESeq2.html
+      documentation: https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
+      tool_dev_url: https://github.com/thelovelab/DESeq2
+      doi: "10.1186/s13059-014-0550-8"
+      licence: ["LGPL-3.0-only"]
+      identifier: "biotools:deseq2"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - counts:
+        type: file
+        description: Feature (e.g. consensus peak) by sample raw count matrix, tab-delimited, with a header row of sample names
+        pattern: "*.{tsv,txt}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+  - - deseq2_pca_header:
+        type: file
+        description: MultiQC custom-content header file prepended to the PCA values table
+        pattern: "*.txt"
+  - - deseq2_clustering_header:
+        type: file
+        description: MultiQC custom-content header file prepended to the sample-distance table
+        pattern: "*.txt"
+output:
+  pdf:
+    - - "*.pdf":
+          type: file
+          description: PDF report with the PCA plot and sample-distance heatmap, optional (only produced when there are enough samples/replicates)
+          pattern: "*.pdf"
+  rdata:
+    - - "*.RData":
+          type: file
+          description: RData file with the DESeqDataSet and intermediate objects, optional
+          pattern: "*.RData"
+  rds:
+    - - "*.rds":
+          type: file
+          description: RDS file with the variance-stabilised DESeqTransform object, optional
+          pattern: "*.rds"
+  pca_txt:
+    - - "*pca.vals.txt":
+          type: file
+          description: Tab-delimited table of per-sample PCA coordinates, optional
+          pattern: "*pca.vals.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  pca_multiqc:
+    - - "*pca.vals_mqc.tsv":
+          type: file
+          description: PCA coordinates table prefixed with a MultiQC custom-content header, optional
+          pattern: "*pca.vals_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  dists_txt:
+    - - "*sample.dists.txt":
+          type: file
+          description: Tab-delimited sample-to-sample distance matrix, optional
+          pattern: "*sample.dists.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  dists_multiqc:
+    - - "*sample.dists_mqc.tsv":
+          type: file
+          description: Sample-distance matrix prefixed with a MultiQC custom-content header, optional
+          pattern: "*sample.dists_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  log:
+    - - "*.log":
+          type: file
+          description: R session/run log, optional
+          pattern: "*.log"
+  size_factors:
+    - - "size_factors":
+          type: file
+          description: Directory/file of DESeq2-estimated size factors, optional
+          pattern: "size_factors"
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_deseq2:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bioconductor-deseq2":
+          type: string
+          description: The name of the tool
+      - 'Rscript -e ''library(DESeq2); cat(as.character(packageVersion("DESeq2")))''':
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bioconductor-deseq2":
+          type: string
+          description: The name of the tool
+      - 'Rscript -e ''library(DESeq2); cat(as.character(packageVersion("DESeq2")))''':
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@JoseEspinosa"
+  - "@drpatelh"
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

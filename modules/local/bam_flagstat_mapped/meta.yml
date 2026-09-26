@@ -1,0 +1,127 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bam_flagstat_mapped"
+description: Extract the total number of mapped reads from a samtools flagstat report
+keywords:
+  - flagstat
+  - mapped reads
+  - awk
+  - ripgrep
+  - stats
+tools:
+  - gawk:
+      description: |
+        This module uses ripgrep to pull the "mapped (" line out of a samtools flagstat
+        report, then GNU Awk (gawk) to extract the read count field, writing the total
+        number of mapped reads to a plain text file.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+  - ripgrep:
+      description: |
+        ripgrep is a line-oriented search tool that recursively searches the current
+        directory for a regex pattern. Used here to find the "mapped (" line in a
+        samtools flagstat report.
+      homepage: https://github.com/BurntSushi/ripgrep
+      documentation: https://github.com/BurntSushi/ripgrep
+      tool_dev_url: https://github.com/BurntSushi/ripgrep
+      licence: ["MIT", "Unlicense"]
+      identifier: ""
+  - coreutils:
+      description: |
+        The GNU Core Utilities are the basic file, shell and text manipulation utilities
+        of the GNU operating system. Used here for `echo` to write the extracted read
+        count to the output file.
+      homepage: https://www.gnu.org/software/coreutils/
+      documentation: https://www.gnu.org/software/coreutils/manual/coreutils.html
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - flagstat:
+        type: file
+        description: File containing `samtools flagstat` output
+        pattern: "*.flagstat"
+        ontologies: []
+output:
+  txt:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.txt":
+          type: file
+          description: Text file containing the total number of mapped reads parsed from the flagstat report
+          pattern: "*.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_2330" # Textual format
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_ripgrep:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "ripgrep":
+          type: string
+          description: The name of the tool
+      - "rg --version | head -1 | sed 's/^ripgrep //; s/ (.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env echo --version | head -1 | sed 's/^echo (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "ripgrep":
+          type: string
+          description: The name of the tool
+      - "rg --version | head -1 | sed 's/^ripgrep //; s/ (.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env echo --version | head -1 | sed 's/^echo (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

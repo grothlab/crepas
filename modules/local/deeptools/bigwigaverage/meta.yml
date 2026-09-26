@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "deeptools_bigwigaverage"
+description: Average two or more bigWig files into a single bigWig/bedGraph track; a single input file is symlinked through unchanged
+keywords:
+  - bigwig
+  - average
+  - genomics
+  - deeptools
+  - coverage
+tools:
+  - "deeptools":
+      description: |
+        A set of user-friendly tools for normalization and visualization of deep-sequencing
+        data. `bigwigAverage` computes the average of two or more bigWig files, bin by bin.
+      homepage: https://deeptools.readthedocs.io/en/develop/
+      documentation: https://deeptools.readthedocs.io/en/develop/content/tools/bigwigAverage.html
+      tool_dev_url: https://github.com/deeptools/deepTools
+      doi: "10.1093/nar/gku365"
+      licence: ["GPL v3"]
+      identifier: "biotools:deeptools"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - bigwigs:
+        type: file
+        description: One or more bigWig files to average. With a single file, it is symlinked through unchanged (no averaging performed)
+        pattern: "*.{bw,bigwig,bigWig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3006" # bigWig
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing blacklist metadata
+          e.g. [ id:'blacklist' ]
+    - blacklist:
+        type: file
+        description: Optional BED/GTF file of regions to exclude from analysis
+        pattern: "*.{bed,gtf}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+output:
+  bigwig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test' ]
+      - "*.bigWig":
+          type: file
+          description: Averaged bigWig file; produced when `task.ext.args` sets `--outFileFormat bigwig` (or a single input is symlinked through)
+          pattern: "*.bigWig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3006" # bigWig
+  bedgraph:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test' ]
+      - "*.bedGraph":
+          type: file
+          description: Averaged bedGraph file; produced when `task.ext.args` does not set `--outFileFormat bigwig` (or a single input is symlinked through)
+          pattern: "*.bedGraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_deeptools:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "deeptools":
+          type: string
+          description: The name of the tool
+      - "bigwigAverage --version | sed -e 's/bigwigAverage //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "deeptools":
+          type: string
+          description: The name of the tool
+      - "bigwigAverage --version | sed -e 's/bigwigAverage //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

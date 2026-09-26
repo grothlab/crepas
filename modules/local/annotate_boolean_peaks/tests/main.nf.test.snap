@@ -1,0 +1,73 @@
+{
+    "sarscov2 - annotate boolean peaks - stub": {
+        "content": [
+            {
+                "0": [
+                    "test.boolean.annotatePeaks.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "1": [
+                    [
+                        "ANNOTATE_BOOLEAN_PEAKS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "2": [
+                    [
+                        "ANNOTATE_BOOLEAN_PEAKS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "annotate_peaks_txt": [
+                    "test.boolean.annotatePeaks.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "versions_awk": [
+                    [
+                        "ANNOTATE_BOOLEAN_PEAKS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "ANNOTATE_BOOLEAN_PEAKS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T10:48:19.326719738",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - annotate boolean peaks": {
+        "content": [
+            "test.boolean.annotatePeaks.txt",
+            {
+                "versions_awk": [
+                    [
+                        "ANNOTATE_BOOLEAN_PEAKS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "ANNOTATE_BOOLEAN_PEAKS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T10:42:26.504396342",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

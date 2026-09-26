@@ -1,0 +1,142 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_qc_annotate_macs3_homer"
+description: |
+  Call peaks with MACS3, optionally compute and normalise a bdgcmp signal-vs-control bigWig,
+  compute FRiP scores, and (optionally) annotate peaks with HOMER and generate peak-annotation
+  and MACS3 QC plots
+keywords:
+  - macs3
+  - peak-calling
+  - frip
+  - homer
+  - annotation
+components:
+  - macs3/callpeak
+  - macs3/bdgcmp
+  - bedtools/slop
+  - awk_fix_macs3_bdgcmp
+  - ucsc/bedclip
+  - file_sort
+  - bigtools/bedgraphtobigwig
+  - homer/annotatepeaks
+  - frip_score
+  - multiqc_custom_peaks
+  - plot_macs3_qc
+  - plot_homer_annotatepeaks
+input:
+  - ch_bam:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s)
+        Structure: [ val(meta), [ path(ip_bam) ], [ path(control_bam) ] ]
+  - ch_fasta:
+      type: file
+      description: |
+        Reference fasta file
+        Structure: [ val(meta), path(fasta) ]
+  - ch_gtf:
+      type: file
+      description: |
+        Reference GTF annotation file
+        Structure: [ val(meta), path(gtf) ]
+  - ch_chrom_sizes:
+      type: file
+      description: |
+        Chromosome sizes file
+        Structure: [ val(meta), path(bed) ]
+  - macs_gsize:
+      type: string
+      description: Effective genome size passed to MACS3's --gsize
+  - annotate_peaks_suffix:
+      type: string
+      description: Suffix trimmed off input HOMER annotatePeaks filenames when grouping for QC plots
+  - ch_peak_count_header_multiqc:
+      type: file
+      description: MultiQC custom-content header for the peak count table
+  - ch_frip_score_multiqc:
+      type: file
+      description: MultiQC custom-content header for the FRiP score table
+  - ch_peak_annotation_header_multiqc:
+      type: file
+      description: MultiQC custom-content header for the peak annotation plot
+  - is_narrow_peak:
+      type: boolean
+      description: Whether peaks are narrow (true) or broad (false), passed to the QC plot script
+      pattern: "true|false"
+  - skip_peak_annotation:
+      type: boolean
+      description: Skip HOMER peak annotation (and downstream peak-annotation QC)
+      pattern: "true|false"
+  - skip_peak_qc:
+      type: boolean
+      description: Skip MACS3 and peak-annotation QC plots (only used when skip_peak_annotation is false)
+      pattern: "true|false"
+  - skip_bdgcmp:
+      type: boolean
+      description: Skip the MACS3 bdgcmp signal-vs-control bigWig generation
+      pattern: "true|false"
+output:
+  - peaks:
+      description: |
+        MACS3 peaks, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(peaks) ]
+  - xls:
+      description: |
+        MACS3 XLS peak summary
+        Structure: [ val(meta), path(xls) ]
+  - gapped_peaks:
+      description: |
+        MACS3 gapped peak file (broad peak mode)
+        Structure: [ val(meta), path(gapped_peak) ]
+  - bed:
+      description: |
+        MACS3 summit/peak BED file
+        Structure: [ val(meta), path(bed) ]
+  - pileup_bdg:
+      description: |
+        MACS3 pileup bedGraph
+        Structure: [ val(meta), path(bedgraph) ]
+  - lambda_bdg:
+      description: |
+        MACS3 local lambda bedGraph
+        Structure: [ val(meta), path(bedgraph) ]
+  - frip_txt:
+      description: |
+        FRiP score text file
+        Structure: [ val(meta), path(txt) ]
+  - frip_multiqc:
+      description: |
+        FRiP score MultiQC custom-content file
+        Structure: [ val(meta), path(tsv) ]
+  - peak_count_multiqc:
+      description: |
+        Peak count MultiQC custom-content file
+        Structure: [ val(meta), path(tsv) ]
+  - homer_annotatepeaks:
+      description: |
+        HOMER peak annotation output, when skip_peak_annotation is false
+        Structure: [ val(meta), path(txt) ]
+  - plot_macs3_qc_txt:
+      description: |
+        MACS3 QC plot data, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(txt) ]
+  - plot_macs3_qc_pdf:
+      description: |
+        MACS3 QC plot, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(pdf) ]
+  - plot_homer_annotatepeaks_txt:
+      description: |
+        Peak annotation QC plot data, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(txt) ]
+  - plot_homer_annotatepeaks_pdf:
+      description: |
+        Peak annotation QC plot, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(pdf) ]
+  - plot_homer_annotatepeaks_tsv:
+      description: |
+        Peak annotation QC plot MultiQC custom-content file, when skip_peak_annotation and
+        skip_peak_qc are false
+        Structure: [ val(meta), path(tsv) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

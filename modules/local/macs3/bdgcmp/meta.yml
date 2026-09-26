@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "macs3_bdgcmp"
+description: Compare treatment and control bedGraph tracks from MACS3 callpeak to compute per-bin enrichment scores (e.g. fold enrichment, log likelihood ratio)
+keywords:
+  - macs3
+  - chip-seq
+  - atac-seq
+  - bedgraph
+  - peak-calling
+tools:
+  - macs3:
+      description: "Model Based Analysis for ChIP-Seq data"
+      homepage: "https://macs3-project.github.io/MACS/"
+      documentation: "https://macs3-project.github.io/MACS/"
+      tool_dev_url: "https://github.com/macs3-project/MACS/"
+      doi: "10.1101/496521"
+      licence: ["BSD-3-clause"]
+      identifier: "biotools:macs"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - pileup_bdg:
+        type: file
+        description: Treatment pileup bedGraph file, e.g. `*_treat_pileup.bdg` from `MACS3_CALLPEAK`
+        pattern: "*.bdg"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+    - lambda_bdg:
+        type: file
+        description: Control lambda (local background) bedGraph file, e.g. `*_control_lambda.bdg` from `MACS3_CALLPEAK`
+        pattern: "*.bdg"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+output:
+  bdg:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bedGraph":
+          type: file
+          description: bedGraph file with the per-bin comparison score between treatment and control (method set via `task.ext.args`, e.g. `--method FE`)
+          pattern: "*.bedGraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_macs3:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "macs3":
+          type: string
+          description: The name of the tool
+      - "macs3 --version | sed -e 's/macs3 //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "macs3":
+          type: string
+          description: The name of the tool
+      - "macs3 --version | sed -e 's/macs3 //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

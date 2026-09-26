@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: fastq_align
+description: Align reads to a reference genome using the aligner chosen via `aligner`
+keywords:
+  - align
+  - fasta
+  - genome
+  - reference
+components:
+  - fastq_align_bwa
+  - fastq_align_bwamem2
+  - fastq_align_minibwa
+  - fastq_align_bowtie
+  - fastq_align_bowtie2
+  - fastq_align_strobealign
+  - fastq_align_chromap
+  - fastq_align_star
+  - fastq_align_hisat2
+  - fastq_align_minimap2
+input:
+  - ch_reads:
+      description: |
+        List of input FastQ files of size 1 and 2 for single-end and paired-end data,
+        respectively.
+        Structure: [ val(meta), [ path(reads) ] ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - aligner:
+      type: string
+      description: |
+        Aligner to use. One of: bwa, bwamem2, minibwa, bowtie, bowtie2, strobealign, chromap,
+        star, hisat2, minimap2.
+  - ch_bwa_index:
+      description: |
+        BWA genome index files, used when aligner == 'bwa'
+        Structure: [ val(meta), path(index) ]
+  - ch_bwamem2_index:
+      description: |
+        BWA-MEM2 genome index files, used when aligner == 'bwamem2'
+        Structure: [ val(meta), path(index) ]
+  - ch_minibwa_index:
+      description: |
+        minibwa genome index files, used when aligner == 'minibwa'
+        Structure: [ val(meta), path(index) ]
+  - ch_bowtie_index:
+      description: |
+        Bowtie (v1) genome index files, used when aligner == 'bowtie'
+        Structure: [ val(meta), path(index) ]
+  - ch_bowtie2_index:
+      description: |
+        Bowtie2 genome index files, used when aligner == 'bowtie2'
+        Structure: [ val(meta), path(index) ]
+  - ch_chromap_index:
+      description: |
+        Chromap genome index file, used when aligner == 'chromap'
+        Structure: [ val(meta), path(index) ]
+  - ch_star_index:
+      description: |
+        STAR genome index directory, used when aligner == 'star'
+        Structure: [ val(meta), path(index) ]
+  - ch_hisat2_index:
+      description: |
+        HISAT2 genome index files, used when aligner == 'hisat2'
+        Structure: [ val(meta), path(index) ]
+  - ch_minimap2_index:
+      description: |
+        Reference sequence, either a FASTA file or a pre-built minimap2 (.mmi) index, used
+        when aligner == 'minimap2'
+        Structure: [ val(meta), path(reference) ]
+  - ch_strobealign_index:
+      description: |
+        Optional pre-built strobealign index, used when aligner == 'strobealign'. Pass
+        [ [:], [] ] to have strobealign build the index on the fly from the reference fasta.
+        Structure: [ val(meta), path(index) ]
+  - ch_gtf:
+      type: file
+      description: |
+        Reference GTF annotation file, used when aligner == 'star'
+        Structure: [ val(meta), path(gtf) ]
+  - ch_splicesites:
+      type: file
+      description: |
+        HISAT2 splice sites file, used when aligner == 'hisat2'
+        Structure: [ val(meta), path(splicesites) ]
+  - save_unaligned:
+      type: boolean
+      description: |
+        Save reads that do not map to the reference (true) or discard them (false). Only
+        honoured by the bwa, bowtie, bowtie2 and hisat2 branches.
+      pattern: "true|false"
+  - sort_bam:
+      type: boolean
+      description: |
+        Use samtools sort (true) or samtools view (false). Only honoured by the bowtie2 branch.
+      pattern: "true|false"
+output:
+  - bam:
+      description: |
+        Genome BAM file produced by the selected aligner's subworkflow
+        Structure: [ val(meta), path(bam) ]
+  - bai:
+      description: |
+        Index of the genome BAM file produced by the selected aligner's subworkflow
+        Structure: [ val(meta), path(index) ]
+  - samtools_stats_summary:
+      description: |
+        File containing samtools stats output for the genome BAM file
+        Structure: [ val(meta), path(stats) ]
+  - multiqc_files:
+      description: |
+        Files for inclusion in MultiQC report (samtools stats/flagstat/idxstats and, for STAR
+        and HISAT2, their own alignment logs/summaries)
+        Structure: [ path(multiqc_files) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

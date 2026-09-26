@@ -1,0 +1,131 @@
+{
+    "homo_sapiens - bam - chr22 - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.flTsfds.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BAM_REMOVE_SCAFFOLDS",
+                        "samtools",
+                        "1.21"
+                    ]
+                ],
+                "2": [
+                    [
+                        "BAM_REMOVE_SCAFFOLDS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.flTsfds.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "BAM_REMOVE_SCAFFOLDS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_samtools": [
+                    [
+                        "BAM_REMOVE_SCAFFOLDS",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T13:51:25.159143549",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - scaffold-like contig name - removed": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.flTsfds.bam:readsMD5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "BAM_REMOVE_SCAFFOLDS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_samtools": [
+                    [
+                        "BAM_REMOVE_SCAFFOLDS",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:01:59.772321595",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - bam - chr22 - kept": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.flTsfds.bam:readsMD5,2f11e4fe3390b8ad0a1852616fd1da04"
+                    ]
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "BAM_REMOVE_SCAFFOLDS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_samtools": [
+                    [
+                        "BAM_REMOVE_SCAFFOLDS",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:01:48.781050666",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

@@ -1,0 +1,120 @@
+{
+    "sarscov2 - bam - broad domain calling - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.diffusePeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "EPIC2",
+                        "epic2",
+                        "0.0.52"
+                    ]
+                ],
+                "3": [
+                    [
+                        "EPIC2",
+                        "gawk",
+                        "5.3.1\nCopyright (C) 1989\n\nThis program is free software; you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation; either version 3 of the License\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not"
+                    ]
+                ],
+                "bed": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "peak": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.diffusePeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_epic2": [
+                    [
+                        "EPIC2",
+                        "epic2",
+                        "0.0.52"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "EPIC2",
+                        "gawk",
+                        "5.3.1\nCopyright (C) 1989\n\nThis program is free software; you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation; either version 3 of the License\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-13T16:31:14.00017498",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - broad domain calling": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.bed:md5,58a9971d4caa7f4489753f512453b6e8"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.diffusePeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            ],
+            {
+                "versions_epic2": [
+                    [
+                        "EPIC2",
+                        "epic2",
+                        "0.0.52"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "EPIC2",
+                        "gawk",
+                        "5.3.1\nCopyright (C) 1989\n\nThis program is free software; you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation; either version 3 of the License\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-13T16:56:23.665544392",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

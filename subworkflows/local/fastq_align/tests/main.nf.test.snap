@@ -1,0 +1,182 @@
+{
+    "fastq_align_bowtie": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,9c247183659fc8ac623b9384c2274431"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:01:58.696858227",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "fastq_align_strobealign": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.stats:md5,702a960aaa3a53754e4e4f004b95ca43"
+                ]
+            ]
+        ],
+        "timestamp": "2026-09-24T10:17:10.608066944",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "fastq_align_bwa": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,e3c011fa2d63bdb3c3265421b0ab5fb5"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:00:56.833537803",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "fastq_align_minibwa": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,e3c011fa2d63bdb3c3265421b0ab5fb5"
+                ]
+            ]
+        ],
+        "timestamp": "2026-09-24T10:16:01.559438634",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "fastq_align_star": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,e78c44d9279a4aaa5bc8198f72f54cdc"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:03:23.823333346",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "fastq_align_bowtie2": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,41c2effc489861dec75603d834f2ba3a"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:02:18.870082444",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "fastq_align_chromap": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.stats:md5,1a110979ec62f82f81ac6d9053bdeff9"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:03:03.03655436",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "fastq_align_bwamem2": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,e3c011fa2d63bdb3c3265421b0ab5fb5"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:01:19.746884294",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "fastq_align_minimap2": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,dfecb5140741eed2be7b22079f1bd435"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:04:04.040062924",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "fastq_align_hisat2": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.stats:md5,e02354daf90ca3031a500bee1ab1ec10"
+                ]
+            ]
+        ],
+        "timestamp": "2026-09-24T13:50:55.985491408",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

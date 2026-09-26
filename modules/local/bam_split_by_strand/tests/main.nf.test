@@ -1,0 +1,226 @@
+nextflow_process {
+
+    name "Test Process BAM_SPLIT_BY_STRAND"
+    script "../main.nf"
+    process "BAM_SPLIT_BY_STRAND"
+
+    tag "modules"
+    tag "modules_local"
+    tag "bam_split_by_strand"
+
+    test("sarscov2 - bam - scarseq - forward strandedness") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    'forward'
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - scarseq - reverse strandedness") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    'reverse'
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - scarseq - single end - forward strandedness") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:true ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.single_end.sorted.bam', checkIfExists: true),
+                    'forward'
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    // OK-seq takes the same stranded branch as SCAR-seq
+    test("sarscov2 - bam - okseq - forward strandedness") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    'forward'
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    // eSPAN has no strandedness: the strand comes from the orientation of READ2
+    test("sarscov2 - bam - espan - paired end") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    'forward' // eSPAN defaults to forward
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    // Single-end eSPAN reads are READ1-equivalent, so the strand assignment is inverted
+    test("sarscov2 - bam - espan - single end") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:true ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.single_end.sorted.bam', checkIfExists: true),
+                    'forward' // eSPAN defaults to forward
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.f_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.r_bam.collect { meta, b -> [ meta, [b].flatten().collect { file(it).name + ":readsMD5," + bam(it.toString()).getReadsMD5() } ] },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - scarseq - forward strandedness - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    'forward'
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - espan - paired end - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    'forward' // eSPAN defaults to forward
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

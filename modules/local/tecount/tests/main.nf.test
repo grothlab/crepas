@@ -1,0 +1,115 @@
+nextflow_process {
+
+    name "Test Process TECOUNT"
+    script "../main.nf"
+    process "TECOUNT"
+
+    tag "modules"
+    tag "modules_local"
+    tag "tecount"
+
+    test("homo_sapiens - bam - gtf") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.name.sorted.bam', checkIfExists: true)
+                ]
+                input[1] = [
+                    [ id:'genome_gtf' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.gtf', checkIfExists: true)
+                ]
+                input[2] = [
+                    [ id:'te_gtf' ], // meta3 map
+                    file('https://raw.githubusercontent.com/hanalysis/test-datasets/refs/heads/modules/data/genomics/homo_sapiens/genome/chr21/sequence/GRCh38_GENCODE_rmsk_TE_chr21.gtf', checkIfExists: true)
+                ]
+                input[3] = false // skip_gz
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.counts,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - bam - gtf - skip_gz") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.name.sorted.bam', checkIfExists: true)
+                ]
+                input[1] = [
+                    [ id:'genome_gtf' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.gtf', checkIfExists: true)
+                ]
+                input[2] = [
+                    [ id:'te_gtf' ], // meta3 map
+                    file('https://raw.githubusercontent.com/hanalysis/test-datasets/refs/heads/modules/data/genomics/homo_sapiens/genome/chr21/sequence/GRCh38_GENCODE_rmsk_TE_chr21.gtf', checkIfExists: true)
+                ]
+                input[3] = true // skip_gz
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.counts,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - bam - gtf - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.name.sorted.bam', checkIfExists: true)
+                ]
+                input[1] = [
+                    [ id:'genome_gtf' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.gtf', checkIfExists: true)
+                ]
+                input[2] = [
+                    [ id:'te_gtf' ], // meta3 map
+                    file('https://raw.githubusercontent.com/hanalysis/test-datasets/refs/heads/modules/data/genomics/homo_sapiens/genome/chr21/sequence/GRCh38_GENCODE_rmsk_TE_chr21.gtf', checkIfExists: true)
+                ]
+                input[3] = false // skip_gz
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    file(process.out.counts[0][1]).name,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+}

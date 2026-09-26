@@ -18,7 +18,7 @@ include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS } from '../../../
 workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     take:
     ch_peaks                            // channel: [ val(meta), [ peaks ] ]
-    ch_bams                             // channel: [ val(meta), [ ip_bams ] ]
+    ch_bam                              // channel: [ val(meta), ip_bam ]
     ch_bigwigs                          // channel: [ val(meta), [ bigwigs ] ]
     ch_fasta                            // channel: [ fasta ]
     ch_gtf                              // channel: [ gtf ]
@@ -32,7 +32,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
 
     main:
 
-    ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
 
     //TODO: print to fiule for debugging
@@ -51,7 +50,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             meta, peak ->
                 [ meta.antibody, meta.exp_type, meta.id - ~/_bRep_.*$/, meta, peak ]
         }
-        .tap { ch_antibody_peaks0 }
         .groupTuple(by: [0, 1])
             .map {
                 antibody, exp_type, groups, metas, peaks ->
@@ -63,51 +61,21 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
                     peaks
                 ]
             }
-            .tap { ch_antibody_peaks1 }
             .map {
                 antibody, exp_type, metas, groups, peaks ->
-                def meta_new = metas[0].clone()
-                // Set meta_new.id based on exp_type and antibody presence
-                if (antibody) {
-                    if (exp_type == 'ATAC-seq') {
-                    meta_new.id = exp_type
-                    } else {
-                    meta_new.id = exp_type + '_' + antibody
-                    }
+                def meta_clone = metas[0].clone()
+                if (exp_type == 'ATAC-seq') {
+                    meta_clone.id = exp_type
+                } else if (antibody) {
+                    meta_clone.id = exp_type + '_' + antibody
                 } else {
-                    meta_new.id = exp_type + '_no_antibody_'
+                    meta_clone.id = exp_type + '_no_antibody_'
                 }
-                meta_new.multiple_groups = groups.size() > 1
-                meta_new.replicates_exist = groups.max { it.value }.value > 1
-                [ meta_new, peaks ]
+                meta_clone.multiple_groups = groups.size() > 1
+                meta_clone.replicates_exist = groups.max { it -> it.value }.value > 1
+                [ meta_clone, peaks ]
         }
         .set { ch_antibody_peaks }
-
-
-    //TODO: print to fiule for debugging
-    ch_antibody_peaks
-        .map {
-            it ->
-                "${it}"
-        }
-        .collectFile( name: 'antibody_peaks.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2" )
-
-    //TODO: print to fiule for debugging
-    ch_antibody_peaks1
-        .map {
-            it ->
-                "${it}"
-        }
-        .collectFile( name: 'ch_antibody_peaks0.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2" )
-
-    //TODO: print to fiule for debugging
-    ch_antibody_peaks0
-        .map {
-            it ->
-                "${it}"
-        }
-        .collectFile( name: 'ch_antibody_peaks1.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2" )
-
 
 
     //
@@ -117,7 +85,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         ch_antibody_peaks,
         is_narrow_peak
     )
-    ch_versions = ch_versions.mix(MACS3_CONSENSUS.out.versions)
 
     //
     // Annotate consensus peaks
@@ -128,7 +95,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             ch_fasta,
             ch_gtf
         )
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions)
 
         //
         // MODULE: Add boolean fields to annotated consensus peaks to aid filtering
@@ -136,8 +102,29 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         ANNOTATE_BOOLEAN_PEAKS (
             MACS3_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS.out.txt, by: [0])
         )
-        ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
     }
+
+    // Create ID from BAM's meta to match consensus peaks ID
+    ch_bam
+        .map {
+            meta, bam ->
+                [ meta.antibody, meta.exp_type, meta.single_end, bam ]
+        }
+        .groupTuple(by: [0, 1, 2])
+        .map {
+            antibody, exp_type, se, bams ->
+            def id
+            if (exp_type == 'ATAC-seq') {
+                id = exp_type
+            } else if (antibody) {
+                id = exp_type + '_' + antibody
+            } else {
+                id = exp_type + '_no_antibody_'
+            }
+            [ id, se, bams ]
+        }
+        .set { ch_antibody_bams }
+
 
     // Create channels: [ meta, [ ip_bams ], saf ]
     MACS3_CONSENSUS
@@ -147,18 +134,37 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             meta, saf ->
                 [ meta.id, meta, saf ]
         }
-        .join(ch_bams)
+        .set { ch_id_saf }
+
+    // Split SE and PE samples that share consensus peaks, since featureCounts cannot handle mixed layouts
+    ch_antibody_bams_se = ch_antibody_bams.filter { id, se, bams -> se }.map { id, se, bams -> [ id, bams ]}
+    ch_antibody_bams_pe = ch_antibody_bams.filter { id, se, bams -> !se }.map { id, se, bams -> [ id, bams ]}
+
+    ch_id_saf
+        .join(ch_antibody_bams_se)
         .map {
-            antibody, meta, saf, bams ->
-                [ meta, bams.flatten().sort(), saf ]
+            _id, meta, saf, bams ->
+                def meta_clone = meta.clone()
+                meta_clone.single_end = true
+                [ meta_clone, bams.flatten().sort(), saf ]
         }
-        .set { ch_bam_saf }
+        .set { ch_bam_saf_se }
+
+    ch_id_saf
+        .join(ch_antibody_bams_pe)
+        .map {
+            _id, meta, saf, bams ->
+                def meta_clone = meta.clone()
+                meta_clone.single_end = false
+                [ meta_clone, bams.flatten().sort(), saf ]
+        }
+        .set { ch_bam_saf_pe }
 
     //
     // Quantify peaks across samples with featureCounts
     //
     SUBREAD_FEATURECOUNTS (
-        ch_bam_saf
+        ch_bam_saf_se.mix(ch_bam_saf_pe)
     )
     ch_multiqc_files = ch_multiqc_files.mix(SUBREAD_FEATURECOUNTS.out.summary.collect { it -> it[1] })
 
@@ -187,7 +193,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         ch_deseq2_qc_size_factors  = DESEQ2_QC.out.size_factors
         ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.pca_multiqc.collect { it -> it[1] })
         ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC.out.dists_multiqc.collect { it -> it[1] })
-        ch_versions = ch_versions.mix(DESEQ2_QC.out.versions)
     }
 
     if (!skip_consensus_plotprofile) {
@@ -219,15 +224,15 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             .combine(ch_cons_peaks, by: [0, 1])
             .map {
                 antibody, exp_type, norm_factor_type, signal_vs_input_op, averaged_brep, ids, metas, bws, cons_peaks ->
-                    def meta_new = metas[0].clone()
-                    meta_new.id = exp_type + '_' +
+                    def meta_clone = metas[0].clone()
+                    meta_clone.id = exp_type + '_' +
                         (antibody ? antibody : 'no_antibody') +
                         '_' + norm_factor_type +
                         (signal_vs_input_op ? '_' + signal_vs_input_op : '') +
                         (averaged_brep ? '_' + 'bRep_avg' : '')
-                    meta_new.antibody = antibody
-                    meta_new.ids = ids
-                    [ meta_new, bws.flatten(), cons_peaks ]
+                    meta_clone.antibody = antibody
+                    meta_clone.ids = ids
+                    [ meta_clone, bws.flatten(), cons_peaks ]
             }
             .set { ch_bigwigs_peaks }
 
@@ -245,7 +250,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
         )
         ch_multiqc_files = ch_multiqc_files.mix(DEEPTOOLS_PLOTPROFILE_PEAKS.out.table.collect { it -> it[1] })
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE_PEAKS.out.versions.first())
 
         //
         // MODULE: deepTools heatmaps
@@ -253,7 +257,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         DEEPTOOLS_PLOTHEATMAP_PEAKS (
             DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions.first())
     }
 
 
@@ -277,5 +280,4 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     deseq2_qc_size_factors  = ch_deseq2_qc_size_factors         // channel: [ txt ]
 
     multiqc_files           = ch_multiqc_files                   // channel: [ multiqc_files ]
-    versions                = ch_versions                       // channel: [ versions.yml ]
 }

@@ -4,34 +4,311 @@ report_comment: >
 
 data_format: "yaml"
 
-report_section_order:
-  # Preprocessing and prealignment QC
-  fastqc_raw:
-    order: 6004
-  cutadapt:
-    order: 6003
-  fastqc_trimmed:
-    order: 6002
-  # Alignment
+export_plots: true
 
-  # Post-alignment QC
-  strand_shift_correlation:
-    order: 4004
-  nsc_coefficient:
-    order: 4003
-  rsc_coefficient:
-    order: 4002
-    
+disable_version_detection: true
+
+module_order:
+  #
+  # Read QC and trimming
+  #
+  - fastqc:
+      anchor: "fastqc_raw"
+      name: "LIB: FastQC (raw)"
+      info: "This section of the report shows FastQC results for individual libraries before trimming."
+      path_filters:
+        - "*_fastqc.zip"
+      path_filters_exclude:
+        - "*_val_*_fastqc.zip"
+        - "*_trimmed_fastqc.zip"
+  - trim_galore:
+      anchor: "trim_galore"
+      name: "LIB: TrimGalore! (trimmed)"
+      info: "This section of the report shows trimming statistics reported by TrimGalore for individual libraries."
+  - cutadapt:
+      anchor: "cutadapt"
+      name: "LIB: Cutadapt (trimmed)"
+      info: "This section of the report shows the length of trimmed reads by Cutadapt for individual libraries."
+  - fastqc:
+      anchor: "fastqc_trimmed"
+      name: "LIB: FastQC (trimmed)"
+      info: "This section of the report shows FastQC results for individual libraries after trimming."
+      path_filters:
+        - "*_val_*_fastqc.zip"
+        - "*_trimmed_fastqc.zip"
+  #
+  # Alignment (the aligner actually used depends on --aligner)
+  #
+  - bowtie2:
+      anchor: "bowtie2"
+      name: "LIB: Bowtie 2"
+      info: "This section of the report shows Bowtie 2 alignment summaries for individual libraries."
+  - bowtie1:
+      anchor: "bowtie1"
+      name: "LIB: Bowtie 1"
+      info: "This section of the report shows Bowtie 1 alignment summaries for individual libraries."
+  - hisat2:
+      anchor: "hisat2"
+      name: "LIB: HISAT2"
+      info: "This section of the report shows HISAT2 alignment summaries for individual libraries."
+  - star:
+      anchor: "star"
+      name: "LIB: STAR"
+      info: "This section of the report shows STAR alignment summaries for individual libraries."
+  - bwa:
+      anchor: "bwa"
+      name: "LIB: BWA"
+      info: "This section of the report shows BWA alignment summaries for individual libraries."
+  - chromap:
+      anchor: "chromap"
+      name: "LIB: Chromap"
+      info: "This section of the report shows Chromap alignment summaries for individual libraries."
+  - samtools:
+      anchor: "samtools_library"
+      name: "LIB: SAMTools stats (aligned)"
+      info: "This section of the report shows SAMTools stats for individual libraries, straight after alignment and before merging."
+      path_filters:
+        - "*.Lb.sorted.bam.*"
+  #
+  # Merged libraries, before filtering
+  #
+  - samtools:
+      anchor: "samtools_merged"
+      name: "MERGED LIB: SAMTools stats (unfiltered)"
+      info: "This section of the report shows SAMTools stats after merging libraries (technical replicates) and before any filtering."
+      path_filters:
+        - "*.mLb.sorted.*"
+  - samtools:
+      anchor: "samtools_multimappers"
+      name: "MERGED LIB: SAMTools stats (allocated multimappers)"
+      info: "This section of the report shows SAMTools stats after allocating multimapping reads (--multimap_allocation_method)."
+      path_filters:
+        - "*.allo.sorted.*"
+        - "*.cm_allo.sorted.*"
+        - "*.mmr.sorted.*"
+  - preseq:
+      anchor: "preseq"
+      name: "MERGED LIB: Preseq"
+      info: "This section of the report shows the Preseq library-complexity extrapolation for merged libraries."
+  #
+  # Duplicate handling
+  #
+  - umitools:
+      anchor: "umitools_extract"
+      name: "LIB: UMI-tools extract"
+      info: "This section of the report shows UMI-tools barcode extraction results for individual libraries."
+      path_filters:
+        - "*.umi_extract.log"
+  - umitools:
+      anchor: "umitools_dedup"
+      name: "MERGED LIB: UMI-tools dedup"
+      info: "This section of the report shows UMI-tools deduplication results for merged libraries."
+      path_filters:
+        - "*.log"
+      path_filters_exclude:
+        - "*.umi_extract.log"
+        - "*_UMICollapse.log"
+  - umicollapse:
+      anchor: "umicollapse_dedup"
+      name: "MERGED LIB: UMICollapse dedup"
+      info: "This section of the report shows UMICollapse deduplication results for merged libraries."
+  - samtools:
+      anchor: "samtools_umi_dedup"
+      name: "MERGED LIB: SAMTools stats (UMI-dedup)"
+      info: "This section of the report shows SAMTools stats after UMI-based deduplication."
+      path_filters:
+        - "*.dedup.sorted.*"
+  - picard:
+      anchor: "picard_markduplicates"
+      name: "MERGED LIB: Picard MarkDuplicates"
+      info: "This section of the report shows Picard MarkDuplicates metrics for merged libraries."
+      path_filters:
+        - "*.mkD.sorted.metrics.txt"
+  - samtools:
+      anchor: "samtools_markduplicates"
+      name: "MERGED LIB: SAMTools stats (marked duplicates)"
+      info: "This section of the report shows SAMTools stats after marking duplicates with Picard and before filtering."
+      path_filters:
+        - "*.mkD.sorted.*"
+  #
+  # Filtering
+  #
+  - samtools:
+      anchor: "samtools_flT1"
+      name: "MERGED LIB: SAMTools stats (flT1)"
+      info: "This section of the report shows SAMTools stats after flT1, which removes duplicates and improperly paired reads."
+      path_filters:
+        - "*.flT1.sorted.*"
+  - samtools:
+      anchor: "samtools_flT2"
+      name: "MERGED LIB: SAMTools stats (flT2, spike-in split)"
+      info: "This section of the report shows SAMTools stats after flT2, which splits endogenous from spike-in reads."
+      path_filters:
+        - "*.flT2.sorted.*"
+  - samtools:
+      anchor: "samtools_shifted"
+      name: "MERGED LIB: SAMTools stats (Tn5-shifted)"
+      info: "This section of the report shows SAMTools stats after shifting read coordinates to correct for Tn5 insertion."
+      path_filters:
+        - "*.shifted.sorted.*"
+  - picard:
+      anchor: "picard_collectmultiplemetrics"
+      name: "MERGED LIB: Picard CollectMultipleMetrics"
+      info: "This section of the report shows Picard CollectMultipleMetrics (insert size, alignment summary and base/read quality) for filtered merged libraries."
+      path_filters:
+        - "*.CollectMultipleMetrics.*"
+  - samtools:
+      anchor: "samtools_flT3"
+      name: "MERGED LIB: SAMTools stats (flT3)"
+      info: "This section of the report shows SAMTools stats after flT3, the final read-level filtering step."
+      path_filters:
+        - "*.flT3.sorted.*"
+  - samtools:
+      anchor: "samtools_blacklist"
+      name: "MERGED LIB: SAMTools stats (blacklist-filtered)"
+      info: "This section of the report shows SAMTools stats after removing reads overlapping blacklisted regions."
+      path_filters:
+        - "*.flTbl.sorted.*"
+        - "*.flTbl.rmO.sorted.*"
+  - samtools:
+      anchor: "samtools_downsampled"
+      name: "MERGED LIB: SAMTools stats (downsampled)"
+      info: "This section of the report shows SAMTools stats after downsampling (--downsampling_method)."
+      path_filters:
+        - "*.dSp_*.sorted.*"
+  #
+  # Post-filtering QC
+  #
+  - phantompeakqualtools:
+      anchor: "phantompeakqualtools"
+      name: "MERGED LIB: phantompeakqualtools"
+      info: "This section of the report shows cross-correlation analysis of the filtered merged libraries."
+  - deeptools:
+      anchor: "deeptools_plotpca"
+      name: "MERGED LIB: deepTools plotPCA"
+      info: "This section of the report shows the principal component analysis of the normalised coverage tracks."
+      path_filters:
+        - "*.plotPCA.tab"
+  - deeptools:
+      anchor: "deeptools_plotcorrelation"
+      name: "MERGED LIB: deepTools plotCorrelation"
+      info: "This section of the report shows the Spearman correlation between the normalised coverage tracks."
+      path_filters:
+        - "*.plotCorrelation.mat.tab"
+  - deeptools:
+      anchor: "deeptools_profile_genes"
+      name: "MERGED LIB: deepTools profile (genes)"
+      info: "This section of the report shows the coverage profile over gene bodies."
+      path_filters:
+        - "*.genes.plotProfile.tab"
+  #
   # Peak calling
-  peak_count:
-    order: 2005
-  frip_score:
-    order: 2006
-  peak_annotation:
-    order: 2007
+  #
+  - macs2:
+      anchor: "macs3_callpeak"
+      name: "MERGED LIB: MACS3 peak calling"
+      info: "This section of the report shows the peak-calling parameters and redundancy rates reported by MACS3."
+      path_filters:
+        - "*_peaks.xls"
+  - deeptools:
+      anchor: "deeptools_fingerprint"
+      name: "MERGED LIB: deepTools fingerprint"
+      info: "This section of the report shows the signal enrichment fingerprint of the filtered merged libraries."
+      path_filters:
+        - "*plotFingerprint*"
+  - featurecounts:
+      anchor: "consensus_featurecounts_se"
+      name: "MERGED LIB: featureCounts (consensus peaks, single-end)"
+      info: "This section of the report shows featureCounts results for the number of reads assigned to merged library consensus peaks, for single-end libraries."
+      path_filters:
+        - "*.consensus_peaks.se.featureCounts.tsv.summary"
+  - featurecounts:
+      anchor: "consensus_featurecounts_pe"
+      name: "MERGED LIB: featureCounts (consensus peaks, paired-end)"
+      info: "This section of the report shows featureCounts results for the number of fragments assigned to merged library consensus peaks, for paired-end libraries."
+      path_filters:
+        - "*.consensus_peaks.pe.featureCounts.tsv.summary"
+  - deeptools:
+      anchor: "deeptools_profile_peaks"
+      name: "MERGED LIB: deepTools profile (consensus peaks)"
+      info: "This section of the report shows the coverage profile over merged library consensus peaks."
+      path_filters:
+        - "*.plotProfile.tab"
+      path_filters_exclude:
+        - "*.genes.plotProfile.tab"
 
-  consensus_featurecounts:
-    before: rsc_coefficient
+# Sections are placed with explicit `order` values (higher = earlier) rather than `before:`
+# chains. A chain breaks silently as soon as one link is missing, and whole groups here are
+# absent depending on which peak callers run. Every value is negative, which puts these after
+# the modules that have no explicit order.
+report_section_order:
+  # phantompeakqualtools derived metrics
+  strand_shift_correlation:
+    order: -1000
+  nsc_coefficient:
+    order: -1010
+  rsc_coefficient:
+    order: -1020
+  deeptools_plotpca:
+    order: -1040
+  deeptools_plotcorrelation:
+    order: -1045
+  deeptools_profile_genes:
+    order: -1050
+
+  # Repli-seq replication-timing tracks, built from the same filtered BAMs as the coverage QC
+  # above and independent of peak calling below
+  repliseq_rt:
+    order: -1060
+  repliseq_gene_class:
+    order: -1065
+  repliseq_gene_class_el:
+    order: -1070
+  repliseq_domain_size:
+    order: -1075
+  hr_repliseq_features:
+    order: -1080
+  hr_repliseq_feature_sizes:
+    order: -1082
+  hr_repliseq_heatmap:
+    order: -1084
+  # Peak calling itself, ahead of the per-caller QC below
+  macs3_callpeak:
+    order: -1090
+  # Peak-calling QC, one group per caller, in the order CALL_PEAKS invokes them
+  epic2_peak_count:
+    order: -1100
+  epic2_frip_score:
+    order: -1110
+  epic2_peak_annotation:
+    order: -1120
+  genrich_peak_count:
+    order: -1200
+  genrich_frip_score:
+    order: -1210
+  genrich_peak_annotation:
+    order: -1220
+  mace_peak_count:
+    order: -1300
+  mace_frip_score:
+    order: -1310
+  mace_peak_annotation:
+    order: -1320
+  macs3_peak_count:
+    order: -1400
+  macs3_frip_score:
+    order: -1410
+  macs3_peak_annotation:
+    order: -1420
+  deeptools_fingerprint:
+    order: -1450
+  consensus_featurecounts_se:
+    order: -1500
+  consensus_featurecounts_pe:
+    order: -1510
+  deeptools_profile_peaks:
+    order: -1520
+  # Differential-binding QC, last of the analysis sections
   deseq2_pca_1:
     order: -1600
   deseq2_pca_2:
@@ -72,120 +349,13 @@ report_section_order:
     order: -3400
   deseq2_clustering_10:
     order: -3500
-  mlib_genrich_peak_count:
-    before: deseq2_clustering_1
-  mlib_genrich_frip_score:
-    before: mlib_genrich_peak_count
-  mlib_genrich_peak_annotation:
-    before: mlib_genrich_frip_score
   # Summaries
   "grothlab-crepas-methods-description":
     order: -4000
-  software_versions:
+  multiqc_software_versions:
     order: -4001
   "grothlab-crepas-summary":
     order: -4002
-
-
-export_plots: true
-#exclude_modules:
-#  - "general_stats"
-
-disable_version_detection: true
-
-# Order of modules
-module_order:
-  - fastqc:
-      anchor: "fastqc_raw"
-      name: "LIB: FastQC (raw)"
-      info: "This section of the report shows FastQC results for individual libraries before trimming."
-      path_filters:
-        - "./fastqc/*.zip"
-  - cutadapt:
-      anchor: "cutadapt"
-      name: "LIB: TrimGalore!/Cutadapt (trimmed)"
-      info: "This section of the report shows the length of trimmed reads by Cutadapt (within TrimGalore) for individual libraries."
-  - fastqc:
-      anchor: "fastqc_trimmed"
-      name: "LIB: FastQC (trimmed)"
-      info: "This section of the report shows FastQC results for individual libraries after trimming."
-      path_filters:
-        - "./trimgalore/fastqc/*.zip"
-  - samtools:
-      anchor: "samtools_alignment"
-      name: "LIB: SAMTools stats (aligned)"
-      info: "This section of the report shows SAMTools stats for individual libraries."
-      # path_filters:
-        # - "./alignment/library/*"
-  - samtools:
-      anchor: "samtools_unfiltered"
-      name: "MERGED LIB: SAMTools stats (unfiltered)"
-      info: "This section of the report shows SAMTools stats after merging libraries (technical replicates) and before filtering."
-      # path_filters:
-        # - "./alignment/mergedLibrary/*"
-  # - picard:
-  #     name: "MERGED LIB: Picard (unfiltered)"
-  #     info: "This section of the report shows picard results after merging libraries and before filtering."
-  #     path_filters:
-  #       - "./alignment/mergedLibrary/unfiltered/picard_metrics/*"
-  # - preseq:
-  #     name: "MERGED LIB: Preseq (unfiltered)"
-  #     info: "This section of the report shows Preseq results after merging libraries and before filtering."
-  #     path_filters:
-  #       - "./alignment/mergedLibrary/preseq/*"
-  # - umitools/dedup:
-  #     name: "MERGED LIB: UMI-tools dedup"
-  #     info: "This section of the report shows UMI-tools dedup results after merging libraries."
-  #     path_filters:
-  #       - "./alignment/mergedLibrary/umi_dedup/*"
-  - samtools:
-      anchor: "samtools_umi_dedup"
-      name: "MERGED LIB: SAMTools stats (UMI-dedup)"
-      info: "This section of the report shows SAMTools stats after merging libraries and UMI-based deduplication."
-      # path_filters:
-      #   - "./alignment/mergedLibrary/umi_dedup/*"
-  - picard:
-      name: "MERGED LIB: Picard MarkDuplicates (unfiltered)"
-      info: "This section of the report shows Picard MarkDuplicates metrics after merging libraries and before filtering."
-      # path_filters:
-      #   - "./alignment/mergedLibrary/picard_markduplicates/*"  
-  - samtools:
-      anchor: "samtools_markduplicates"
-      name: "MERGED LIB: SAMTools stats (marked duplicates)"
-      info: "This section of the report shows SAMTools stats after merging libraries and after marking duplicates with Picard."
-      # path_filters:
-      #   - "./alignment/mergedLibrary/picard_markduplicates/*"
-  - samtools:
-      anchor: "samtools_flT1"
-      name: "MERGED LIB: SAMTools stats (flT1)"
-      info: "This section of the report shows SAMTools stats after merging libraries and filtering out duplicates and improper-pairs."
-      # path_filters:
-      #   - "./alignment/mergedLibrary/umi_dedup/*"
-  - samtools:
-      name: "MERGED LIB: SAMTools stats (after flT2)"
-      info: "This section of the report shows SAMTools results after splitting by spike-in and filtering out improper pairs."
-      path_filters:
-        - "./alignment/mergedLibrary/spikein_split/*"
-  - samtools:
-      name: "MERGED LIB: SAMTools stats (allocated multimappers)"
-      info: "This section of the report shows SAMTools results after merging libraries, filtering with SAMBAMBA, splitting by spike-in, and allocating multimappers."
-      path_filters:
-        - "./alignment/mergedLibrary/multimap/*"
-  - picard:
-      name: "MERGED LIB: Picard (filtered)"
-      info: "This section of the report shows picard results after merging libraries and after filtering."
-      path_filters:
-        - "./alignment/mergedLibrary/filtered/picard_metrics/*"
-  - deeptools:
-      name: "MERGED LIB: deepTools"
-      anchor: "deeptools"
-      info: "This section of the report shows QC plots generated by deepTools."
-  - featureCounts:
-      name: "MERGED LIB: featureCounts (consensus peaks)"
-      anchor: "consensus_featurecounts"
-      info: "This section of the report shows featureCounts results for the number of reads assigned to merged library consensus peaks."
-      path_filters:
-        - "./macs3/featurecounts/*.summary"
 
 custom_plot_config:
   picard_insert_size:
@@ -194,6 +364,9 @@ custom_plot_config:
   featurecounts:
     cpswitch_c_active: False
 
+# Trim the cumulative `ext.prefix` suffix chain back to the bare sample ID, so one sample appears
+# as one row in the general statistics table rather than once per pipeline stage. Truncating at
+# `.mLb`/`.Lb` already removes every later token in the chain.
 extra_fn_clean_exts:
   - "fastq.gz"
   - "_trimmed"
@@ -210,16 +383,12 @@ extra_fn_clean_exts:
   - ".spp"
   - "lc_extrap"
 
-
 # Customise the module search patterns to speed up execution time
 #  - Skip module sub-tools that we are not interested in
 #  - Replace file-content searching with filename pattern searching
 #  - Don't add anything that is the same as the MultiQC default
 # See https://multiqc.info/docs/#optimise-file-search-patterns for details
 sp:
-  cutadapt:
-    fn: "*trimming_report.txt"
-
   hisat2:
     fn: "*.hisat2.summary.log"
 
@@ -233,32 +402,48 @@ sp:
   samtools/idxstats:
     fn: "*.idxstats*"
 
+  # Keep these narrow: plotFingerprint writes both a raw-counts and a quality-metrics file, and a
+  # shared `*plotFingerprint*` pattern would hand each of them to both parsers.
   deeptools/plotFingerprintOutRawCounts:
-    fn: "*plotFingerprint*"
+    fn: "*.plotFingerprint.raw.txt"
+  deeptools/plotFingerprintOutQualityMetrics:
+    fn: "*.plotFingerprint.qcmetrics.txt"
   deeptools/plotProfile:
     fn: "*plotProfile*"
-  phantompeakqualtools/out:
-    fn: "*.spp.out"
+  deeptools/plotPCAData:
+    fn: "*.plotPCA.tab"
+  deeptools/plotCorrelationData:
+    fn: "*.plotCorrelation.mat.tab"
 
+  # PHANTOMPEAKQUALTOOLS writes the cross-correlation scores to `.ccscores`, not the `.spp.out`
+  # name MultiQC looks for by default.
+  phantompeakqualtools/out:
+    fn: "*.ccscores"
+
+  # PICARD_MARKDUPLICATES uses the pipeline's own `ext.prefix`, so its metrics file is named
+  # `<prefix>.sorted.metrics.txt` rather than the default `.MarkDuplicates.metrics.txt`.
   picard/markdups:
-    fn: "*.MarkDuplicates.metrics.txt"
+    fn: "*.metrics.txt"
+
   picard/alignment_metrics:
-    skip: true
+    fn: "*.alignment_summary_metrics"
   picard/basedistributionbycycle:
-    skip: true
+    fn: "*.base_distribution_by_cycle_metrics"
+  picard/insertsize:
+    fn: "*.insert_size_metrics"
+  picard/quality_by_cycle:
+    fn: "*.quality_by_cycle_metrics"
+  picard/quality_score_distribution:
+    fn: "*.quality_distribution_metrics"
+
+  # Picard programs the pipeline never runs.
   picard/gcbias:
     skip: true
   picard/hsmetrics:
     skip: true
-  picard/insertsize:
-    skip: true
   picard/oxogmetrics:
     skip: true
   picard/pcr_metrics:
-    skip: true
-  picard/quality_by_cycle:
-    skip: true
-  picard/quality_score_distribution:
     skip: true
   picard/quality_yield_metrics:
     skip: true

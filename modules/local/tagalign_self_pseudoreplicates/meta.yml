@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "tagalign_self_pseudoreplicates"
+description: Generate two self-pseudoreplicates from a TAGALIGN file by deterministically shuffling and splitting reads (or read pairs) in half
+keywords:
+  - tagalign
+  - pseudoreplicate
+  - encode
+  - chip-seq
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here (paired-end only) to reassemble each shuffled-and-split half of the temporary BEDPE
+        file back into standard 6-column TAGALIGN records, one per mate. Following the
+        ENCODE ChIP-seq pipeline (chip-seq-pipeline2) self-pseudoreplication convention.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - tagalign:
+        type: file
+        description: TAGALIGN file to split into two self-pseudoreplicates. For paired-end data, mates must be adjacent (one record per mate, in pairs)
+        pattern: "*.tagAlign*"
+        ontologies: []
+output:
+  tagalign1:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*spr1.tagAlign":
+          type: file
+          description: First self-pseudoreplicate (half of the shuffled reads/read pairs)
+          pattern: "*spr1.tagAlign"
+          ontologies: []
+  tagalign2:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*spr2.tagAlign":
+          type: file
+          description: Second self-pseudoreplicate (the other half of the shuffled reads/read pairs)
+          pattern: "*spr2.tagAlign"
+          ontologies: []
+  versions_gawk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion | sed '1!d; s/.*Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "shuf --version | head -1 | sed 's/.*coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_openssl:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "openssl":
+          type: string
+          description: The name of the tool
+      - "openssl version | sed 's/^OpenSSL //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion | sed '1!d; s/.*Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "shuf --version | head -1 | sed 's/.*coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "openssl":
+          type: string
+          description: The name of the tool
+      - "openssl version | sed 's/^OpenSSL //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

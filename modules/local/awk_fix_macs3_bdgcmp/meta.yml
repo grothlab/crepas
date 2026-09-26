@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "awk_fix_macs3_bdgcmp"
+description: Remove BED/bedGraph intervals with an invalid (-1) end coordinate left over from upstream MACS3 bdgcmp/bedtools slop processing
+keywords:
+  - awk
+  - bed
+  - bedgraph
+  - macs3
+  - filter
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to drop any BED/bedGraph interval whose end coordinate (3rd column) is -1, a
+        sentinel value that `bedtools slop` can emit for intervals falling outside the
+        chromosome bounds defined in the genome-sizes file, and which would otherwise break
+        downstream bedGraph-to-bigWig conversion.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bed:
+        type: file
+        description: BED/bedGraph file (e.g. from `bedtools slop`) with a numeric end coordinate as its 3rd column
+        pattern: "*.{bed,bedGraph}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+output:
+  bed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bed":
+          type: file
+          description: BED/bedGraph file with invalid (-1 end coordinate) intervals removed
+          pattern: "*.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

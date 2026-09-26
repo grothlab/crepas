@@ -3,9 +3,9 @@ process PARTITION_AVERAGE {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/ubuntu:22.04' :
-        'nf-core/ubuntu:22.04' }"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/19/198ab15844726d095c90e454aa9b1cf91b7e3517dd62451791c596e2a2229082/data' :
+        'community.wave.seqera.io/library/coreutils_gawk_sed:e167f5dd848b5ae9' }"
 
     input:
     tuple val(meta) , path(partitions)
@@ -14,7 +14,8 @@ process PARTITION_AVERAGE {
     tuple val(meta), path("${prefix}.tsv"), emit: tsv
     tuple val(meta), path("${prefix}.flT_by_counts.tsv"), emit: filtered_tsv
     tuple val(meta), path("${prefix}.flT_by_counts.bdg"), emit: filtered_bdg
-    path  "versions.yml"          , emit: versions
+    tuple val("${task.process}"), val('awk'), eval("awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*\$//'"), topic: versions, emit: versions_awk
+    tuple val("${task.process}"), val('coreutils'), eval("env paste --version | head -1 | sed 's/^paste (GNU coreutils) //'"), topic: versions, emit: versions_coreutils
 
     when:
     task.ext.when == null || task.ext.when
@@ -44,7 +45,7 @@ process PARTITION_AVERAGE {
             nfiles = NF / 12
             # Print first three columns once (chromosome, start, end)
             printf "%s\\t%s\\t%s", \$1, \$2, \$3
-            
+
             # For each of the 9 columns to average (4..12)
             for (k = 4; k <= 12; k++) {
                 sum = 0
@@ -63,7 +64,7 @@ process PARTITION_AVERAGE {
             printf "\\n"
         }' \\
         > ${prefix}.tsv
-    
+
     # Create filtered version with rows where either bwaob_fwd_counts or bwaob_rev_counts > 0
     awk '\$4 > 0 || \$5 > 0' ${prefix}.tsv \\
     > ${prefix}.flT_by_counts.tsv
@@ -73,15 +74,10 @@ process PARTITION_AVERAGE {
     #   2. start
     #   3. end
     #   4. RFD_smooth: Smoothed partition or RFD score
-    
+
     awk ${args2} '{ printf "%s\\t%d\\t%d\\t%2.3f\\n", \$1, \$2, \$3, \$9 }' \\
     ${prefix}.flT_by_counts.tsv \\
     > ${prefix}.flT_by_counts.bdg
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-    END_VERSIONS
     """
 
     stub:
@@ -90,10 +86,5 @@ process PARTITION_AVERAGE {
     touch ${prefix}.tsv
     touch  ${prefix}.flT_by_counts.tsv
     touch ${prefix}.flT_by_counts.bdg
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-    END_VERSIONS
     """
 }

@@ -12,7 +12,7 @@ include { PLOT_HOMER_ANNOTATEPEAKS } from '../../../modules/local/plot_homer_ann
 
 workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
     take:
-    ch_bam                            // channel: [ val(meta), [ ip_bam ], [ control_bam ] ]
+    ch_bam_bai                            // channel: [ val(meta), bam, bai ]
     ch_fasta                          // channel: [ fasta  ]
     ch_gtf                            // channel: [ gtf ]
     ch_chrom_sizes                     // channel: [ bed ]
@@ -26,47 +26,45 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
 
     main:
 
-    ch_versions = channel.empty()
-
     // Branch channels based on if input control is present
-    ch_bam
-        .branch { meta, bam ->
+    ch_bam_bai
+        .branch { meta, bam, bai ->
             ips_with_ipcontrol: meta.input_control
-                return [meta.input_control, meta.antibody, meta, bam]
+                return [ meta.input_control, meta.antibody, meta, bam, bai ]
             ips_wo_ipcontrol: !meta.input_control && !meta.is_input_control
-                return [meta.id, meta.antibody, meta, bam]
+                return [ meta.id, meta.antibody, meta, bam, bai ]
             ipcontrols: !meta.input_control && meta.is_input_control
-                return [meta.id, meta.input_control_of_antibody, meta, bam]
+                return [ meta.id, meta.input_control_of_antibody, meta, bam, bai ]
         }
         .set { ch_bam_by_type }
 
-    // Create channel: [ meta, [ip_bams_merged_reps], [ipcontrol_bams_merged_reps] ]
+    // Create channel: [ meta, [ip_bams_merged_reps], [ip_bais_merged_reps], [ipcontrol_bams_merged_reps], [ipcontrol_bais_merged_reps] ]
     ch_bam_by_type
         .ips_with_ipcontrol
         .combine(ch_bam_by_type.ipcontrols, by: [0, 1])
-        .map { ipcontrol_id, antibody, ip_meta, ip_bam, ipcontrol_meta, ipcontrol_bam ->
-            [ ipcontrol_id, antibody, ip_meta, ip_bam, ipcontrol_bam ]
+        .map { ipcontrol_id, antibody, ip_meta, ip_bam, ip_bai, ipcontrol_meta, ipcontrol_bam, ipcontrol_bai ->
+            [ ipcontrol_id, antibody, ip_meta, ip_bam, ip_bai, ipcontrol_bam, ipcontrol_bai ]
         }
         .mix(ch_bam_by_type.ips_wo_ipcontrol)
-        // ips_wo_ipcontrol do not have control_bam (it[4])
+        // ips_wo_ipcontrol do not have ipcontrol_bam (it[5]) and ipcontrol_bai (it[6])
         .map { it ->
             def meta_clone = it[2].clone()
             meta_clone.id = meta_clone.id - ~/_bRep_.*$/
             meta_clone.input_control = meta_clone.input_control - ~/_bRep_.*$/
-            [ meta_clone.id, it[1], meta_clone, it[3], it[4] ?: [] ]
+            [ meta_clone.id, it[1], meta_clone, it[3], it[4], it[5] ?: [], it[6] ?: [] ]
         }
         .groupTuple(by: [0, 1])
         .map {
-            id, antibody, metas, ip_bams, ipcontrol_bams ->
-                [ metas[0], ip_bams.flatten(), ipcontrol_bams.flatten() ]
+            id, antibody, metas, ip_bams, ip_bais, ipcontrol_bams, ipcontrol_bais ->
+                [ metas[0], ip_bams.flatten(), ip_bais.flatten(), ipcontrol_bams.flatten(), ipcontrol_bais.flatten() ]
         }
-        .set { ch_ip_control_bam_merged_reps }
+        .set { ch_ip_control_bam_bai_merged_reps }
 
     // TODO: Print to file for debuggin
-    ch_ip_control_bam_merged_reps
+    ch_ip_control_bam_bai_merged_reps
         .map {
-            meta, ip_bams, ipcontrol_bams ->
-                "${meta}\t${ip_bams}\t${ipcontrol_bams}"
+            meta, ip_bams, ip_bais, ipcontrol_bams, ipcontrol_bais ->
+                "${meta}\t${ip_bams}\t${ip_bais}\t${ipcontrol_bams}\t${ipcontrol_bais}"
         }
         .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER" )
 
@@ -75,12 +73,11 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
     // Call peaks with epic2
     //
     EPIC2 (
-        ch_ip_control_bam_merged_reps,
+        ch_ip_control_bam_bai_merged_reps,
         ch_chrom_sizes,
         efective_gfraction
 
     )
-    ch_versions = ch_versions.mix(EPIC2.out.versions.first())
 
     //
     // Filter out samples with 0 epic2 peaks called
@@ -95,7 +92,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
         .set { ch_epic2_peaks }
 
     // Create channels: [ meta, ip_bam, peaks ]
-    ch_bam
+    ch_bam_bai
         .join(ch_epic2_peaks, by: 0)
         .map {
             meta, ip_bam, control_bam, peaks ->
@@ -117,7 +114,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
     FRIP_SCORE (
         ch_bam_peak
     )
-    ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
     // Create channels: [ meta, peaks, frip ]
     ch_bam_peak
@@ -136,7 +132,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
         ch_peak_count_header_multiqc,
         ch_frip_score_multiqc
     )
-    ch_versions = ch_versions.mix(MULTIQC_CUSTOM_PEAKS.out.versions.first())
 
     ch_homer_annotatepeaks          = channel.empty()
     //ch_plot_epic2_qc_txt            = channel.empty()
@@ -154,7 +149,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
             ch_gtf.map{ it -> it[1] }
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
         if (!skip_peak_qc) {
 
@@ -175,7 +169,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
             //             [ meta_new, peaks ]
             //     }
             //     .set { ch_epic2_peaks_grouped }
-            
+
             //
             // epic2 QC plots with R
             //
@@ -201,7 +195,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
                         meta_new.id = exp_type
                         meta_new.exp_type = exp_type
                         meta_new.genome = genome
-                        [ meta_new, anns ]
+                        def sorted_anns = anns.sort { it -> it.name }
+                        [ meta_new, sorted_anns ]
                 }
                 .set { ch_homer_annotatepeaks_grouped }
             //
@@ -215,7 +210,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
             ch_plot_homer_annotatepeaks_txt = PLOT_HOMER_ANNOTATEPEAKS.out.txt
             ch_plot_homer_annotatepeaks_pdf = PLOT_HOMER_ANNOTATEPEAKS.out.pdf
             ch_plot_homer_annotatepeaks_tsv = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
-            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
         }
     }
 
@@ -224,7 +218,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
     peaks                        = ch_epic2_peaks                   // channel: [ val(meta), [ peaks ] ]
     frip_txt                     = FRIP_SCORE.out.txt               // channel: [ val(meta), [ txt ] ]
     frip_multiqc                 = MULTIQC_CUSTOM_PEAKS.out.frip    // channel: [ val(meta), [ frip ] ]
-    
+
     peak_count_multiqc           = MULTIQC_CUSTOM_PEAKS.out.count   // channel: [ val(meta), [ counts ] ]
     homer_annotatepeaks          = ch_homer_annotatepeaks           // channel: [ val(meta), [ txt ] ]
 
@@ -234,6 +228,4 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
     plot_homer_annotatepeaks_txt = ch_plot_homer_annotatepeaks_txt  // channel: [ txt ]
     plot_homer_annotatepeaks_pdf = ch_plot_homer_annotatepeaks_pdf  // channel: [ pdf ]
     plot_homer_annotatepeaks_tsv = ch_plot_homer_annotatepeaks_tsv  // channel: [ tsv ]
-
-    versions                     = ch_versions                      // channel: [ versions.yml ]
 }

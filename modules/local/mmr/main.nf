@@ -2,10 +2,10 @@ process MMR {
     tag "$meta.id"
     label 'process_high'
 
-    // NOTE: there is no version information provided by the tool on the CLI
+    // WARN: Version information not provided by tool on CLI. Please update version string below when bumping container versions.
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/mmr:c5ce80a--0042edeccacdf2bc' :
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/03/037e8d3204ce2d11ff1d24495b435859c93a5a0851840e6bf5b4abed823c9d42/data' :
         'community.wave.seqera.io/library/mmr:c5ce80a--1ec1f5037b507cc0' }"
 
     input:
@@ -13,7 +13,7 @@ process MMR {
 
     output:
     tuple val(meta), path("*.bam")      , emit: bam
-    path  "versions.yml"                , emit: versions
+    tuple val("${task.process}"), val('mmr'), eval("echo $VERSION"), topic: versions, emit: versions_mmr
 
     when:
     task.ext.when == null || task.ext.when
@@ -22,6 +22,7 @@ process MMR {
     def args               = task.ext.args ?: ''
     def prefix             = task.ext.prefix ?: "${meta.id}"
     def pair_usage_arg     = meta.single_end ? "" : "--pair-usage"
+    VERSION = 'c5ce80a' // WARN: Version information not provided by tool on CLI. Please update this string when bumping container versions.
 
     """
     mmr \\
@@ -30,22 +31,13 @@ process MMR {
         --threads $task.cpus \\
         --verbose \\
         -o ${prefix}.bam \\
-        $bam 
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        mmr: c5ce80a
-    END_VERSIONS
+        $bam
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
+    VERSION = 'c5ce80a' // WARN: Version information not provided by tool on CLI. Please update this string when bumping container versions.
     """
     touch  ${prefix}.bam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-                mmr: c5ce80a
-    END_VERSIONS
     """
 }

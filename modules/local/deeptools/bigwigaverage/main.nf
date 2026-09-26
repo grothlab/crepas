@@ -3,7 +3,7 @@ process DEEPTOOLS_BIGWIGAVERAGE {
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/deeptools:3.5.6--pyhdfd78af_0':
         'biocontainers/deeptools:3.5.6--pyhdfd78af_0' }"
 
@@ -14,7 +14,7 @@ process DEEPTOOLS_BIGWIGAVERAGE {
     output:
     tuple val(meta), path("*.bigWig"), emit: bigwig, optional: true
     tuple val(meta), path("*.bedGraph"), emit: bedgraph, optional: true
-    path  "versions.yml"          , emit: versions
+    tuple val("${task.process}"), val('deeptools'), eval("bigwigAverage --version | sed -e 's/bigwigAverage //g'"), emit: versions_deeptools, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -33,31 +33,18 @@ process DEEPTOOLS_BIGWIGAVERAGE {
             --numberOfProcessors ${task.cpus} \\
             --outFileName ${prefix}.${extension} \\
             $blacklist_cmd
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            deeptools: \$(bigwigAverage --version | sed -e "s/bigwigAverage //g")
-        END_VERSIONS
         """
     } else {
         """
         ln -s ${bigwigs[0]} ${prefix}.${extension}
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            deeptools: \$(bigwigAverage --version | sed -e "s/bigwigAverage //g")
-        END_VERSIONS
         """
     }
 
     stub:
+    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}.bigwigAverage"
     def extension = args.contains("--outFileFormat bigwig") ? "bigWig" : "bedGraph"
     """
     touch ${prefix}.${extension}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        deeptools: \$(bigwigAverage --version | sed -e "s/bigwigAverage //g")
-    END_VERSIONS
     """
 }

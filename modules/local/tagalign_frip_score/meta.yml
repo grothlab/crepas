@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "tagalign_frip_score"
+description: Extend TAGALIGN reads to the estimated fragment length and calculate the Fraction of Reads in Peaks (FRiP) score against a peak set
+keywords:
+  - bedtools
+  - tagalign
+  - frip
+  - peaks
+  - qc
+tools:
+  - bedtools:
+      description: |
+        A set of tools for genomic analysis tasks, specifically enabling genome arithmetic
+        (merge, count, complement, intersect) on various file types. Used here (`slop` to extend
+        reads to the cross-correlation-estimated fragment length, `intersect` to count how many
+        extended reads overlap `peaks`) to compute the ENCODE-style FRiP score.
+      homepage: https://bedtools.readthedocs.io/
+      documentation: https://bedtools.readthedocs.io/en/latest/content/tools/slop.html
+      tool_dev_url: https://github.com/arq5x/bedtools2
+      doi: "10.1093/bioinformatics/btq033"
+      licence: ["MIT"]
+      identifier: "biotools:bedtools"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - tagalign:
+        type: file
+        description: TAGALIGN file (optionally gzip-compressed) whose reads are extended and intersected against `peaks`
+        pattern: "*.tagAlign*"
+        ontologies: []
+    - ccscores:
+        type: file
+        description: Cross-correlation scores file (e.g. from PhantomPeakQualTools); the estimated fragment length is read from column 3 of the first row
+        pattern: "*.cc.qc"
+        ontologies: []
+    - peaks:
+        type: file
+        description: Peak file to intersect extended reads against
+        pattern: "*.{narrowPeak,broadPeak,bed}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing chromosome sizes information
+          e.g. [ id:'genome' ]
+    - chromsizes:
+        type: file
+        description: Two-column chromosome name/size file, used to bound the read extension
+        pattern: "*.{sizes,genome,txt}"
+        ontologies: []
+output:
+  bed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bed":
+          type: file
+          description: Reads extended to the estimated fragment length
+          pattern: "*.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  frip:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.txt":
+          type: file
+          description: Single-line text file with the FRiP score (extended reads overlapping `peaks` divided by total reads)
+          pattern: "*.txt"
+  versions_bedtools:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bedtools":
+          type: string
+          description: The name of the tool
+      - "bedtools --version | sed -e 's/bedtools v//g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_gawk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion | sed '1!d; s/.*Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bedtools":
+          type: string
+          description: The name of the tool
+      - "bedtools --version | sed -e 's/bedtools v//g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion | sed '1!d; s/.*Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

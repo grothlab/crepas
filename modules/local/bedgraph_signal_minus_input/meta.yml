@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bedgraph_signal_minus_input"
+description: Subtract a background/input bedGraph track from a signal bedGraph track at matching intervals
+keywords:
+  - bedgraph
+  - background-subtraction
+  - awk
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to subtract, at each interval shared between the two files (matched by chromosome
+        and start coordinate), the input track's value from the signal track's value, keeping
+        the result only where both values meet a minimum count and clamping the difference to a
+        floor value.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - signal_bdg:
+        type: file
+        description: bedGraph file with the signal track
+        pattern: "*.{bdg,bedGraph,bedgraph}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+    - input_bdg:
+        type: file
+        description: bedGraph file with the background/input track to subtract from `signal_bdg`
+        pattern: "*.{bdg,bedGraph,bedgraph}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+output:
+  bedgraph:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bedgraph":
+          type: file
+          description: |
+            bedGraph file with the input-subtracted signal, restricted to intervals where both
+            signal and input meet `--min_count` (from `task.ext.args2`, default 0) and floored
+            at `--norm_factor` (default 1)
+          pattern: "*.bedgraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

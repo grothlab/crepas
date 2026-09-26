@@ -1,0 +1,79 @@
+{
+    "homo_sapiens - 2 samples - macs3 qc plots - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "PLOT_MACS3_QC",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ],
+                "pdf": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "txt": [
+                    [
+                        {
+                            "id": "test_group"
+                        },
+                        "test_group.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "PLOT_MACS3_QC",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:26:33.919766679",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "homo_sapiens - 2 samples - macs3 qc plots": {
+        "content": [
+            "test_group.summary.txt",
+            "test_group.plots.pdf",
+            {
+                "versions_rbase": [
+                    [
+                        "PLOT_MACS3_QC",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:26:23.565154528",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

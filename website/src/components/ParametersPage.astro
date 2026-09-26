@@ -1,0 +1,155 @@
+---
+import type { SiteVersion } from "../lib/repo";
+import { getSchemaGroups } from "../lib/schema";
+
+export interface Props {
+    version: SiteVersion;
+}
+
+const { version } = Astro.props;
+const groups = await getSchemaGroups(version);
+const hiddenCount = groups.reduce((n, group) => n + group.properties.filter((p) => p.hidden).length, 0);
+---
+
+<div class="row">
+    <div class="col-12 col-md-9 col-xxl-10">
+        <p class="text-body-secondary pt-3 mb-2">
+            Rendered from <code>nextflow_schema.json</code>. Parameters are passed on the command line as{" "}
+            <code>--name value</code>.
+        </p>
+        {
+            groups.map((group) => (
+                <section class:list={["card my-3 schema-group", { "param-hidden": group.hidden }]}>
+                    <div class="card-header bg-body-secondary">
+                        <h2 class="card-title h4 text-accent my-1" id={group.id}>
+                            <a class="text-decoration-none text-accent" href={`#${group.id}`}>
+                                {group.faIcon && <i class:list={["fa-fw me-2", group.faIcon]} />}
+                                {group.title}
+                            </a>
+                        </h2>
+                    </div>
+                    <div class="card-body pb-0">
+                        {group.descriptionHtml && <p class="mb-2" set:html={group.descriptionHtml} />}
+                        {group.helpTextHtml && (
+                            <details class="help-text mb-2">
+                                <summary class="small text-body-secondary">
+                                    <i class="fa-solid fa-circle-question me-1" />
+                                    Help text
+                                </summary>
+                                <div class="p-2 px-3 border rounded-3 mt-1" set:html={group.helpTextHtml} />
+                            </details>
+                        )}
+                        {group.properties.map((param) => (
+                            <div
+                                class:list={[
+                                    "property row border-bottom py-3 mx-md-1 align-items-center",
+                                    { "param-hidden": param.hidden },
+                                ]}
+                                id={param.name}
+                            >
+                                <div class="col-12 col-md-3 text-nowrap p-0 pe-2 overflow-x-auto">
+                                    <a class="text-decoration-none" href={`#${param.name}`}>
+                                        {param.faIcon && <i class:list={["fa-fw me-1", param.faIcon]} />}
+                                        <code>--{param.name}</code>
+                                    </a>
+                                </div>
+                                <div class="col small" set:html={param.descriptionHtml} />
+                                <div class="col-12 col-md-3 d-flex flex-column align-items-md-end small">
+                                    {param.hidden && (
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-normal mb-1">
+                                            hidden
+                                        </span>
+                                    )}
+                                    {param.required && <span class="badge text-bg-warning mb-1">required</span>}
+                                    {param.type && (
+                                        <div class="text-body-secondary">
+                                            type: <code>{param.type}</code>
+                                        </div>
+                                    )}
+                                    {param.enumValues && (
+                                        <div class="text-body-secondary text-md-end">
+                                            options:{" "}
+                                            {param.enumValues.map((value, i) => (
+                                                <>
+                                                    {i > 0 && ", "}
+                                                    <code>{value}</code>
+                                                </>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {param.default !== undefined && (
+                                        <div class="text-body-secondary text-md-end text-break">
+                                            default: <code>{param.default}</code>
+                                        </div>
+                                    )}
+                                    {(param.minimum !== undefined || param.maximum !== undefined) && (
+                                        <div class="text-body-secondary">
+                                            range: <code>{param.minimum ?? "…"}</code> – <code>{param.maximum ?? "…"}</code>
+                                        </div>
+                                    )}
+                                    {param.pattern && (
+                                        <div class="text-body-secondary text-md-end text-break">
+                                            pattern: <code>{param.pattern}</code>
+                                        </div>
+                                    )}
+                                </div>
+                                {param.helpTextHtml && (
+                                    <details class="help-text mt-2 px-0">
+                                        <summary class="small text-body-secondary">
+                                            <i class="fa-solid fa-circle-question me-1" />
+                                            Help text
+                                        </summary>
+                                        <div class="p-2 px-3 border rounded-3 mt-1" set:html={param.helpTextHtml} />
+                                    </details>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            ))
+        }
+    </div>
+    <div class="col-12 col-md-3 col-xxl-2 order-first order-md-last">
+        <nav class="toc sticky-top pt-3" aria-label="Parameter groups">
+            {
+                hiddenCount > 0 && (
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="show-hidden" />
+                        <label class="form-check-label small" for="show-hidden">
+                            Show hidden parameters ({hiddenCount})
+                        </label>
+                    </div>
+                )
+            }
+            <p class="text-body-secondary small text-uppercase fw-semibold mb-2">
+                <i class="fa-solid fa-list-ul me-2"></i>Groups
+            </p>
+            <ul class="list-unstyled small mb-0">
+                {
+                    groups.map((group) => (
+                        <li class:list={[{ "param-hidden": group.hidden }]}>
+                            <a class="d-block py-1 text-body-secondary text-decoration-none" href={`#${group.id}`}>
+                                {group.faIcon && <i class:list={["fa-fw me-1", group.faIcon]} />}
+                                {group.title}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+    const toggle = document.getElementById("show-hidden") as HTMLInputElement | null;
+    const apply = (show: boolean) => document.body.classList.toggle("show-hidden", show);
+    const wantsHidden = () => {
+        const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+        return Boolean(target?.closest(".param-hidden"));
+    };
+    if (toggle) {
+        toggle.checked = wantsHidden();
+        apply(toggle.checked);
+        toggle.addEventListener("change", () => apply(toggle.checked));
+    }
+</script>

@@ -1,0 +1,92 @@
+{
+    "sarscov2 - bam - domain calling - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3_peaks.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    
+                ],
+                "3": [
+                    
+                ],
+                "4": [
+                    [
+                        "EDD",
+                        "edd",
+                        ""
+                    ]
+                ],
+                "bin_score": [
+                    
+                ],
+                "log": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "log_ratios": [
+                    
+                ],
+                "peaks": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.mLb.mkD.flT1.flT3_peaks.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_edd": [
+                    [
+                        "EDD",
+                        "edd",
+                        ""
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-13T16:30:49.073473529",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - domain calling": {
+        "content": [
+            [
+                
+            ],
+            {
+                "versions_edd": [
+                    
+                ]
+            }
+        ],
+        "timestamp": "2026-07-13T16:11:19.104216982",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

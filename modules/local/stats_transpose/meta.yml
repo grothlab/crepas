@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "stats_transpose"
+description: Extract the summary-number (SN) section of a samtools stats report and transpose it into a single-row-per-sample TSV, with an ID column and the sample basename as the row label
+keywords:
+  - awk
+  - samtools
+  - stats
+  - transpose
+  - qc
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to transpose the summary-number (SN) rows of a samtools stats report from a
+        two-column (metric, value) layout into a single wide row, and to prepend an ID header
+        row and a data row labelled with the sample basename so that per-sample stats can be
+        concatenated downstream (see STATS_CAT).
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - stats:
+        type: file
+        description: samtools stats report (as produced by `samtools stats`), whose summary-number (SN) lines are extracted and transposed
+        pattern: "*.stats"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  t_stats:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          type: file
+          description: Transposed summary stats as a two-row TSV (ID header row + one data row labelled with the sample basename)
+          pattern: "*.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_sed:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "sed":
+          type: string
+          description: The name of the tool
+      - "sed --version 2>&1 | head -1 | sed 's/^sed (GNU sed) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "sort --version 2>&1 | head -1 | sed 's/^sort (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "sed":
+          type: string
+          description: The name of the tool
+      - "sed --version 2>&1 | head -1 | sed 's/^sed (GNU sed) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "sort --version 2>&1 | head -1 | sed 's/^sort (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

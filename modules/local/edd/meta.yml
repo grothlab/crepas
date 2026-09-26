@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "edd"
+description: Call megabase-scale domains of ChIP-seq enrichment (e.g. broad histone marks/LADs) from an IP BAM against an input control BAM
+keywords:
+  - chipseq
+  - peak-calling
+  - broad-domains
+  - lamina-associated-domains
+tools:
+  - edd:
+      description: |
+        EDD (Enriched Domain Detector) is a ChIP-seq peak caller for detection of megabase-scale
+        domains of enrichment, such as broad histone modification domains or lamina-associated
+        domains (LADs).
+      homepage: https://github.com/CollasLab/edd
+      documentation: https://github.com/CollasLab/edd
+      tool_dev_url: https://github.com/CollasLab/edd
+      doi: "10.1093/nar/gku324"
+      licence: ["MIT"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - ip_bam:
+        type: file
+        description: Coordinate-sorted, indexed-free BAM file for the ChIP/IP sample
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - input_bam:
+        type: file
+        description: Coordinate-sorted BAM file for the matched input control sample
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - chrom_sizes:
+        type: file
+        description: Two-column chromosome sizes file (name, length) for the genome
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+  - - meta3:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'blacklist' ]
+    - unalignable_regions:
+        type: file
+        description: BED file of unalignable/blacklisted genomic regions to exclude from domain calling
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+output:
+  peaks:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*_peaks.bed":
+          type: file
+          description: BED file of called enriched domains
+          pattern: "*_peaks.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  log:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.log":
+          type: file
+          description: EDD run log
+          pattern: "*.log"
+  bin_score:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*_bin_score.bedgraph":
+          type: file
+          description: Optional bedGraph of per-bin enrichment scores
+          pattern: "*_bin_score.bedgraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  log_ratios:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*_log_ratio*.bedgraph":
+          type: file
+          description: Optional bedGraph(s) of log ratio tracks
+          pattern: "*_log_ratio*.bedgraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_edd:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "edd":
+          type: string
+          description: The name of the tool
+      - "edd --version | sed -e 's/edd //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "edd":
+          type: string
+          description: The name of the tool
+      - "edd --version | sed -e 's/edd //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

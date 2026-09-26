@@ -10,22 +10,19 @@ workflow FASTQ_ALIGN_BOWTIE {
     ch_reads          // channel: [ val(meta), [ reads ] ]
     ch_index          // channel: /path/to/bowtie2/index/
     save_unaligned    // val
-    ch_fasta          // channel: /path/to/reference.fasta
+    ch_fasta_fai      // channel: [ val(meta), path(fasta), path(fai) ]
 
     main:
-
-    ch_versions = channel.empty()
 
     //
     // Map reads with Bowtie2
     //
     BOWTIE_ALIGN ( ch_reads, ch_index, save_unaligned )
-    ch_versions = ch_versions.mix(BOWTIE_ALIGN.out.versions)
 
     //
     // Sort, index BAM file and run samtools stats, flagstat and idxstats
     //
-    BAM_SORT_STATS_SAMTOOLS ( BOWTIE_ALIGN.out.bam, ch_fasta )
+    BAM_SORT_STATS_SAMTOOLS ( BOWTIE_ALIGN.out.bam, ch_fasta_fai )
 
     emit:
     bam_orig         = BOWTIE_ALIGN.out.bam          // channel: [ val(meta), aligned ]
@@ -33,11 +30,8 @@ workflow FASTQ_ALIGN_BOWTIE {
     fastq            = BOWTIE_ALIGN.out.fastq        // channel: [ val(meta), fastq   ]
 
     bam              = BAM_SORT_STATS_SAMTOOLS.out.bam      // channel: [ val(meta), [ bam ] ]
-    bai              = BAM_SORT_STATS_SAMTOOLS.out.bai      // channel: [ val(meta), [ bai ] ]
-    csi              = BAM_SORT_STATS_SAMTOOLS.out.csi      // channel: [ val(meta), [ csi ] ]
+    index            = BAM_SORT_STATS_SAMTOOLS.out.index    // channel: [ val(meta), [ index ] ]
     stats            = BAM_SORT_STATS_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ]
     flagstat         = BAM_SORT_STATS_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
     idxstats         = BAM_SORT_STATS_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
-
-    versions         = ch_versions                      // channel: [ versions.yml ]
 }

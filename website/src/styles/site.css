@@ -1,0 +1,312 @@
+:root,
+[data-bs-theme="light"] {
+    --crepas-accent: #0a6fa8;
+    --crepas-accent-rgb: 10, 111, 168;
+}
+
+[data-bs-theme="dark"] {
+    --crepas-accent: #4cc0f5;
+    --crepas-accent-rgb: 76, 192, 245;
+}
+
+:root {
+    --bs-link-color: var(--crepas-accent);
+    --bs-link-color-rgb: var(--crepas-accent-rgb);
+    --bs-link-hover-color: var(--crepas-accent);
+    --bs-link-hover-color-rgb: var(--crepas-accent-rgb);
+}
+
+[data-bs-theme="dark"] {
+    --bs-link-color: var(--crepas-accent);
+    --bs-link-color-rgb: var(--crepas-accent-rgb);
+    --bs-link-hover-color: var(--crepas-accent);
+    --bs-link-hover-color-rgb: var(--crepas-accent-rgb);
+}
+
+.text-accent {
+    color: var(--crepas-accent) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+.navbar-brand,
+.sidebar-title {
+    font-family: "Maven Pro", var(--bs-body-font-family);
+}
+
+.brand-name {
+    font-weight: 700;
+}
+
+.subheader h1 {
+    color: var(--crepas-accent);
+}
+
+.triangle-down {
+    width: 3rem;
+    height: 1.25rem;
+    margin: 0 auto 1.5rem;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.tab-bar .nav-link {
+    color: var(--bs-body-color);
+}
+
+.tab-bar .nav-link.active {
+    color: var(--crepas-accent);
+    font-weight: 600;
+}
+
+.sticky-top {
+    top: 0.5rem;
+    z-index: 1;
+    max-height: calc(100vh - 1rem);
+    overflow-y: auto;
+}
+
+/* Markdown content */
+.markdown-content h2 {
+    margin-top: 2.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.markdown-content h3,
+.markdown-content h4 {
+    margin-top: 2rem;
+}
+
+.markdown-content :is(h2, h3, h4) {
+    scroll-margin-top: 1rem;
+}
+
+.markdown-content img {
+    max-width: 100%;
+}
+
+.markdown-content :not(pre) > code {
+    color: var(--bs-emphasis-color);
+    background-color: var(--bs-tertiary-bg);
+    padding: 0.1em 0.3em;
+    border-radius: 0.25rem;
+}
+
+.markdown-content pre {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--bs-border-color);
+}
+
+.markdown-content details {
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    background-color: var(--bs-tertiary-bg);
+}
+
+.markdown-content details > summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.markdown-content details[open] > summary {
+    margin-bottom: 0.5rem;
+}
+
+.markdown-alert > :last-child {
+    margin-bottom: 0;
+}
+
+/* Shiki dual-theme highlighting */
+.shiki,
+.shiki span {
+    color: var(--shiki-light);
+    background-color: var(--shiki-light-bg);
+}
+
+[data-bs-theme="dark"] .shiki,
+[data-bs-theme="dark"] .shiki span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+}
+
+/* Sidebar */
+.sidebar-row {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.sidebar-row:last-child {
+    border-bottom: 0;
+}
+
+.sidebar-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.4rem;
+}
+
+.sidebar-value {
+    margin-bottom: 0;
+}
+
+.run-cmd {
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.sidebar .nav-link.btn {
+    color: var(--bs-secondary-color);
+}
+
+.sidebar .nav-link.btn.active,
+.sidebar .nav-link.btn:hover {
+    color: var(--bs-body-color);
+    background-color: var(--bs-border-color);
+}
+
+/* Parameters page */
+.schema-group .card-header {
+    top: 0;
+}
+
+.property {
+    margin-bottom: -1px;
+}
+
+.help-text summary {
+    cursor: pointer;
+}
+
+.param-hidden {
+    display: none !important;
+}
+
+body.show-hidden .property.param-hidden {
+    display: flex !important;
+}
+
+body.show-hidden .schema-group.param-hidden,
+body.show-hidden li.param-hidden {
+    display: block !important;
+}
+
+/* Center logo: dark lettering on a transparent background needs a light backing in dark mode. */
+.center-logo {
+    display: block;
+    border-radius: 0.375rem;
+}
+
+[data-bs-theme="dark"] .center-logo {
+    background-color: #fff;
+    padding: 2px;
+}
+
+/* Sidebar statistics */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1rem;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.component-list .component {
+    display: inline-block;
+    margin: 0 0.25rem 0.25rem 0;
+    padding: 0.05em 0.35em;
+    border-radius: 0.25rem;
+    color: var(--bs-emphasis-color);
+    background-color: var(--bs-tertiary-bg);
+}
+
+.component-list summary {
+    cursor: pointer;
+    margin-bottom: 0.25rem;
+}
+
+/* Releases & Statistics page */
+.release > summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.release > summary::-webkit-details-marker {
+    display: none;
+}
+
+.release > summary::before {
+    content: "\f054";
+    font-family: "Font Awesome 7 Free";
+    font-weight: 900;
+    font-size: 0.8rem;
+    margin-right: 0.25rem;
+    transition: transform 0.15s;
+}
+
+.release[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.release-notes h3 {
+    font-size: 1.1rem;
+    margin-top: 1.25rem;
+}
+
+.release-notes > :first-child {
+    margin-top: 0;
+}
+
+.stat-card:hover {
+    border-color: var(--crepas-accent);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--crepas-accent);
+    --bs-btn-border-color: var(--crepas-accent);
+    --bs-btn-hover-bg: var(--crepas-accent);
+    --bs-btn-hover-border-color: var(--crepas-accent);
+    --bs-btn-active-bg: var(--crepas-accent);
+    --bs-btn-active-border-color: var(--crepas-accent);
+}
+
+/* Page width: nf-core's extra-wide container breakpoints (nf-core/website _variables.scss) */
+@media (min-width: 1400px) {
+    .page-container {
+        max-width: 1380px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .page-container {
+        max-width: 1560px;
+    }
+}
+
+@media (min-width: 2300px) {
+    .page-container {
+        max-width: 2200px;
+    }
+}
+
+/* Long code lines scroll inside the block rather than widening the page */
+.markdown-content pre {
+    overflow-x: auto;
+}
+
+/* Grid columns must be allowed to shrink below their content's width for the scrolling to apply */
+.markdown-content,
+.row > [class*="col-"] {
+    min-width: 0;
+}

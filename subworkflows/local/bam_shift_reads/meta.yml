@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_shift_reads"
+description: |
+  Shift ATAC-seq Tn5 insertion sites in a BAM file with deepTools alignmentSieve, then
+  coordinate-sort, index and run samtools stats, flagstat and idxstats
+keywords:
+  - atac-seq
+  - tn5
+  - shift
+  - bam
+components:
+  - deeptools/alignmentsieve
+  - bam_sort_stats_samtools
+input:
+  - ch_bam_index:
+      description: |
+        Input BAM file and its index
+        Structure: [ val(meta), path(bam), path(index) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+output:
+  - bam:
+      description: |
+        BAM file with shifted reads
+        Structure: [ val(meta), path(bam) ]
+  - index:
+      description: |
+        Index of the shifted BAM file
+        Structure: [ val(meta), path(index) ]
+  - stats:
+      description: |
+        File containing samtools stats output
+        Structure: [ val(meta), path(stats) ]
+  - flagstat:
+      description: |
+        File containing samtools flagstat output
+        Structure: [ val(meta), path(flagstat) ]
+  - idxstats:
+      description: |
+        File containing samtools idxstats output
+        Structure: [ val(meta), path(idxstats) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

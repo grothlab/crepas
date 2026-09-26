@@ -1,0 +1,84 @@
+{
+    "sarscov2 - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "genes"
+                        },
+                        "genes.saf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BED_TO_SAF",
+                        "gawk",
+                        "5.4.0"
+                    ]
+                ],
+                "saf": [
+                    [
+                        {
+                            "id": "genes"
+                        },
+                        "genes.saf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "BED_TO_SAF",
+                        "gawk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-21T09:35:51.855767659",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bed with name and strand": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "genes"
+                        },
+                        "genes.saf:md5,fd200d07a3ee474c2e302cce55dd7bae"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BED_TO_SAF",
+                        "gawk",
+                        "5.4.0"
+                    ]
+                ],
+                "saf": [
+                    [
+                        {
+                            "id": "genes"
+                        },
+                        "genes.saf:md5,fd200d07a3ee474c2e302cce55dd7bae"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "BED_TO_SAF",
+                        "gawk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-21T09:38:25.031756923",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

@@ -1,9 +1,9 @@
-#id: 'peak_count'
+#id: 'genrich_peak_count'
 #section_name: 'MERGED LIB: Genrich peak count'
 #description: "is calculated from total number of peaks called by
 #	       <a href='https://github.com/jsh58/Genrich' target='_blank'>Genrich</a>"
 #plot_type: 'bargraph'
-#anchor: 'peak_count'
+#anchor: 'genrich_peak_count'
 #pconfig:
 #    title: 'Total peak count'
 #    ylab: 'Peak count'

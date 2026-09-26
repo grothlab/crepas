@@ -1,0 +1,124 @@
+---
+import { getRepoStats } from "../lib/github";
+import { renderMarkdown } from "../lib/markdown";
+import { getChangelogReleases } from "../lib/releases";
+import { getLatestVersion, getManifest, getVersions, pageHref, type SiteVersion } from "../lib/repo";
+
+export interface Props {
+    version: SiteVersion;
+}
+
+const { version } = Astro.props;
+const manifest = getManifest(version.ref);
+const stats = await getRepoStats(manifest.homePage);
+const versions = getVersions();
+const latest = getLatestVersion();
+
+// Every release in the changelog, with its own rendering context so links stay within that release.
+const releases = await Promise.all(
+    getChangelogReleases().map(async (release) => {
+        const site = versions.find((v) => v.id === release.version);
+        const { html } = await renderMarkdown(release.body, {
+            sourceFile: "CHANGELOG.md",
+            version: site ?? latest,
+        });
+        return {
+            ...release,
+            html,
+            site,
+            date: release.date ?? site?.date,
+            tagUrl: `${manifest.homePage}/releases/tag/${release.version}`,
+            zipUrl: `${manifest.homePage}/archive/refs/tags/${release.version}.zip`,
+            tarUrl: `${manifest.homePage}/archive/refs/tags/${release.version}.tar.gz`,
+        };
+    }),
+);
+
+const counters = stats
+    ? [
+          { label: "stars", value: stats.stars, icon: "fa-regular fa-star", href: `${manifest.homePage}/stargazers` },
+          { label: "watchers", value: stats.subscribers, icon: "fa-regular fa-eye", href: `${manifest.homePage}/watchers` },
+          { label: "forks", value: stats.forks, icon: "fa-solid fa-code-fork", href: `${manifest.homePage}/forks` },
+          { label: "open issues", value: stats.openIssues, icon: "fa-regular fa-circle-dot", href: `${manifest.homePage}/issues` },
+          { label: "open PRs", value: stats.openPulls, icon: "fa-solid fa-code-pull-request", href: `${manifest.homePage}/pulls` },
+          ...(stats.contributors !== undefined
+              ? [{ label: "contributors", value: stats.contributors, icon: "fa-solid fa-users", href: `${manifest.homePage}/graphs/contributors` }]
+              : []),
+      ]
+    : [];
+---
+
+<div class="pt-3">
+    {
+        counters.length > 0 && (
+            <section class="mb-4">
+                <h2 class="h4 mb-3">
+                    <i class="fa-solid fa-chart-simple me-2 text-accent" />
+                    Statistics
+                </h2>
+                <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3">
+                    {counters.map((counter) => (
+                        <div class="col">
+                            <a class="card h-100 text-center text-decoration-none stat-card" href={counter.href}>
+                                <div class="card-body py-3">
+                                    <i class:list={[counter.icon, "text-accent mb-2"]} />
+                                    <div class="fs-3 fw-bold text-body">{counter.value}</div>
+                                    <div class="small text-body-secondary">{counter.label}</div>
+                                </div>
+                            </a>
+                        </div>
+                    ))}
+                </div>
+            </section>
+        )
+    }
+
+    <section>
+        <h2 class="h4 mb-3">
+            <i class="fa-solid fa-tags me-2 text-accent"></i>
+            Releases
+        </h2>
+        {releases.length === 0 && <p class="text-body-secondary">No releases yet.</p>}
+        {
+            releases.map((release, i) => (
+                <details class="card mb-3 release" open={i === 0}>
+                    <summary class="card-header bg-body-secondary d-flex flex-wrap align-items-center gap-2">
+                        <span class="h5 mb-0 text-accent fw-bold">{release.version}</span>
+                        {release.name && <span class="fw-semibold">{release.name}</span>}
+                        {i === 0 && <span class="badge text-bg-success">latest</span>}
+                        {release.date && (
+                            <span class="ms-auto small text-body-secondary">
+                                <time datetime={release.date} data-relative>
+                                    {release.date}
+                                </time>
+                            </span>
+                        )}
+                    </summary>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {release.site && (
+                                <a class="btn btn-sm btn-outline-primary" href={pageHref(release.site, "")}>
+                                    <i class="fa-solid fa-book me-1" />
+                                    Documentation
+                                </a>
+                            )}
+                            <a class="btn btn-sm btn-outline-secondary" href={release.zipUrl}>
+                                <i class="fa-solid fa-file-zipper me-1" />
+                                Download .zip
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary" href={release.tarUrl}>
+                                <i class="fa-solid fa-file-zipper me-1" />
+                                Download .tar.gz
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary" href={release.tagUrl}>
+                                <i class="fa-brands fa-github me-1" />
+                                View on GitHub
+                            </a>
+                        </div>
+                        <div class="markdown-content release-notes" set:html={release.html} />
+                    </div>
+                </details>
+            ))
+        }
+    </section>
+</div>

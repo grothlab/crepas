@@ -27,11 +27,395 @@
                 ]
             ]
         ],
+        "timestamp": "2026-02-03T11:36:10.619537296",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.3"
-        },
-        "timestamp": "2026-02-03T11:36:10.619537296"
+        }
+    },
+    "umitools - with transcriptome bam - skip_split_by_chrom - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "10": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted_per_position.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted_per_position.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "11": [
+                    "test.umi_dedup.genome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159",
+                    "test.umi_dedup.genome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e",
+                    "test.umi_dedup.genome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e",
+                    "test.umi_dedup.genome.sorted.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "12": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "13": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "14": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "15": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "16": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ]
+                ],
+                "7": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "8": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted_edit_distance.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted_edit_distance.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "9": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted_per_umi.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted_per_umi.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "flagstat": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ]
+                ],
+                "genomic_dedup_log": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "idxstats": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "index": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "multiqc_files": [
+                    "test.umi_dedup.genome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159",
+                    "test.umi_dedup.genome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e",
+                    "test.umi_dedup.genome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e",
+                    "test.umi_dedup.genome.sorted.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "prepare_for_rsem_log": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "stats": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "transcriptome_bam": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "transcriptome_dedup_bam": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "transcriptome_filtered_bam": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "transcriptome_sorted_bam": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "transcriptome_sorted_bam_index": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.bam.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "transcriptomic_dedup_log": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tsv_edit_distance": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted_edit_distance.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted_edit_distance.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tsv_per_umi": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted_per_umi.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted_per_umi.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tsv_umi_per_position": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted_per_position.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ],
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.transcriptome.sorted_per_position.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-21T14:32:00.975103008",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "umicollapse - no transcriptome bam - skip_split_by_chrom": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.genome.sorted.bam.stats:md5,3d7956bcbb20910aa8e0a62d3d2bd9ef"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.genome.sorted.bam.flagstat:md5,18d602435a02a4d721b78d1812622159"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.genome.sorted.bam.idxstats:md5,85d20a901eef23ca50c323638a2eb602"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:31:44.020402981",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
     },
     "sarscov2_bam_bai - umitools - with transcriptome bams": {
         "content": [
@@ -80,10 +464,240 @@
                 ]
             ]
         ],
+        "timestamp": "2026-02-03T11:36:02.170476803",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.3"
-        },
-        "timestamp": "2026-02-03T11:36:02.170476803"
+        }
+    },
+    "umitools - with transcriptome bam - skip_split_by_chrom": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.genome.sorted.bam.stats:md5,3d7956bcbb20910aa8e0a62d3d2bd9ef"
+                ],
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.transcriptome.sorted.bam.stats:md5,2173cd943968435c55967fa9305791be"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.genome.sorted.bam.flagstat:md5,18d602435a02a4d721b78d1812622159"
+                ],
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.transcriptome.sorted.bam.flagstat:md5,18d602435a02a4d721b78d1812622159"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.genome.sorted.bam.idxstats:md5,85d20a901eef23ca50c323638a2eb602"
+                ],
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.umi_dedup.transcriptome.sorted.bam.idxstats:md5,85d20a901eef23ca50c323638a2eb602"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:31:32.034012904",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "umicollapse - no transcriptome bam - skip_split_by_chrom - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.dedup.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.dedup.bam.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "10": [
+                    
+                ],
+                "11": [
+                    "test.umi_dedup.genome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159",
+                    "test.umi_dedup.genome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e",
+                    "test.umi_dedup.genome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e",
+                    "test.umi_dedup.genome.sorted_UMICollapse.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "12": [
+                    
+                ],
+                "13": [
+                    
+                ],
+                "14": [
+                    
+                ],
+                "15": [
+                    
+                ],
+                "16": [
+                    
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted_UMICollapse.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    
+                ],
+                "4": [
+                    
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ]
+                ],
+                "7": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "8": [
+                    
+                ],
+                "9": [
+                    
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.dedup.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "flagstat": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ]
+                ],
+                "genomic_dedup_log": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted_UMICollapse.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "idxstats": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "index": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.dedup.bam.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "multiqc_files": [
+                    "test.umi_dedup.genome.sorted.bam.flagstat:md5,67394650dbae96d1a4fcc70484822159",
+                    "test.umi_dedup.genome.sorted.bam.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e",
+                    "test.umi_dedup.genome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e",
+                    "test.umi_dedup.genome.sorted_UMICollapse.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "prepare_for_rsem_log": [
+                    
+                ],
+                "stats": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.umi_dedup.genome.sorted.bam.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "transcriptome_bam": [
+                    
+                ],
+                "transcriptome_dedup_bam": [
+                    
+                ],
+                "transcriptome_filtered_bam": [
+                    
+                ],
+                "transcriptome_sorted_bam": [
+                    
+                ],
+                "transcriptome_sorted_bam_index": [
+                    
+                ],
+                "transcriptomic_dedup_log": [
+                    
+                ],
+                "tsv_edit_distance": [
+                    
+                ],
+                "tsv_per_umi": [
+                    
+                ],
+                "tsv_umi_per_position": [
+                    
+                ]
+            }
+        ],
+        "timestamp": "2026-07-21T14:32:12.704735112",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
     }
 }

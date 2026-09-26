@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_qc_annotate_consenrich_rocco_homer"
+description: |
+  Integrate ChIP and matched input control BAM files with Consenrich to produce a consensus
+  signal track, then call consensus peaks on that track with ROCCO
+keywords:
+  - consenrich
+  - rocco
+  - peak-calling
+  - consensus
+components:
+  - file_sort
+  - consenrich
+  - rocco
+input:
+  - ch_bam_bai:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s), with indices
+        Structure: [ val(meta), [ path(bam) ], [ path(bai) ] ]
+  - ch_chrom_sizes:
+      type: file
+      description: |
+        Chromosome sizes file
+        Structure: [ val(meta), path(chrom_sizes) ]
+  - ch_blacklist:
+      type: file
+      description: |
+        Blacklist regions to exclude
+        Structure: [ val(meta), path(blacklist) ]
+  - ch_sparsebed:
+      type: file
+      description: |
+        Sparse regions BED file for Consenrich
+        Structure: [ val(meta), path(bed) ]
+  - ch_active_regions:
+      type: file
+      description: |
+        Active regions BED file for Consenrich
+        Structure: [ val(meta), path(bed) ]
+  - ch_rocco_params:
+      type: file
+      description: |
+        ROCCO parameters file
+        Structure: [ val(meta), path(rocco_params) ]
+  - ch_effective_gsize:
+      description: Effective genome size, used by ROCCO
+output:
+  - consenrich_signal:
+      description: |
+        Consenrich consensus signal track
+        Structure: [ val(meta), path(bigwig) ]
+  - consenrich_residuals:
+      description: |
+        Consenrich residuals track
+        Structure: [ val(meta), path(bigwig) ]
+  - consenrich_eratio:
+      description: |
+        Consenrich e-ratio track
+        Structure: [ val(meta), path(bigwig) ]
+  - rocco_peaks:
+      description: |
+        Consensus peaks called by ROCCO on the Consenrich signal track
+        Structure: [ val(meta), path(bed) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

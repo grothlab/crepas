@@ -1,0 +1,154 @@
+nextflow_process {
+
+    name "Test Process PARTITION_OR_RFD_PLOT"
+    script "../main.nf"
+    process "PARTITION_OR_RFD_PLOT"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "partition_or_rfd_plot"
+    tag "rfd_to_iz"
+    tag "collect_partitions"
+    tag "bedtools/makewindows"
+    tag "ucsc/bigwigaverageoverbed"
+    tag "bedgraph_normalize"
+    tag "find/concatenate"
+
+    setup {
+
+        // Build a real 12-column OK-seq RFD table (COLLECT_PARTITIONS) and derive initiation
+        // zones (RFD_TO_IZ); see the rfd_to_iz test for the rationale of this minimal chain.
+        run("BEDTOOLS_MAKEWINDOWS") {
+            script "../../../nf-core/bedtools/makewindows/main.nf"
+            process { """ input[0] = [ [ id:'test' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true) ] """ }
+        }
+        run("UCSC_BIGWIGAVERAGEOVERBED") {
+            script "../../../nf-core/ucsc/bigwigaverageoverbed/main.nf"
+            process {
+                """
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                    .map { meta, bed -> [ meta, bed, file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bigwig/test.bigwig', checkIfExists: true) ] }
+                """
+            }
+        }
+        run("FIND_CONCATENATE", alias: "CAT_REV") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process { """ input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, tab -> [ [ id:'rev' ], tab ] } """ }
+        }
+        run("FIND_CONCATENATE", alias: "CAT_NORMF") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process { """ input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, tab -> [ [ id:'normf' ], tab ] } """ }
+        }
+        run("FIND_CONCATENATE", alias: "CAT_NORMR") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process { """ input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, tab -> [ [ id:'normr' ], tab ] } """ }
+        }
+        run("BEDGRAPH_NORMALIZE", alias: "NORM_RFD") {
+            script "../../bedgraph_normalize/main.nf"
+            process {
+                """
+                input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, tab -> [ [ id:'rfd' ], tab ] }
+                input[1] = 'tab'
+                """
+            }
+        }
+        run("COLLECT_PARTITIONS") {
+            script "../../collect_partitions/main.nf"
+            process {
+                """
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                    .combine(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, f -> f })
+                    .combine(CAT_REV.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORMF.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORMR.out.file_out.map { meta, f -> f })
+                    .combine(NORM_RFD.out.normalized.map { meta, f -> f })
+                    .map { meta, windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ->
+                        [ [ id:'test' ], windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ]
+                    }
+                """
+            }
+        }
+        run("RFD_TO_IZ") {
+            script "../../rfd_to_iz/main.nf"
+            process {
+                """
+                input[0] = COLLECT_PARTITIONS.out.tsv
+                input[1] = [ [:], [] ]
+                input[2] = [ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true) ]
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - okseq rfd - plot around initiation zones") {
+
+        when {
+            process {
+                """
+                input[0] = COLLECT_PARTITIONS.out.tsv
+                    .join(RFD_TO_IZ.out.iz_rm_overlaps_bed, by: 0)
+                    .map { meta, okseq, iz -> [ meta, [], [], [], okseq, iz ] }
+                input[1] = [ [:], [] ]
+                input[2] = [ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true) ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.plot_smoothed_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_smoothed_png.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_smoothed_sd_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_smoothed_sd_png.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_smoothed_gam_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_smoothed_gam_png.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_raw_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_raw_png.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_raw_sd_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_raw_sd_png.get(0).get(1)).size() > 0 },
+                { assert path(process.out.mean_values.get(0).get(1)).size() > 0 },
+                // PDF/PNG embed timestamps and are not byte-reproducible; snapshot names + the
+                // deterministic mean-values table + versions instead.
+                { assert snapshot(
+                    process.out.plot_smoothed_pdf.collect { m, f -> file(f).name },
+                    process.out.plot_smoothed_sd_pdf.collect { m, f -> file(f).name },
+                    process.out.plot_smoothed_gam_pdf.collect { m, f -> file(f).name },
+                    process.out.plot_raw_pdf.collect { m, f -> file(f).name },
+                    process.out.plot_raw_sd_pdf.collect { m, f -> file(f).name },
+                    process.out.mean_values,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - okseq rfd - plot around initiation zones - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = COLLECT_PARTITIONS.out.tsv
+                    .join(RFD_TO_IZ.out.iz_rm_overlaps_bed, by: 0)
+                    .map { meta, okseq, iz -> [ meta, [], [], [], okseq, iz ] }
+                input[1] = [ [:], [] ]
+                input[2] = [ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true) ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

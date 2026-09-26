@@ -1,0 +1,72 @@
+{
+    "homo_sapiens - bdgcmp - FE": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.bedGraph:md5,ff9bcdf5fa27a78162c5a7fbfcccc1e1"
+                ]
+            ],
+            {
+                "versions_macs3": [
+                    [
+                        "MACS3_BDGCMP",
+                        "macs3",
+                        "3.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T11:00:59.264623154",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - bdgcmp - FE - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "MACS3_BDGCMP",
+                        "macs3",
+                        "3.0.1"
+                    ]
+                ],
+                "bdg": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_macs3": [
+                    [
+                        "MACS3_BDGCMP",
+                        "macs3",
+                        "3.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T11:01:10.556842712",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

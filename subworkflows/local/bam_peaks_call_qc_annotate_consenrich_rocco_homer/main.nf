@@ -15,8 +15,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
 
     main:
 
-    ch_versions = channel.empty()
-
     //
     // MODULE: Sort chromosome sizes (avoid Consenrich errors)
     //
@@ -25,7 +23,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
         'sizes'
     )
     ch_chrom_sizes = SIZES_SORT.out.sorted
-    ch_versions = ch_versions.mix(SIZES_SORT.out.versions.first())
 
 
     // Branch channels based on if input control is present
@@ -79,9 +76,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
         ch_sparsebed,
         ch_active_regions
     )
-    ch_versions = ch_versions.mix(CONSENRICH.out.versions.first())
 
-    
+
     // Create channel: [ val(meta), ch_csr_signal, bamlist_txt ]
     CONSENRICH
         .out
@@ -111,7 +107,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
         ch_rocco_params,
         ch_effective_gsize
     )
-    ch_versions = ch_versions.mix(ROCCO.out.versions.first())
 
     emit:
 
@@ -119,6 +114,4 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
     consenrich_residuals    = CONSENRICH.out.residuals_track // channel
     consenrich_eratio       = CONSENRICH.out.eratio_track   // channel: [ val(meta), path(consenrich_eratio_track.bw) ]
     rocco_peaks             = ROCCO.out.bed            // channel: [ val(meta), path(rocco_bed) ]
-
-    versions    = ch_versions              // channel: [ versions.yml ]
 }

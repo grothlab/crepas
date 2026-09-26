@@ -1,0 +1,94 @@
+{
+    "homo_sapiens - bam - gtf": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.cntTable.gz:md5,25c11a19589715063bbc06cfc7c45194"
+                ]
+            ],
+            {
+                "versions_pigz": [
+                    [
+                        "TECOUNT",
+                        "pigz",
+                        "2.8"
+                    ]
+                ],
+                "versions_tecount": [
+                    [
+                        "TECOUNT",
+                        "TEcount",
+                        "2.2.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T10:40:26.89505316",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "homo_sapiens - bam - gtf - stub": {
+        "content": [
+            "test.cntTable.gz",
+            {
+                "versions_pigz": [
+                    [
+                        "TECOUNT",
+                        "pigz",
+                        "2.8"
+                    ]
+                ],
+                "versions_tecount": [
+                    [
+                        "TECOUNT",
+                        "TEcount",
+                        "2.2.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T10:40:52.402281702",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "homo_sapiens - bam - gtf - skip_gz": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.cntTable:md5,25c11a19589715063bbc06cfc7c45194"
+                ]
+            ],
+            {
+                "versions_pigz": [
+                    [
+                        "TECOUNT",
+                        "pigz",
+                        "2.8"
+                    ]
+                ],
+                "versions_tecount": [
+                    [
+                        "TECOUNT",
+                        "TEcount",
+                        "2.2.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T10:40:39.615449384",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    }
+}

@@ -1,0 +1,116 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "rfd_to_iz"
+description: Call replication initiation zones from an OK-seq RFD partition table using an R/Bioconductor script
+keywords:
+  - ok-seq
+  - rfd
+  - initiation-zones
+  - replication-timing
+tools:
+  - r-base:
+      description: |
+        R is a free software environment for statistical computing and graphics. Runs the bundled
+        `rfd_to_iz.R` script (tidyverse + GenomicAlignments/GenomicFeatures) to filter an OK-seq
+        RFD partition table and derive replication initiation zones as BED intervals.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - okseq_rfd_file:
+        type: file
+        description: |
+          12-column OK-seq RFD partition table (chrom, start, end, fwd/rev counts, fwd/rev RPM,
+          raw/smoothed RFD, RFD derivative, score, zero derivative), as produced by COLLECT_PARTITIONS.
+        pattern: "*.{tsv,bed}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing blacklist information
+          e.g. [ id:'blacklist' ]
+    - blacklist:
+        type: file
+        description: Optional BED file of regions to exclude
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+  - - meta3:
+        type: map
+        description: |
+          Groovy Map containing genome information
+          e.g. [ id:'genome' ]
+    - chrom_sizes:
+        type: file
+        description: "Chromosome sizes file (2-column TSV: name, length)"
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  okseq_filtered_bed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.prefiltered.bed":
+          type: file
+          description: OK-seq RFD bins retained after coverage/derivative filtering
+          pattern: "*.prefiltered.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  iz_bed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.init_zones.bed":
+          type: file
+          description: Called initiation zones
+          pattern: "*.init_zones.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  iz_rm_overlaps_bed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.rm_overlaps.bed":
+          type: file
+          description: Called initiation zones after removing overlapping/nearby zones
+          pattern: "*.rm_overlaps.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

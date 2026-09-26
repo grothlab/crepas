@@ -1,0 +1,132 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "epic2"
+description: Call diffuse ChIP-seq domains (an ultrafast SICER reimplementation) from treatment and control BAM files, and reformat the output as a HOMER-compatible peak file
+keywords:
+  - chipseq
+  - peak-calling
+  - broad-domains
+  - sicer
+tools:
+  - epic2:
+      description: |
+        epic2 is an ultrafast reimplementation of SICER, used to identify diffuse domains of
+        ChIP-seq enrichment (e.g. broad histone marks) with improved speed, memory efficiency
+        and ease of use.
+      homepage: https://github.com/biocore-ntnu/epic2
+      documentation: https://github.com/biocore-ntnu/epic2
+      tool_dev_url: https://github.com/biocore-ntnu/epic2
+      doi: "10.1093/bioinformatics/btz232"
+      licence: ["MIT"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - treatment_bam:
+        type: file
+        description: One or more coordinate-sorted BAM files for the treatment/IP sample(s)
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - treatment_bai:
+        type: file
+        description: |
+          BAM index file(s) matching treatment_bam. Required (not optional) whenever the sample
+          is paired-end: the module always adds `--guess-bampe` for paired-end data unless
+          `ext.args` already sets it, and epic2's BAMPE mode looks up mates via random access
+          (`pysam.fetch`), which needs a pre-built index.
+        pattern: "*.bai"
+    - control_bam:
+        type: file
+        description: One or more coordinate-sorted BAM files for the matched control/input sample(s), optional
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - control_bai:
+        type: file
+        description: BAM index file(s) matching control_bam. Same requirement as treatment_bai for paired-end data; optional if control_bam is not given.
+        pattern: "*.bai"
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - chrom_sizes:
+        type: file
+        description: Two-column chromosome sizes file (name, length) for the genome, optional
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+  - - effective_genome_fraction:
+        type: float
+        description: Effective genome fraction to pass to `--effective-genome-fraction`, optional
+output:
+  bed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bed":
+          type: file
+          description: epic2 output peak/domain file (native format)
+          pattern: "*.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  peak:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.diffusePeak":
+          type: file
+          description: epic2 peaks reformatted as a HOMER-compatible peak file
+          pattern: "*.diffusePeak"
+  versions_epic2:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "epic2":
+          type: string
+          description: The name of the tool
+      - "epic2 --version | sed -e 's/epic2 //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_gawk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "gawk --version 2>&1 | sed 's/^.*GNU Awk //; s/, .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "epic2":
+          type: string
+          description: The name of the tool
+      - "epic2 --version | sed -e 's/epic2 //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "gawk --version 2>&1 | sed 's/^.*GNU Awk //; s/, .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

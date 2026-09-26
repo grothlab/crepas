@@ -1,0 +1,137 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bed_consensus_quantify_qc_bedtools_featurecounts_deseq2"
+description: |
+  Build a consensus peak set across samples (grouped by antibody/experiment type) with
+  BEDTools/custom scripts, optionally annotate it with HOMER, quantify reads per consensus peak
+  across samples with featureCounts, run DESeq2 QC, and (optionally) generate deepTools
+  signal-profile plots over the consensus peaks
+keywords:
+  - consensus-peaks
+  - bedtools
+  - featurecounts
+  - deseq2
+  - annotation
+components:
+  - homer/annotatepeaks
+  - subread/featurecounts
+  - macs3_consensus
+  - annotate_boolean_peaks
+  - deseq2_qc
+  - deeptools/computematrix
+  - deeptools/plotprofile
+  - deeptools/plotheatmap
+input:
+  - ch_peaks:
+      description: |
+        Per-sample peak files to build the consensus set from
+        Structure: [ val(meta), [ path(peaks) ] ]
+  - ch_bams:
+      description: |
+        Per-sample IP BAM file(s), used for featureCounts quantification
+        Structure: [ val(meta), [ path(ip_bams) ] ]
+  - ch_bigwigs:
+      description: |
+        Per-sample bigWig signal, used for deepTools consensus-peak profile plots
+        Structure: [ val(meta), path(bigwigs) ]
+  - ch_fasta:
+      type: file
+      description: Reference fasta file
+  - ch_gtf:
+      type: file
+      description: Reference GTF annotation file
+  - ch_deseq2_pca_header_multiqc:
+      type: file
+      description: MultiQC custom-content header for the DESeq2 PCA plot
+  - ch_deseq2_clustering_header_multiqc:
+      type: file
+      description: MultiQC custom-content header for the DESeq2 sample-clustering plot
+  - is_narrow_peak:
+      type: boolean
+      description: Whether peaks are narrow (true) or broad (false)
+      pattern: "true|false"
+  - skip_peak_annotation:
+      type: boolean
+      description: Skip HOMER annotation of the consensus peak set
+      pattern: "true|false"
+  - skip_deseq2_qc:
+      type: boolean
+      description: Skip DESeq2 QC on the featureCounts quantification
+      pattern: "true|false"
+  - skip_consensus_plotprofile:
+      type: boolean
+      description: Skip deepTools signal-profile plots over the consensus peaks
+      pattern: "true|false"
+  - input_cisrpm_in_plotprofile:
+      type: boolean
+      description: Include input-control CIS-RPM signal in the consensus peak profile plots
+      pattern: "true|false"
+output:
+  - consensus_bed:
+      description: |
+        Consensus peak set
+        Structure: [ val(meta), path(bed) ]
+  - consensus_saf:
+      description: |
+        Consensus peak set in SAF format, used as input to featureCounts
+        Structure: [ val(meta), path(saf) ]
+  - consensus_pdf:
+      description: |
+        Consensus peak upset/overlap plot
+        Structure: [ val(meta), path(pdf) ]
+  - consensus_txt:
+      description: |
+        Consensus peak summary table
+        Structure: [ val(meta), path(txt) ]
+  - consensus_boolean_txt:
+      description: |
+        Boolean per-sample peak-presence table for the consensus peak set
+        Structure: [ val(meta), path(txt) ]
+  - consensus_intersect_txt:
+      description: |
+        Per-sample peak intersection counts against the consensus peak set
+        Structure: [ val(meta), path(txt) ]
+  - featurecounts_txt:
+      description: |
+        featureCounts read counts per consensus peak
+        Structure: [ val(meta), path(txt) ]
+  - featurecounts_summary:
+      description: |
+        featureCounts summary report
+        Structure: [ val(meta), path(txt) ]
+  - deseq2_qc_pdf:
+      description: |
+        DESeq2 QC plots, when skip_deseq2_qc is false
+        Structure: [ val(meta), path(pdf) ]
+  - deseq2_qc_rdata:
+      description: |
+        DESeq2 QC RData object, when skip_deseq2_qc is false
+        Structure: [ val(meta), path(rdata) ]
+  - deseq2_qc_rds:
+      description: |
+        DESeq2 QC RDS object, when skip_deseq2_qc is false
+        Structure: [ val(meta), path(rds) ]
+  - deseq2_qc_pca_txt:
+      description: |
+        DESeq2 PCA coordinates table, when skip_deseq2_qc is false
+        Structure: [ val(meta), path(txt) ]
+  - deseq2_qc_dists_txt:
+      description: |
+        DESeq2 sample-distance table, when skip_deseq2_qc is false
+        Structure: [ val(meta), path(txt) ]
+  - deseq2_qc_log:
+      description: |
+        DESeq2 QC run log, when skip_deseq2_qc is false
+        Structure: [ val(meta), path(log) ]
+  - deseq2_qc_size_factors:
+      description: |
+        DESeq2 size factors table, when skip_deseq2_qc is false
+        Structure: [ val(meta), path(txt) ]
+  - multiqc_files:
+      description: |
+        Files collected for MultiQC (featureCounts summary, DESeq2 PCA/clustering, deepTools
+        profile plot table)
+        Structure: [ path(file) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -1,0 +1,38 @@
+Changes in component 'nf-core/deeptools/computematrix'
+'modules/nf-core/deeptools/computematrix/environment.yml' is unchanged
+Changes in 'deeptools/computematrix/main.nf':
+--- modules/nf-core/deeptools/computematrix/main.nf
++++ modules/nf-core/deeptools/computematrix/main.nf
+@@ -8,8 +8,7 @@
+         'quay.io/biocontainers/deeptools:3.5.6--pyhdfd78af_0' }"
+ 
+     input:
+-    tuple val(meta), path(bigwig)
+-    path  bed
++    tuple val(meta), path(bigwigs), path(beds)
+ 
+     output:
+     tuple val(meta), path("*.mat.gz") , emit: matrix
+@@ -22,11 +21,14 @@
+     script:
+     def args = task.ext.args ?: ''
+     def prefix = task.ext.prefix ?: "${meta.id}"
++    def bigwigs_arg = "--scoreFileName ${bigwigs.join(' ')}"
++    def beds_arg = "--regionsFileName ${beds.join(' ')}"
++
+     """
+     computeMatrix \\
+         $args \\
+-        --regionsFileName $bed \\
+-        --scoreFileName $bigwig \\
++        ${bigwigs_arg} \\
++        ${beds_arg} \\
+         --outFileName ${prefix}.computeMatrix.mat.gz \\
+         --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.tab \\
+         --numberOfProcessors $task.cpus
+
+'modules/nf-core/deeptools/computematrix/meta.yml' is unchanged
+'modules/nf-core/deeptools/computematrix/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/deeptools/computematrix/tests/nextflow.config' is unchanged
+'modules/nf-core/deeptools/computematrix/tests/main.nf.test' is unchanged
+************************************************************

@@ -13,9 +13,7 @@ include { UTILS_NFCORE_PIPELINE     } from '../../../subworkflows/nf-core/utils_
 include { UTILS_NEXTFLOW_PIPELINE   } from '../../../subworkflows/nf-core/utils_nextflow_pipeline'
 include { completionEmail           } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
 include { completionSummary         } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
-include { getWorkflowVersion        } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
 include { logColours                } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
-include { imNotification            } from '../../../subworkflows/nf-core/utils_nfcore_pipeline'
 include { paramsSummaryMap          } from 'plugin/nf-schema'
 
 /*
@@ -29,12 +27,15 @@ workflow PIPELINE_INITIALISATION {
     take:
     version           // boolean: Display version and exit
     validate_params   // boolean: Boolean whether to validate parameters against the schema at runtime
+    monochrome_logs   // boolean: Do not use coloured log outputs
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
+    _input            //  string: Path to input samplesheet
+    help              // boolean: Display help message and exit
+    help_full         // boolean: Show the full help message
+    show_hidden       // boolean: Show hidden parameters in the help message
 
     main:
-
-    ch_versions = channel.empty()
 
     //
     // Print version and exit if required and dump pipeline parameters to JSON file
@@ -49,9 +50,48 @@ workflow PIPELINE_INITIALISATION {
     //
     // Validate parameters and generate parameter summary to stdout
     //
+    def colors = logColours(monochrome_logs)
+    def before_text = """
+
+                                                                ╔██████╗
+                                                                ██╔══██║
+                               ██████╗               ╔██████╗   ███████║
+                     ██████╗   ██╔══██╗              ██╔══██║   ██╔══██║
+                    ██╔════╝   ██████╔╝   ╔██████╗   ██████╔╝   ██║_ ██║
+                    ██║        ██╔══██╗_  ██╔════╝   ██╔═══╝    ╚═╝ \\╚═╝
+                    ██║ _      ██║  ██║ \\ █████╗  /\\ ██║  /\\   ///\\. \\     ╔███████
+                    ╚██████╗   ╚═╝ ///:. \\██╔══╝ /. \\╚═╝ // \\/////\\:. \\    ██╔════╝
+             /\\      ╚//: \\╝ _/\\_ /////:. ║██████╗/: \\_ ///.//////\\\\:. \\  /███████╗\\  /\\
+            //.\\\\    ///:. \\///: \\//////:.╚══════╝/\\.. \\\\/\\///////\\\\\\:. \\//╚════██║ \\/. \\\\
+           //:.. \\  ///:.. ////:. \\//////:. \\///////:.  \\\\////////\\\\\\::. \\\\███████║ //::. \\\\
+          ///:... \\/////: /////\\:. \\////\\\\:. \\///////:.. \\////////\\\\\\\\::: \\╚══════╝////:... \\
+          ───────────────────────────────────────────────────────────────────────────────────
+
+"""
+    def after_text = """${workflow.manifest.doi ? "\n* The pipeline\n" : ""}${workflow.manifest.doi.tokenize(",").collect { doi -> "    https://doi.org/${doi.trim().replace('https://doi.org/','')}"}.join("\n")}${workflow.manifest.doi ? "\n" : ""}
+* The Epigenome Replication and Maintenance group at the Center for Epigenetic Cell Memory (EpiC),
+    Danish Cancer Institute, Danish Cancer Society:
+    https://www.cancer.dk/danish-cancer-institute/research-groups/epigenome-replication-and-maintenance/
+
+* Software dependencies
+    https://github.com/grothlab/crepas/blob/master/CITATIONS.md
+"""
+    if (monochrome_logs) {
+        before_text = before_text.replaceAll(/\033\[[0-9;]*m/, '')
+    }
+
+    command = "nextflow run ${workflow.manifest.name} -profile <docker/singularity/.../institute> --input samplesheet.csv --outdir <OUTDIR>"
+
     UTILS_NFSCHEMA_PLUGIN (
         workflow,
         validate_params,
+        null,
+        help,
+        help_full,
+        show_hidden,
+        before_text,
+        after_text,
+        command,
         null
     )
 
@@ -67,9 +107,6 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
-    emit:
-    versions = ch_versions
-
 }
 
 
@@ -82,7 +119,7 @@ workflow PIPELINE_INITIALISATION {
 // List of cases to handle
 
 // 1. Value in `input_control` column must be present in the `sample` column
-// 2. strandedness must be specified for SCAR-seq and OK-seq samples and must not be specified for other exp_types
+// 2. strandedness must be specified for SCAR-seq and OK-seq samples, is optional for eSPAN (defaulting to 'forward'), and must not be specified for other exp_types
 // 3. Antibody must be specified for ChIP-seq and ChIP-exo samples, but must not be specified if input_control is set or if exp_type is not ChIP-seq or ChIP-exo
 // 4. TODO: check that technical replicate is not duplicated within a biological replicate
 
@@ -93,10 +130,42 @@ workflow INPUT_CHECK {
 
     main:
 
+    ch_fastq = ch_fastq.map { meta, fastqs ->
+        def meta_clone = meta.clone()
+        if (meta.rt_fraction) {
+            meta_clone.rt_condition = meta.id
+            meta_clone.id = "${meta.id}_${meta.rt_fraction}"
+        }
+        [ meta_clone, fastqs ]
+    }
 
     // TODO: print for debugging
     ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
         .collectFile(name: 'ch_fastq_1.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
+
+    // A Repli-seq sample is either E/L (early/mid/late) or high-resolution (S1..S16, with an
+    // optional G1 control).
+    ch_fastq
+        .filter { meta, _fastqs -> meta.rt_fraction }
+        .map { meta, _fastqs -> [ meta.rt_condition, meta.rt_fraction ] }
+        .groupTuple(by: 0)
+        .map { condition, fractions ->
+            def el = fractions.findAll { f -> f in rtElFractions() }.unique().sort { f -> rtFractionOrder(f) }
+            def hr = fractions.findAll { f -> f in rtHrFractions() }.unique().sort { f -> rtFractionOrder(f) }
+            if (el && hr) {
+                log.warn("Repli-seq sample '${condition}' carries both early/late fractions (${el.join(', ')}) and high-resolution ones (${hr.join(', ')}), so both analyses will run for it. Each takes only its own fractions and writes to its own directory, so nothing is merged across the two designs.")
+            }
+            if (el && !(el.contains('early') && el.contains('late'))) {
+                error("ERROR: Repli-seq sample '${condition}' has fractions ${el.join(', ')}. An E/L track is a ratio, so both an 'early' and a 'late' fraction are needed.")
+            }
+            if (hr && hr == ['G1']) {
+                error("ERROR: Repli-seq sample '${condition}' has a 'G1' control but no S-phase fractions.")
+            }
+            [ condition, fractions ]
+        }
+        .set { ch_rt_design_check }
+    ch_rt_design_check.map { condition, fractions -> "${condition}\t${fractions}" }
+        .collectFile(name: 'ch_rt_design.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
 
 
     // Check if within each biological replicate all technical replicates are set
@@ -110,7 +179,7 @@ workflow INPUT_CHECK {
                 if (!metas.every { it -> it.trep }) {
                     error(
                         """
-                        ERROR: If any technical replicate within a biological replicate is assigned an ID, then all the technical replicates within that biological replicate must have an ID. 
+                        ERROR: If any technical replicate within a biological replicate is assigned an ID, then all the technical replicates within that biological replicate must have an ID.
 
                         Check biological replicate '${brep}' of sample ${id} in the samplesheet.
 
@@ -142,7 +211,7 @@ workflow INPUT_CHECK {
                     """.stripIndent()
                 )
             }
-            
+
             return [ id, brep, new_metas, fastq_lists ]
         }
         .transpose()
@@ -156,7 +225,7 @@ workflow INPUT_CHECK {
     // Count technical replicates per biological replicate to avoid .groupTuple() bottlenecks downstream
     // See: https://nextflow-io.github.io/nf-schema/latest/samplesheets/examples/#combining-a-channel
     ch_fastq
-        .map { meta, fastqs -> 
+        .map { meta, fastqs ->
             def id_brep = "${meta.id}_${meta.brep}"
             [ id_brep ]
         }
@@ -166,7 +235,7 @@ workflow INPUT_CHECK {
             trep_count
         }
         .combine(ch_fastq)
-        .map { trep_count, meta, fastqs -> 
+        .map { trep_count, meta, fastqs ->
             def meta_clone = meta.clone()
             def id_brep = "${meta.id}_${meta.brep}"
             meta_clone.trep_count = trep_count[id_brep]
@@ -196,9 +265,9 @@ workflow INPUT_CHECK {
             meta_clone.read_group = read_group
             [ meta_clone, fastqs ]
         }
-        .set { ch_fastq } 
+        .set { ch_fastq }
 
-    
+
 
     // TODO: print for debugging
     ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
@@ -234,7 +303,7 @@ workflow INPUT_CHECK {
     // TODO: print for debugging
     ch_fastq.map { meta, fastqs -> "${meta}\t${fastqs}" }
         .collectFile(name: 'ch_fastq_5.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
-    
+
     // Create list of samples
     ch_fastq
         .map { meta, fastqs -> meta.id }
@@ -277,8 +346,8 @@ workflow INPUT_CHECK {
     ch_ipcontrols
         .map { ip_control_list -> "${ip_control_list}" }
         .collectFile(name: 'ch_ipcontrols.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/INPUT_CHECK")
-    
-    // filter ch_fastq to only include samples whose meta.input_control is in ch_ipcontrols 
+
+    // filter ch_fastq to only include samples whose meta.input_control is in ch_ipcontrols
     ch_fastq
         .combine(ch_ipcontrols.ifEmpty([[]]))
         .filter { meta, fastqs, ipcontrol_list ->
@@ -295,29 +364,41 @@ workflow INPUT_CHECK {
                     error("ERROR: `strandedness` must be specified for SCAR-seq and OK-seq samples. Check sample: ${meta.id}")
                 }
                 if (meta.exp_type == 'SCAR-seq') {
-                    if (!(params.containsKey('initiation_zones') || params.containsKey('okseq_rfd_file'))) {
+                    if (!params.initiation_zones && !params.okseq_rfd_file) {
                         if (params.refgenie_ignore && params.igenomes_ignore) {
                             error("ERROR: a SCAR-seq sample has been inputted, but neither `--initiation_zones` nor `--okseq_rfd_file` have been provided, and reference genomes are being ignored (`--refgenie_ignore true` and `--igenomes_ignore true`). You should provide either an initiation zones file or an OK-seq RFD file.")
                         } else if (!getGenomeAttribute('initiation_zones') && !getGenomeAttribute('okseq_rfd_file')) {
                             error("ERROR: a SCAR-seq sample has been inputted, but neither `--initiation_zones` nor `--okseq_rfd_file` have been found among reference genomes (iGenomes or Refgenie). You should provide either an initiation zones file or an OK-seq RFD file.")
                         }
-                    error("ERROR: a SCAR-seq sample has been inputted, but neither `--initiation_zones` nor `--okseq_rfd_file` have been provided. You should provide either an initiation zones file or an OK-seq RFD file.")
                     }
                 }
+            } else if (meta.exp_type == 'eSPAN') {
+                if (!meta.strandedness) {
+                    log.warn("`strandedness` has not been specified for the eSPAN sample: ${meta.id}. Defaulting to 'forward'. Set it explicitly in the samplesheet if the library is 'reverse'.")
+                    meta = meta + [ strandedness: 'forward' ]
+                }
             } else if (meta.strandedness) {
-                error("ERROR: `strandedness` must not be specified for samples other than SCAR-seq and OK-seq. Check sample: ${meta.id}")
+                error("ERROR: `strandedness` must not be specified for samples other than SCAR-seq, OK-seq and eSPAN. Check sample: ${meta.id}")
+            }
+            // Repli-seq checks
+            if (meta.exp_type == 'Repli-seq') {
+                if (!meta.rt_fraction) {
+                    error("ERROR: `rt_fraction` must be specified ('early', 'mid', 'late', 'G1' or 'S1'..'S16') for Repli-seq samples. Check sample: ${meta.id}")
+                }
+            } else if (meta.rt_fraction) {
+                error("ERROR: `rt_fraction` must not be specified for samples other than Repli-seq. Check sample: ${meta.id}")
             }
             // Antibody checks
-            if (['ChIP-seq', 'ChIP-exo', 'ChOR-seq', 'SCAR-seq', 'CUTandTag', 'CUTandRUN', 'TIP-seq'].contains(meta.exp_type)) {
+            if (['ChIP-seq', 'ChIP-exo', 'ChOR-seq', 'SCAR-seq', 'eSPAN', 'CUTandTag', 'CUTandRUN', 'TIP-seq'].contains(meta.exp_type)) {
                 if (!meta.antibody && !meta.is_input_control) {
-                    log.warn("`antibody` should be specified for non-input ChIP-seq, ChIP-exo, ChOR-seq, SCAR-seq, CUTandTag, CUTandRUN, and TIP-seq samples. Check sample: ${meta.id}. Ignore this warning if the sample is an input control but you are not actually using it as the input control of another sample.")
+                    log.warn("`antibody` should be specified for non-input ChIP-seq, ChIP-exo, ChOR-seq, SCAR-seq, eSPAN, CUTandTag, CUTandRUN, and TIP-seq samples. Check sample: ${meta.id}. Ignore this warning if the sample is an input control but you are not actually using it as the input control of another sample.")
                 }
                 if (meta.antibody && meta.is_input_control) {
                     error("ERROR: `antibody` must not be specified for input control samples. Check sample: ${meta.id}")
                 }
             } else {
                 if (meta.antibody) {
-                    error("ERROR: `antibody` must not be specified for samples other than ChIP-seq, ChIP-exo, ChOR-seq, SCAR-seq, CUT&Tag, CUT&RUN, and TIP-seq. Check sample: ${meta.id}")
+                    error("ERROR: `antibody` must not be specified for samples other than ChIP-seq, ChIP-exo, ChOR-seq, SCAR-seq, eSPAN, CUT&Tag, CUT&RUN, and TIP-seq. Check sample: ${meta.id}")
                 }
             }
             return [ meta, fastqs ]
@@ -350,7 +431,6 @@ workflow INPUT_CHECK {
 
     emit:
     fastq = ch_fastq                                    // channel: [ val(meta), [ reads ] ]
-    versions = channel.empty() // channel: [ versions.yml ]
 }
 
 /*
@@ -367,7 +447,6 @@ workflow PIPELINE_COMPLETION {
     plaintext_email // boolean: Send plain-text email instead of HTML
     outdir          //    path: Path to output directory where results will be published
     monochrome_logs // boolean: Disable ANSI colour codes in log output
-    hook_url        //  string: hook URL for notifications
     multiqc_report  //  string: Path to MultiQC report
 
     main:
@@ -392,9 +471,6 @@ workflow PIPELINE_COMPLETION {
 
         completionSummary(monochrome_logs)
 
-        if (hook_url) {
-            imNotification(summary_params, hook_url)
-        }
     }
 
     workflow.onError {
@@ -411,6 +487,37 @@ workflow PIPELINE_COMPLETION {
 //
 // Get attribute from genome config file e.g. fasta
 //
+//
+// Repli-seq fraction vocabularies. `early`/`mid`/`late` describe an E/L experiment; `S1`..`S16`
+// (with an optional `G1` whole-genome control) describe a high-resolution one.
+//
+def rtElFractions() {
+    return [ 'early', 'mid', 'late' ]
+}
+
+def rtHrFractions() {
+    return [ 'G1' ] + (1..16).collect { i -> "S${i}".toString() }
+}
+
+//
+// Sort key placing fractions in replication order. Needed because the fraction names do not sort
+// that way as strings: `S10` precedes `S2`, and `late` precedes `mid`.
+//
+def rtFractionOrder(fraction) {
+    def el = rtElFractions().indexOf(fraction)
+    if (el >= 0) {
+        return el + 1
+    }
+    if (fraction == 'G1') {
+        return 0
+    }
+    def hr = fraction =~ /^S(\d+)$/
+    if (hr) {
+        return hr[0][1] as Integer
+    }
+    error("ERROR: unrecognized `rt_fraction` value: ${fraction}")
+}
+
 def getGenomeAttribute(attribute) {
     if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
         if (params.genomes[ params.genome ].containsKey(attribute)) {
@@ -447,31 +554,53 @@ def validateInputParameters() {
     // the pipeline from failing due to missing genome in igenomes
     //genomeExistsError()
 
-    if (!params.fasta) {
-        error("Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file.")
+    if (!params.fasta && !params.hybrid_fasta) {
+        error("Genome fasta file not specified with e.g. '--fasta genome.fa' or '--hybrid_fasta hybrid_genome.fa', or via a detectable config file.")
     }
 
-    if (!params.gtf && !params.containsKey('gff')) {
-        error("No GTF or GFF3 annotation specified! The pipeline requires at least one of these files.")
+    if (params.fasta && params.hybrid_fasta) {
+        fastaHybridFastaError()
     }
 
-    if (params.gtf && params.containsKey('gff')) {
+    if (params.spikein_genome && !((params.fasta && params.spikein_fasta) || params.hybrid_fasta)) {
+        error("A spike-in genome (`--spikein_genome`) has been provided. You must provide either both `--fasta` and `--spikein_fasta`, or `--hybrid_fasta`.")
+    }
+
+    if (params.spikein_genome && params.strobealign_index && !params.hybrid_fasta) {
+        error("A pre-built strobealign index (`--strobealign_index`) has been provided along with a spike-in genome (`--spikein_genome`). `--hybrid_fasta` must also be provided in this case.")
+    }
+
+    // The only DeNOPA container installs the tool under /root, which is unreadable when the
+    // container runs as a regular user (Singularity/Apptainer, and Docker with the pipeline's
+    // `-u $(id -u):$(id -g)` run options), so DeNOPA is unsupported until a usable container exists
+    if (params.peak_callers?.tokenize(',')?.contains('denopa')) {
+        error("The `denopa` peak caller is currently not supported. Remove `denopa` from `--peak_callers`.")
+    }
+
+    if (!params.gtf && !params.gff) {
+        if (params.refgenie_ignore && params.igenomes_ignore) {
+            error("No GTF (`--gtf`) or GFF3 (`--gff`) annotation has been provided, and reference genomes are being ignored (`--refgenie_ignore true` and `--igenomes_ignore true`). The pipeline requires at least one of these files.")
+        } else if (!getGenomeAttribute('gtf') && !getGenomeAttribute('gff')) {
+            error("No GTF or GFF3 annotation has been provided and no valid annotation file has been found among reference genomes (iGenomes or Refgenie). The pipeline requires at least one of these files.")
+        }
+    }
+
+    if (params.gtf && params.gff) {
         gtfGffWarn(log)
     }
 
     if (!params.skip_flTbl) {
-        if (!params.containsKey('blacklist')) {
+        if (!params.blacklist) {
             if (params.refgenie_ignore && params.igenomes_ignore) {
                 error("Blacklist filtering is enabled (`--skip_flTbl false`), a blacklist file (`--blacklist`) has not been provided, and reference genomes are being ignored (`--refgenie_ignore true` and `--igenomes_ignore true`). You should set the pipeline to skip blacklist filtering (`--skip_flTbl`) or provide a blacklist.")
             } else if (!getGenomeAttribute('blacklist')) {
                 error("Blacklist filtering is enabled (`--skip_flTbl false`) but no valid blacklist file has been found among reference genomes (iGenomes or Refgenie). You should set the pipeline to skip blacklist filtering (`--skip_flTbl`) or provide a blacklist.")
             }
-        error("Blacklist filtering is enabled (`--skip_flTbl false`) but no valid blacklist file has been provided. You should set the pipeline to skip blacklist filtering (`--skip_flTbl`) or provide a blacklist.")
         }
     }
 
     if (!params.skip_te_counting) {
-        if (!params.containsKey('tecount_te_index') && !params.containsKey('te_gtf')) {
+        if (!params.tecount_te_index && !params.te_gtf) {
             if (params.refgenie_ignore && params.igenomes_ignore) {
                 error("TE counting is enabled (`--skip_te_counting false`), a TEcount TE index file (`--tecount_te_index`) has not been provided, and reference genomes are being ignored (`--refgenie_ignore true` and `--igenomes_ignore true`). You should set the pipeline to skip TE counting (`--skip_te_counting`) or provide a TEcount TE index.")
             } else if (!getGenomeAttribute('tecount_te_index') && !getGenomeAttribute('te_gtf')) {
@@ -479,7 +608,7 @@ def validateInputParameters() {
             }
         }
         if (!params.skip_telocal) {
-            if (!params.containsKey('telocal_te_index') && !params.containsKey('te_gtf')) {
+            if (!params.telocal_te_index && !params.te_gtf) {
                 if (params.refgenie_ignore && params.igenomes_ignore) {
                     error("TElocal counting is enabled (`--skip_telocal false`), a TElocal TE index file (`--telocal_te_index`) has not been provided, and reference genomes are being ignored (`--refgenie_ignore true` and `--igenomes_ignore true`). You should set the pipeline to skip TE local counting (`--skip_telocal`) or provide a TElocal TE index.")
                 } else if (!getGenomeAttribute('telocal_te_index') && !getGenomeAttribute('te_gtf')) {
@@ -489,7 +618,7 @@ def validateInputParameters() {
         }
     }
 
-    if (!params.containsKey('macs_gsize')) {
+    if (!params.macs_gsize) {
         macsGsizeWarn(log)
     }
 
@@ -520,15 +649,58 @@ def validateInputParameters() {
     }
 
     if (params.map_n_multimappers) {
-        if (!['chromap', 'bowtie2', 'hisat2', 'star', 'bowtie', 'strobealign', 'minimap2'].contains(params.aligner)) {
-            error("The `--map_n_multimappers` parameter requires the aligner to be set to 'chromap', 'bowtie2', 'hisat2', 'star', 'bowtie', 'strobealign', or 'minimap2'.")
+        if (!['chromap', 'bowtie2', 'hisat2', 'star', 'bowtie', 'strobealign', 'minimap2', 'minibwa'].contains(params.aligner)) {
+            error("The `--map_n_multimappers` parameter requires the aligner to be set to 'chromap', 'bowtie2', 'hisat2', 'star', 'bowtie', 'strobealign', 'minimap2', or 'minibwa'.")
         }
     }
 
     if (params.multimap_allocation_method == 'chromap' && params.aligner != 'chromap') {
         error("Allocating multimapping reads with 'chromap' requires the aligner to be set to 'chromap'.")
     }
-    
+
+    if (!params.skip_genes_plotprofile) {
+        validatePlotProfileGeometry(
+            'genes',
+            params.genes_plotprofile_mode,
+            params.genes_plotprofile_region_body_length,
+            params.genes_plotprofile_upstream,
+            params.genes_plotprofile_downstream
+        )
+    }
+
+    if (!params.skip_peak_calling && !params.skip_consensus_peaks && !params.skip_consensus_plotprofile) {
+        validatePlotProfileGeometry(
+            'consensus',
+            params.consensus_plotprofile_mode,
+            params.consensus_plotprofile_region_body_length,
+            params.consensus_plotprofile_upstream,
+            params.consensus_plotprofile_downstream
+        )
+    }
+
+}
+
+//
+// Check a plotProfile region geometry against the coverage bin size
+//
+def validatePlotProfileGeometry(profile, mode, body_length, upstream, downstream) {
+
+    def bin_size = params.coverage_bin_size
+    if (!bin_size) {
+        return
+    }
+
+    if (mode == 'scale_regions' && body_length && body_length % bin_size != 0) {
+        error("`--${profile}_plotprofile_region_body_length` (${body_length}) must be a multiple of `--coverage_bin_size` (${bin_size}), otherwise deepTools computeMatrix fails.")
+    }
+
+    if (upstream && upstream % bin_size != 0) {
+        error("`--${profile}_plotprofile_upstream` (${upstream}) must be a multiple of `--coverage_bin_size` (${bin_size}), otherwise deepTools computeMatrix fails.")
+    }
+
+    if (downstream && downstream % bin_size != 0) {
+        error("`--${profile}_plotprofile_downstream` (${downstream}) must be a multiple of `--coverage_bin_size` (${bin_size}), otherwise deepTools computeMatrix fails.")
+    }
 }
 
 //
@@ -607,6 +779,16 @@ def methodsDescriptionText(mqc_methods_yaml) {
     def description_html = engine.createTemplate(methods_text).make(meta)
 
     return description_html.toString()
+}
+
+//
+// Exit pipeline if both fasta and hybrid_fasta have been provided
+//
+def fastaHybridFastaError() {
+    error("=============================================================================\n" +
+        "  Both '--fasta' and '--hybrid_fasta' parameters have been provided.\n" +
+        "  These parameters are mutually exclusive: provide only one of them.\n" +
+        "===================================================================================")
 }
 
 //

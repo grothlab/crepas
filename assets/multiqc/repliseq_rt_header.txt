@@ -1,0 +1,21 @@
+#id: 'repliseq_rt'
+#section_name: 'MERGED LIB: Repli-seq replication timing'
+#description: "summarizes how the early/late replication-timing track of each Repli-seq sample was
+#              built by the <a href='https://github.com/grothlab/crepas/blob/master/bin/repliseq_rtnormalize.R'><code>repliseq_rtnormalize.R</code></a>
+#              script. <code>Replicates</code> is how early and late replicates were combined:
+#              <code>paired</code> takes the ratio within each matched biological-replicate pair and
+#              averages, <code>pooled</code> averages within each phase first. When that choice is
+#              left to <code>auto</code>, it is made by comparing how well matched early/late
+#              replicate pairs correlate against mismatched ones; <code>paired</code> is used only
+#              if <code>Matched r</code> exceeds <code>Mismatched r</code> by at least the pairing
+#              threshold. <code>Min replicate r</code> is the weakest correlation between two
+#              replicates of the same fraction, so a low value points at a discordant replicate.
+#              The early/late correlations are expected to be negative, since a region replicating
+#              early is depleted in the late fraction. Per-pair correlations are in the
+#              <code>*.qc.txt</code> file for each sample."
+#plot_type: 'table'
+#anchor: 'repliseq_rt'
+#pconfig:
+#    id: 'repliseq_rt_table'
+#    title: 'Repli-seq: replication-timing track summary'
+#    namespace: 'Repli-seq'

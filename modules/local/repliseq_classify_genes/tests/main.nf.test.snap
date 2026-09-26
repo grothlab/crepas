@@ -1,0 +1,329 @@
+{
+    "sarscov2 - early and late only - no intermediate class": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.tsv:md5,c3ec30863ac30b677cd98d83ea35031b"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.early.bed:md5,2cecea19ba79cab176314d23d61b3c43"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.late.bed:md5,5aedd22d52c4cfc6d01b38fcbea309a4"
+                ]
+            ],
+            [
+                
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.unclassified.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.qc.txt:md5,f73359a76414ce6557e193491c4b35ab"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "rt_gene_class_counts.tsv:md5,8e77780d17537986d87dd3361e2c22c3"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class_el_mqc.json:md5,e406930e50de9fbefcb8afdfe29a61e2"
+                ]
+            ],
+            [
+                [
+                    "REPLISEQ_CLASSIFY_GENES",
+                    "r-base",
+                    "4.5.3"
+                ]
+            ],
+            [
+                "test.gene_RT_class.plots.pdf"
+            ]
+        ],
+        "timestamp": "2026-08-23T17:01:44.200478327",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.early.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.late.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.unclassified.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.qc.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "rt_gene_class_counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "7": [
+                    
+                ],
+                "8": [
+                    
+                ],
+                "9": [
+                    [
+                        "REPLISEQ_CLASSIFY_GENES",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ],
+                "classes": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "early": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.early.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "late": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.late.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "mid": [
+                    
+                ],
+                "mqc_box": [
+                    
+                ],
+                "plots": [
+                    
+                ],
+                "qc": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.qc.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "summary": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "rt_gene_class_counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "unclassified": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.gene_RT_class.unclassified.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_r": [
+                    [
+                        "REPLISEQ_CLASSIFY_GENES",
+                        "r-base",
+                        "4.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-23T15:12:23.474354068",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - three fractions - classify gene bodies": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.tsv:md5,34bb681289aaaef93897c762a1ba2d52"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.early.bed:md5,2cecea19ba79cab176314d23d61b3c43"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.late.bed:md5,5aedd22d52c4cfc6d01b38fcbea309a4"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.mid.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.unclassified.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class.qc.txt:md5,826a3f9e41b64432e100c32586cd204d"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "rt_gene_class_counts.tsv:md5,1d1516141e5e4a1de968ba65afe89423"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.gene_RT_class_el_mqc.json:md5,e406930e50de9fbefcb8afdfe29a61e2"
+                ]
+            ],
+            [
+                [
+                    "REPLISEQ_CLASSIFY_GENES",
+                    "r-base",
+                    "4.5.3"
+                ]
+            ],
+            [
+                "test.gene_RT_class.plots.pdf"
+            ]
+        ],
+        "timestamp": "2026-08-23T17:01:30.622254588",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

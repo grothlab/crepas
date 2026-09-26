@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "fasta_split_by_genome"
+description: Split a hybrid (endogenous + spike-in) FASTA file into separate endogenous and exogenous FASTA files, based on a spike-in genome name suffix appended to spike-in sequence IDs
+keywords:
+  - seqkit
+  - fasta
+  - spikein
+  - genome
+tools:
+  - "seqkit":
+      description: Cross-platform and ultrafast toolkit for FASTA/Q file
+        manipulation, written by Wei Shen.
+      homepage: https://bioinf.shenwei.me/seqkit/usage/
+      documentation: https://bioinf.shenwei.me/seqkit/usage/
+      tool_dev_url: https://github.com/shenwei356/seqkit/
+      doi: "10.1371/journal.pone.0163962"
+      licence:
+        - "MIT"
+      identifier: biotools:seqkit
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - fasta:
+        type: file
+        description: "Combined FASTA file for the hybrid endogenous + spike-in genome, with spike-in sequences named `<seq_id>_<spikein_genome>`"
+        pattern: "*.{fa,fasta}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1929" # FASTA
+  - - exo_genome_string:
+        type: string
+        description: Suffix identifying spike-in (exogenous) sequence IDs, e.g. the spike-in genome name used by BUILD_HYBRID_FASTA
+  - - endo_genome_string:
+        type: string
+        description: Unused for filtering (retained for tagging/naming symmetry with exo_genome_string); endogenous sequences are simply those without the exogenous suffix
+output:
+  endo_fasta:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.${endo_genome_string}.fasta":
+          type: file
+          description: FASTA file containing only endogenous (non-spike-in) sequences
+          pattern: "*.fasta"
+          ontologies:
+            - edam: "http://edamontology.org/format_1929" # FASTA
+  exo_fasta:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.${exo_genome_string}.fasta":
+          type: file
+          description: FASTA file containing only exogenous (spike-in) sequences, with the spike-in suffix stripped from sequence IDs
+          pattern: "*.fasta"
+          ontologies:
+            - edam: "http://edamontology.org/format_1929" # FASTA
+  versions_seqkit:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "seqkit":
+          type: string
+          description: The name of the tool
+      - "seqkit version | sed 's/seqkit v//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "seqkit":
+          type: string
+          description: The name of the tool
+      - "seqkit version | sed 's/seqkit v//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

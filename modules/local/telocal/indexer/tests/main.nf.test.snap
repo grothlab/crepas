@@ -1,0 +1,64 @@
+{
+    "sarscov2 - gtf - gene index - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "TElocal_index.ind:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "TELOCAL_INDEXER",
+                        "TElocal_indexer",
+                        "1.0.0"
+                    ]
+                ],
+                "index": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "TElocal_index.ind:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_telocal_indexer": [
+                    [
+                        "TELOCAL_INDEXER",
+                        "TElocal_indexer",
+                        "1.0.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:29:13.706090055",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - gtf - gene index": {
+        "content": [
+            [
+                "genome.gtf.ind"
+            ],
+            {
+                "versions_telocal_indexer": [
+                    [
+                        "TELOCAL_INDEXER",
+                        "TElocal_indexer",
+                        "1.0.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:29:04.96772814",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

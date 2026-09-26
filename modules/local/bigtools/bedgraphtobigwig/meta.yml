@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bigtools_bedgraphtobigwig"
+description: Convert a bedGraph file to bigWig format using bigtools
+keywords:
+  - bigtools
+  - bedgraph
+  - bigwig
+  - converter
+  - coverage
+tools:
+  - bigtools:
+      description: |
+        Bigtools is a Rust library and set of command-line tools providing a high-level,
+        performant API for reading and writing bigWig and bigBed files, offering a fast,
+        memory-efficient alternative to the UCSC bigWig/bigBed tool suite.
+      homepage: https://github.com/jackh726/bigtools
+      documentation: https://docs.rs/bigtools/latest/bigtools/
+      tool_dev_url: https://github.com/jackh726/bigtools
+      doi: "10.1093/bioinformatics/btae350"
+      licence: ["MIT"]
+      identifier: "biotools:bigtools"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bedgraph:
+        type: file
+        description: bedGraph file containing per-position/interval signal values
+        pattern: "*.{bedGraph,bedgraph}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing reference/genome information
+          e.g. [ id:'genome' ]
+    - sizes:
+        type: file
+        description: Tab-delimited chromosome sizes file (chromosome name, chromosome length)
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3587" # chrominfo
+output:
+  bigwig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bw":
+          type: file
+          description: bigWig file
+          pattern: "*.bw"
+          ontologies:
+            - edam: "http://edamontology.org/format_3006" # bigWig
+  versions_bigtools:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bigtools":
+          type: string
+          description: The name of the tool
+      - "bigtools bedgraphtobigwig --version | sed 's/^bigtools-bedgraphtobigwig //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bigtools":
+          type: string
+          description: The name of the tool
+      - "bigtools bedgraphtobigwig --version | sed 's/^bigtools-bedgraphtobigwig //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

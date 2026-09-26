@@ -1,0 +1,95 @@
+{
+    "homo_sapiens - narrowPeak - default idr threshold": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.filtered_idr.narrowPeak:md5,ba06c60f271ea372a609b5f10f787cf7"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "IDR_FILTER_THRESHOLD",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:45:06.328847912",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "homo_sapiens - narrowPeak - permissive idr threshold keeps more peaks": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.filtered_idr.narrowPeak:md5,4abac686e9b00da5d6423204c9799657"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "IDR_FILTER_THRESHOLD",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:45:23.586585073",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "homo_sapiens - narrowPeak - default idr threshold - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.filtered_idr.narrowPeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "IDR_FILTER_THRESHOLD",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "peaks": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.filtered_idr.narrowPeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "IDR_FILTER_THRESHOLD",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:45:36.016698478",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

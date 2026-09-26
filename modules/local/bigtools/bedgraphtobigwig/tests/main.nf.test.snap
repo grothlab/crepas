@@ -1,0 +1,62 @@
+{
+    "sarscov2 - bedgraph - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bw:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BIGTOOLS_BEDGRAPHTOBIGWIG",
+                        "bigtools",
+                        "0.5.4"
+                    ]
+                ],
+                "bigwig": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bw:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_bigtools": [
+                    [
+                        "BIGTOOLS_BEDGRAPHTOBIGWIG",
+                        "bigtools",
+                        "0.5.4"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T10:55:29.022492414",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "sarscov2 - bedgraph": {
+        "content": [
+            "test.bw",
+            {
+                "versions_bigtools": [
+                    [
+                        "BIGTOOLS_BEDGRAPHTOBIGWIG",
+                        "bigtools",
+                        "0.5.4"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T10:55:17.037325512",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    }
+}

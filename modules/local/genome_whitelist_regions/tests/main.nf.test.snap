@@ -1,0 +1,123 @@
+{
+    "sarscov2 - sizes - blacklist - complement - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.genome.whitelist.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "GENOME_WHITELIST_REGIONS",
+                        "bedtools",
+                        "2.30.0"
+                    ]
+                ],
+                "2": [
+                    [
+                        "GENOME_WHITELIST_REGIONS",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ],
+                "bed": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.genome.whitelist.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_bedtools": [
+                    [
+                        "GENOME_WHITELIST_REGIONS",
+                        "bedtools",
+                        "2.30.0"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "GENOME_WHITELIST_REGIONS",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:43:42.602478206",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - sizes - no blacklist - whole genome": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.genome.whitelist.bed:md5,4585b2b8783fb406448f01a2c897f4cd"
+                ]
+            ],
+            {
+                "versions_bedtools": [
+                    [
+                        "GENOME_WHITELIST_REGIONS",
+                        "bedtools",
+                        "2.30.0"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "GENOME_WHITELIST_REGIONS",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:43:34.024965871",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - sizes - blacklist - complement": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.genome.whitelist.bed:md5,8cbd1522cc613821430d6176466efd4b"
+                ]
+            ],
+            {
+                "versions_bedtools": [
+                    [
+                        "GENOME_WHITELIST_REGIONS",
+                        "bedtools",
+                        "2.30.0"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "GENOME_WHITELIST_REGIONS",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:43:24.953679908",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

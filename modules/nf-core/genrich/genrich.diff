@@ -1,0 +1,20 @@
+Changes in component 'nf-core/genrich'
+'modules/nf-core/genrich/environment.yml' is unchanged
+'modules/nf-core/genrich/meta.yml' is unchanged
+Changes in 'genrich/main.nf':
+--- modules/nf-core/genrich/main.nf
++++ modules/nf-core/genrich/main.nf
+@@ -8,7 +8,7 @@
+         'quay.io/biocontainers/genrich:0.6.1--h5bf99c6_1' }"
+ 
+     input:
+-    tuple val(meta), path(treatment_bam), path(control_bam)
++    tuple val(meta), path(treatment_bam, stageAs: "t?/*"), path(control_bam, stageAs: "c?/*")
+     path  blacklist_bed
+ 
+     output:
+
+'modules/nf-core/genrich/tests/nextflow.config' is unchanged
+'modules/nf-core/genrich/tests/main.nf.test' is unchanged
+'modules/nf-core/genrich/tests/main.nf.test.snap' is unchanged
+************************************************************

@@ -1,0 +1,63 @@
+{
+    "sarscov2 - summary table - no spikein": {
+        "content": [
+            [
+                "final_samtools_stats_summary.all.tsv:md5,763ad2082b160bf1182ed6094a40909d"
+            ],
+            [
+                "final_samtools_stats_summary.totals.tsv:md5,a92e2b34e6bfe9e1823ad2175b4db019"
+            ],
+            {
+                "versions_r": [
+                    [
+                        "STATS_SUMMARY",
+                        "r-base",
+                        "4.4.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-10T11:23:41.683567099",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - summary table - no spikein - stub": {
+        "content": [
+            {
+                "0": [
+                    "final_samtools_stats_summary.all.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "1": [
+                    "final_samtools_stats_summary.totals.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "2": [
+                    [
+                        "STATS_SUMMARY",
+                        "r-base",
+                        "4.4.3"
+                    ]
+                ],
+                "totals_tsv": [
+                    "final_samtools_stats_summary.totals.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "tsv": [
+                    "final_samtools_stats_summary.all.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "versions_r": [
+                    [
+                        "STATS_SUMMARY",
+                        "r-base",
+                        "4.4.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-10T11:23:56.500897036",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

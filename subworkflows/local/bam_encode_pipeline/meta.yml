@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_encode_pipeline"
+description: |
+  Following the guidelines of the ENCODE3 ChIP-seq peak-calling pipeline: convert BAM to tagAlign,
+  pool replicates and generate self-pseudoreplicates, call peaks per replicate/pseudoreplicate
+  with phantompeakqualtools SPP, derive a consensus peak set via IDR and naive overlap, and compute FRiP scores
+keywords:
+  - encode
+  - chip-seq
+  - idr
+  - peak-calling
+  - tagalign
+  - frip
+components:
+  - samtools/sort
+  - bedtools/bamtobed
+  - bed_to_tagalign
+  - tagalign_self_pseudoreplicates
+  - find/concatenate
+  - phantompeakqualtools
+  - bed_filter_blacklist
+  - idr
+  - idr_filter_threshold
+  - peaks_naive_overlap
+  - tagalign_frip_score
+input:
+  - ch_bam:
+      description: |
+        Genome-aligned BAM file(s), IP and matched input control
+        Structure: [ val(meta), [ path(ip_bam) ], [ path(control_bam) ] ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - ch_chromsizes:
+      type: file
+      description: |
+        Chromosome sizes file
+        Structure: [ val(meta), path(chromsizes) ]
+  - ctl_depth_ratio_threshold:
+      type: float
+      description: |
+        Maximum allowed ratio between input control read depths before switching to the pooled
+        control for a sample
+  - val_peak_type:
+      type: string
+      description: Peak file type, e.g. 'narrowPeak' or 'broadPeak'
+  - ch_blacklist:
+      type: file
+      description: |
+        Blacklist regions to filter out of called peaks
+        Structure: [ val(meta), path(blacklist) ]
+  - idr_filtering_threshold:
+      type: float
+      description: IDR threshold used to filter the IDR peak set
+  - encode_peak_max_score:
+      type: integer
+      description: Maximum score value to clip peaks to when filtering by blacklist/chromosomes
+output:
+  - tagalign:
+      description: |
+        TagAlign files (per replicate, pseudoreplicate and pooled)
+        Structure: [ val(meta), path(tagalign) ]
+  - ccscores:
+      description: |
+        phantompeakqualtools cross-correlation scores
+        Structure: [ val(meta), path(ccscores) ]
+  - spp_peaks:
+      description: |
+        Blacklist-filtered SPP peaks, per replicate/pseudoreplicate
+        Structure: [ val(meta), path(peak) ]
+  - idr:
+      description: |
+        Raw IDR output, comparing pairs of matched replicates/pseudoreplicates
+        Structure: [ val(meta), path(idr) ]
+  - idr_peaks:
+      description: |
+        IDR peaks filtered by idr_filtering_threshold
+        Structure: [ val(meta), path(peak) ]
+  - naive_overlap_peaks:
+      description: |
+        Peaks passing the naive overlap consensus method (alternative to IDR)
+        Structure: [ val(meta), path(peak) ]
+  - consensus_peaks:
+      description: |
+        Final blacklist-filtered consensus peaks (IDR and naive overlap)
+        Structure: [ val(meta), path(peak) ]
+  - frip_bed:
+      description: |
+        BED file of fragment intervals used for FRiP score calculation
+        Structure: [ val(meta), path(bed) ]
+  - frip:
+      description: |
+        FRiP (Fraction of Reads in Peaks) score for IDR and naive overlap peaks
+        Structure: [ val(meta), path(txt) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

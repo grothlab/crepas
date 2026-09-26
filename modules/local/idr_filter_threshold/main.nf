@@ -3,9 +3,9 @@ process IDR_FILTER_THRESHOLD {
     label 'process_low'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/ubuntu:22.04' :
-        'nf-core/ubuntu:22.04' }"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/19/198ab15844726d095c90e454aa9b1cf91b7e3517dd62451791c596e2a2229082/data' :
+        'community.wave.seqera.io/library/coreutils_gawk_sed:e167f5dd848b5ae9' }"
 
     input:
     tuple val(meta), path(peak_file)
@@ -14,7 +14,7 @@ process IDR_FILTER_THRESHOLD {
 
     output:
     tuple val(meta), path("${prefix}.${peak_type}"), emit: peaks
-    tuple val("${task.process}"), val('gawk'), eval("awk -Wversion | sed '1!d; s/.*Awk //; s/,.*//'"), topic: versions, emit: versions_gawk
+    tuple val("${task.process}"), val('awk'), eval("awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*\$//'"), topic: versions, emit: versions_awk
 
     when:
     task.ext.when == null || task.ext.when

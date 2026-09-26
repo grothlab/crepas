@@ -3,9 +3,9 @@ process TECOUNT {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/tetranscripts:2.2.3--pyh7cba7a3_0':
-        'quay.io/biocontainers/tetranscripts:2.2.3--pyh7cba7a3_0' }"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/db/db7f82ebfe1c9f765a08b89ee98f2a9db9952b8bf6a0508a0305631683d4199c/data':
+        'community.wave.seqera.io/library/tetranscripts_pigz:5c9ae6961179bdf5' }"
 
     input:
     tuple val(meta), path(bam)
@@ -16,7 +16,7 @@ process TECOUNT {
     output:
     tuple val(meta), path("*.cntTable*"),                        emit: counts
     tuple val("${task.process}"), val('TEcount'), eval("TEcount --version 2>&1 | sed 's/TEcount //g'"), emit: versions_tecount, topic: versions
-    tuple val("${task.process}"), val('gzip'), eval("gzip --version | sed -n '1s/.*gzip[[:space:]]*//p'"), emit: versions_gzip, topic: versions
+    tuple val("${task.process}"), val('pigz'), eval("pigz --version 2>&1 | sed 's/pigz //'"), emit: versions_pigz, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -24,7 +24,7 @@ process TECOUNT {
     script:
     def args            = task.ext.args         ?: ""
     def prefix          = task.ext.prefix       ?: "${meta.id}"
-    def gzip_cmd        = skip_gz ? "" : "gzip -f ${prefix}.cntTable"
+    def compress_cmd    = skip_gz ? "" : "pigz -f -p ${task.cpus} ${prefix}.cntTable"
 
     """
      TEcount \\
@@ -34,8 +34,8 @@ process TECOUNT {
         --TE ${te_gtf_or_index} \\
         --project ${prefix} \\
         --outdir ./
-    
-    ${gzip_cmd}
+
+    ${compress_cmd}
     """
 
     stub:

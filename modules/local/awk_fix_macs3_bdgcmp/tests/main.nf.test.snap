@@ -1,0 +1,68 @@
+{
+    "sarscov2 - bed - fix macs3 bdgcmp": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.fixed.bed:md5,1c52abc1d5ed6c764a71294160b8dd6f"
+                    ]
+                ],
+                "1": [
+                    [
+                        "AWK_FIX_MACS3_BDGCMP",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "bed": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.fixed.bed:md5,1c52abc1d5ed6c764a71294160b8dd6f"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "AWK_FIX_MACS3_BDGCMP",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T10:30:58.861036146",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bed - fix macs3 bdgcmp - stub": {
+        "content": [
+            {
+                "0": [
+                    
+                ],
+                "1": [
+                    
+                ],
+                "bed": [
+                    
+                ],
+                "versions_awk": [
+                    
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T10:26:44.272231757",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

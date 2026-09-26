@@ -1,0 +1,228 @@
+{
+    "sarscov2 - bam - dtriple - no background": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.smooth.wig:md5,53b886d44eac62542b13d72b70f4530a"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.smooth.regions.xls:md5,965d7b9c83884bb2a85c8bf6ca38bfc0"
+                ]
+            ],
+            {
+                "versions_danpos": [
+                    [
+                        "DANPOS2_DTRIPLE",
+                        "danpos",
+                        "2.2.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T13:23:49.180058996",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - dtriple - with background": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.bgsub.smooth.wig:md5,3e214d71e8f691ec2b704bfb380496c8",
+                        "test_input.wig:md5,85fcfab3ba82e5a45fda43d6dab939cf"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.bgsub.smooth.regions.xls:md5,113b3d685acaf80795a6cd12c8cdc3a9"
+                ]
+            ],
+            {
+                "versions_danpos": [
+                    [
+                        "DANPOS2_DTRIPLE",
+                        "danpos",
+                        "2.2.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T13:24:02.377572343",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - dtriple - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.regions.integrative.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.local_gain.refregions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.local_loss.refregions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.refregions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.regions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "7": [
+                    [
+                        "DANPOS2_DTRIPLE",
+                        "danpos",
+                        "2.2.2"
+                    ]
+                ],
+                "diff_wig": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "integrative_regions": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.regions.integrative.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "local_gain": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.local_gain.refregions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "local_loss": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.local_loss.refregions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pooled_refregions": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.refregions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pooled_regions": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.regions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pooled_wig": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_danpos": [
+                    [
+                        "DANPOS2_DTRIPLE",
+                        "danpos",
+                        "2.2.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T13:24:14.673355373",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

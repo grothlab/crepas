@@ -1,0 +1,115 @@
+nextflow_process {
+
+    name "Test Process PARTITION_OR_RFD_SMOOTH"
+    script "../main.nf"
+    process "PARTITION_OR_RFD_SMOOTH"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "partition_or_rfd_smooth"
+    tag "bedtools/makewindows"
+    tag "ucsc/bigwigaverageoverbed"
+    tag "bedgraph_normalize"
+
+    setup {
+
+        // Windows across the genome, named <chrom>_<window> (as the script expects).
+        run("BEDTOOLS_MAKEWINDOWS") {
+            script "../../../nf-core/bedtools/makewindows/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'test' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true) ]
+                """
+            }
+        }
+
+        // Average a real bigWig over those windows -> per-window coverage table.
+        run("UCSC_BIGWIGAVERAGEOVERBED") {
+            script "../../../nf-core/ucsc/bigwigaverageoverbed/main.nf"
+            process {
+                """
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                    .map { meta, bed -> [ meta, bed, file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bigwig/test.bigwig', checkIfExists: true) ] }
+                """
+            }
+        }
+
+        // Forward table: multiply (+ pseudocount) -> value = coverage + 1
+        run("BEDGRAPH_NORMALIZE", alias: "NORM_F") {
+            script "../../bedgraph_normalize/main.nf"
+            process {
+                """
+                input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab
+                input[1] = 'tab'
+                """
+            }
+        }
+
+        // Reverse table: add (+ pseudocount) -> value = coverage + 6, so F != R non-proportionally
+        run("BEDGRAPH_NORMALIZE", alias: "NORM_R") {
+            script "../../bedgraph_normalize/main.nf"
+            process {
+                """
+                input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab
+                input[1] = 'tab'
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - partition - smooth") {
+
+        when {
+            process {
+                """
+                input[0] = NORM_F.out.normalized
+                    .join(NORM_R.out.normalized, by: 0)
+                    .map { meta, f_tab, r_tab -> [ meta, 'partition', f_tab, r_tab ] }
+                input[1] = 5  // radius
+                input[2] = 5  // dradius
+                input[3] = 1  // zradius
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.rfd,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - partition - smooth - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = NORM_F.out.normalized
+                    .join(NORM_R.out.normalized, by: 0)
+                    .map { meta, f_tab, r_tab -> [ meta, 'partition', f_tab, r_tab ] }
+                input[1] = 5
+                input[2] = 5
+                input[3] = 1
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

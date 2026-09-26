@@ -1,0 +1,75 @@
+{
+    "sarscov2 - transposed stats - concatenate - stub": {
+        "content": [
+            {
+                "0": [
+                    "samtools_stats_cat.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "1": [
+                    [
+                        "STATS_CAT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "2": [
+                    [
+                        "STATS_CAT",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "cat": [
+                    "samtools_stats_cat.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "versions_awk": [
+                    [
+                        "STATS_CAT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "STATS_CAT",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T10:03:38.508253965",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - transposed stats - concatenate": {
+        "content": [
+            [
+                "samtools_stats_cat.tsv:md5,139cc21216d3fc3804b3209ea803ef46"
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "STATS_CAT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "STATS_CAT",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T10:03:27.581248251",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

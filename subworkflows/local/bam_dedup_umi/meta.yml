@@ -1,181 +1,139 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
 name: "bam_dedup_umi"
-description: BAM deduplication with UMI processing for both genome and transcriptome alignments
+description: |
+  UMI-based deduplication of both a genome and a transcriptome BAM (choosing UMICollapse or
+  UMI-tools as the dedup tool), then coordinate-sort/dedup/name-sort the transcriptome BAM and
+  fix up paired-end reads with UMI-tools prepare-for-RSEM
 keywords:
   - deduplication
-  - UMI
-  - BAM
+  - umi
+  - bam
   - genome
   - transcriptome
   - umicollapse
   - umitools
-
 components:
-  - umitools/prepareforrsem
-  - samtools/sort
   - bam_dedup_stats_samtools_umicollapse
   - bam_dedup_stats_samtools_umitools
   - bam_sort_stats_samtools
-
+  - samtools/sort
+  - umitools/prepareforrsem
 input:
   - ch_genome_bam:
-      description: Channel with genome BAM files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - bam:
-            type: file
-            description: BAM file
-            pattern: "*.bam"
-        - bai:
-            type: file
-            description: BAM index file
-            pattern: "*.bai"
-  - ch_fasta:
-      description: Channel with genome FASTA file
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - fasta:
-            type: file
-            description: Genome FASTA file
-            pattern: "*.{fa,fasta}"
+      description: |
+        Genome-aligned BAM file and its index
+        Structure: [ val(meta), path(bam), path(index) ]
+  - ch_chrom_sizes:
+      type: file
+      description: |
+        Chromosome sizes file (first two columns: chrom, size; e.g. a .fai file), used when
+        skip_split_by_chrom is false
+        Structure: [ val(meta), path(chrom_sizes) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index, used to name-sort the deduplicated transcriptome BAM
+        Structure: [ val(meta), path(fasta), path(fai) ]
   - umi_dedup_tool:
-      description: UMI deduplication tool to use
-      structure:
-        - value:
-            type: string
-            description: Either 'umicollapse' or 'umitools'
+      type: string
+      description: UMI deduplication tool to use, either 'umicollapse' or 'umitools'
   - umitools_dedup_stats:
-      description: Whether to generate UMI-tools deduplication stats
-      structure:
-        - value:
-            type: boolean
-            description: True or False
-  - bam_csi_index:
-      description: Whether to generate CSI index
-      structure:
-        - value:
-            type: boolean
-            description: True or False
+      type: boolean
+      description: |
+        Whether to generate UMI-tools deduplication stats. Only used when umi_dedup_tool is
+        'umitools'.
+      pattern: "true|false"
   - ch_transcriptome_bam:
-      description: Channel with transcriptome BAM files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - bam:
-            type: file
-            description: BAM file
-            pattern: "*.bam"
-  - ch_transcript_fasta:
-      description: Channel with transcript FASTA file
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - fasta:
-            type: file
-            description: Transcript FASTA file
-            pattern: "*.{fa,fasta}"
-
+      description: |
+        Transcriptome-aligned BAM file
+        Structure: [ val(meta), path(bam) ]
+  - ch_transcript_fasta_fai:
+      type: file
+      description: |
+        Transcript fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - skip_split_by_chrom:
+      type: boolean
+      description: |
+        If false, split each BAM by chromosome before deduplication and merge the deduplicated
+        BAMs back together afterwards. If true, deduplicate each whole BAM in a single task.
+      pattern: "true|false"
 output:
   - bam:
-      description: Channel containing deduplicated genome BAM files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - bam:
-            type: file
-            description: Deduplicated BAM file
-            pattern: "*.bam"
-  - bai:
-      description: Channel containing indexed BAM (BAI) files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - bai:
-            type: file
-            description: BAM index file
-            pattern: "*.bai"
-  - csi:
-      description: Channel containing CSI files (if bam_csi_index is true)
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - csi:
-            type: file
-            description: CSI index file
-            pattern: "*.csi"
-  - dedup_log:
-      description: Channel containing deduplication log files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - log:
-            type: file
-            description: Deduplication log file
-            pattern: "*.log"
+      description: |
+        Deduplicated genome BAM file
+        Structure: [ val(meta), path(bam) ]
+  - index:
+      description: |
+        Index of the deduplicated genome BAM file
+        Structure: [ val(meta), path(index) ]
+  - genomic_dedup_log:
+      description: |
+        Genome BAM deduplication log/stats (from UMICollapse or UMI-tools, depending on
+        umi_dedup_tool)
+        Structure: [ val(meta), path(log) ]
+  - transcriptomic_dedup_log:
+      description: |
+        Transcriptome BAM deduplication log/stats (from UMICollapse or UMI-tools, depending on
+        umi_dedup_tool)
+        Structure: [ val(meta), path(log) ]
+  - prepare_for_rsem_log:
+      description: |
+        UMI-tools prepare-for-RSEM log, for paired-end samples
+        Structure: [ val(meta), path(log) ]
   - stats:
-      description: Channel containing BAM statistics files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - stats:
-            type: file
-            description: BAM statistics file
-            pattern: "*.stats"
+      description: |
+        File containing samtools stats output, for both the genome and transcriptome BAMs
+        Structure: [ val(meta), path(stats) ]
   - flagstat:
-      description: Channel containing flagstat files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - flagstat:
-            type: file
-            description: Flagstat file
-            pattern: "*.flagstat"
+      description: |
+        File containing samtools flagstat output, for both the genome and transcriptome BAMs
+        Structure: [ val(meta), path(flagstat) ]
   - idxstats:
-      description: Channel containing idxstats files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - idxstats:
-            type: file
-            description: Idxstats file
-            pattern: "*.idxstats"
+      description: |
+        File containing samtools idxstats output, for both the genome and transcriptome BAMs
+        Structure: [ val(meta), path(idxstats) ]
+  - tsv_edit_distance:
+      description: |
+        UMI-tools edit distance TSV, when umi_dedup_tool is 'umitools' and umitools_dedup_stats
+        is true
+        Structure: [ val(meta), path(tsv) ]
+  - tsv_per_umi:
+      description: |
+        UMI-tools per-UMI TSV, when umi_dedup_tool is 'umitools' and umitools_dedup_stats is true
+        Structure: [ val(meta), path(tsv) ]
+  - tsv_umi_per_position:
+      description: |
+        UMI-tools UMI-per-position TSV, when umi_dedup_tool is 'umitools' and
+        umitools_dedup_stats is true
+        Structure: [ val(meta), path(tsv) ]
   - multiqc_files:
-      description: Channel containing files for MultiQC
-      structure:
-        - file:
-            type: file
-            description: File for MultiQC
+      description: |
+        Genome BAM dedup log, stats, flagstat and idxstats files, collected for MultiQC
+        Structure: [ path(file) ]
   - transcriptome_bam:
-      description: Channel containing deduplicated transcriptome BAM files
-      structure:
-        - meta:
-            type: map
-            description: Metadata map
-        - bam:
-            type: file
-            description: Deduplicated transcriptome BAM file
-            pattern: "*.bam"
-  - versions:
-      description: Channel containing software versions file
-      structure:
-        - versions:
-            type: file
-            description: File containing versions of the software used
-            pattern: "versions.yml"
-
+      description: |
+        Final transcriptome BAM: deduplicated, name-sorted and, for paired-end samples, fixed up
+        with UMI-tools prepare-for-RSEM
+        Structure: [ val(meta), path(bam) ]
+  - transcriptome_dedup_bam:
+      description: |
+        Transcriptome BAM immediately after deduplication, before name-sorting
+        Structure: [ val(meta), path(bam) ]
+  - transcriptome_sorted_bam:
+      description: |
+        Deduplicated transcriptome BAM, restored to name-sorted order
+        Structure: [ val(meta), path(bam) ]
+  - transcriptome_sorted_bam_index:
+      description: |
+        Index of the coordinate-sorted, deduplicated transcriptome BAM (before name-sorting)
+        Structure: [ val(meta), path(index) ]
+  - transcriptome_filtered_bam:
+      description: |
+        UMI-tools prepare-for-RSEM output, for paired-end samples only
+        Structure: [ val(meta), path(bam) ]
 authors:
   - "@pinin4fjords"
+  - "@samuelruizperez"
 maintainers:
-  - "@pinin4fjords"
+  - "@samuelruizperez"

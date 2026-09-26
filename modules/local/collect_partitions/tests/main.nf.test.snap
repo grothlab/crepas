@@ -1,0 +1,138 @@
+{
+    "sarscov2 - bed - collect partitions": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.collect.tsv:md5,f9dc3c554c1900ba90000345547021cd"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.collect.flT_by_counts.tsv:md5,f9dc3c554c1900ba90000345547021cd"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.collect.flT_by_counts.bdg:md5,ef8df98216a6fe2ec5a857b7e2d229d4"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "COLLECT_PARTITIONS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "COLLECT_PARTITIONS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-13T16:27:49.181681977",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bed - collect partitions - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.collect.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.collect.flT_by_counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.collect.flT_by_counts.bdg:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        "COLLECT_PARTITIONS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "4": [
+                    [
+                        "COLLECT_PARTITIONS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "filtered_bdg": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.collect.flT_by_counts.bdg:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "filtered_tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.collect.flT_by_counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.collect.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "COLLECT_PARTITIONS",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "COLLECT_PARTITIONS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-13T16:27:58.97731905",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

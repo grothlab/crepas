@@ -1,0 +1,103 @@
+nextflow_process {
+
+    name "Test Process DANPOS2_DTRIPLE"
+    script "../main.nf"
+    process "DANPOS2_DTRIPLE"
+
+    tag "modules"
+    tag "modules_local"
+    tag "danpos2"
+    tag "danpos2/dtriple"
+
+    test("sarscov2 - bam - dtriple - no background") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true) ], // treatment
+                    [], // treatment_input
+                    [], // treatment_count
+                    [], // control
+                    [], // control_input
+                    []  // control_count
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.pooled_wig,
+                    process.out.pooled_regions,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - dtriple - with background") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true) ], // treatment
+                    [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true) ], // treatment_input
+                    [], // treatment_count
+                    [], // control
+                    [], // control_input
+                    []  // control_count
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.pooled_wig,
+                    process.out.pooled_regions,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - dtriple - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true) ], // treatment
+                    [], // treatment_input
+                    [], // treatment_count
+                    [], // control
+                    [], // control_input
+                    []  // control_count
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

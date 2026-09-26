@@ -1,0 +1,125 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "allo"
+description: Allocate multi-mapped reads (MMRs) to their most likely genomic origin using Allo, and convert the resulting alignments to BAM format
+keywords:
+  - allo
+  - multimapping
+  - read allocation
+  - chip-seq
+  - atac-seq
+  - bam
+  - sam
+tools:
+  - allo:
+      description: |
+        Allo is a multi-mapped read rescue strategy for gene regulatory analyses. It uses a
+        convolutional neural network trained on the local density of uniquely-mapped reads
+        (UMRs) to allocate multi-mapped reads (MMRs) to their most probable genomic location,
+        improving downstream peak calling and quantification for ChIP-seq, ATAC-seq, DNase-seq
+        and RNA-seq experiments.
+      homepage: https://github.com/seqcode/allo
+      documentation: https://github.com/seqcode/allo#readme
+      tool_dev_url: https://github.com/seqcode/allo
+      doi: "10.1101/gr.278638.123"
+      licence: ["MIT"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: |
+          BAM or SAM file containing uniquely- and multi-mapped read alignments to be
+          processed by Allo. Must be collated/sorted by read name beforehand
+          (e.g. using `samtools collate`).
+        pattern: "*.{bam,sam}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+          - edam: "http://edamontology.org/format_2573" # SAM
+output:
+  bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bam":
+          type: file
+          description: BAM file containing Allo-allocated read alignments, converted from the Allo SAM output using samtools view
+          pattern: "*.bam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+  sam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.sam":
+          type: file
+          description: |
+            SAM file containing Allo-allocated read alignments. Allocated multi-mapped reads
+            are tagged with a ZA (CNN-based allocation) or ZZ (random allocation to
+            zero-UMR regions) tag.
+          pattern: "*.sam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2573" # SAM
+  log:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.log":
+          type: file
+          description: Log file containing the stdout/stderr messages generated during the Allo run
+          pattern: "*.log"
+          ontologies: []
+  versions_allo:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "allo":
+          type: string
+          description: The name of the tool
+      - "allo -v 2>&1":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_samtools:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "samtools":
+          type: string
+          description: The name of the tool
+      - "samtools version | sed '1!d;s/.* //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "allo":
+          type: string
+          description: The name of the tool
+      - "allo -v 2>&1":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "samtools":
+          type: string
+          description: The name of the tool
+      - "samtools version | sed '1!d;s/.* //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -1,0 +1,107 @@
+nextflow_process {
+
+    name "Test Process TAGALIGN_SELF_PSEUDOREPLICATES"
+    script "../main.nf"
+    process "TAGALIGN_SELF_PSEUDOREPLICATES"
+
+    tag "modules"
+    tag "modules_local"
+    tag "tagalign_self_pseudoreplicates"
+    tag "bed_to_tagalign"
+
+    setup {
+
+        run("BED_TO_TAGALIGN", alias: "TAGALIGN_SE") {
+            script "../../bed_to_tagalign/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:true ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        run("BED_TO_TAGALIGN", alias: "TAGALIGN_PE") {
+            script "../../bed_to_tagalign/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bedpe', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - tagalign - single-end") {
+
+        when {
+            process {
+                """
+                input[0] = TAGALIGN_SE.out.tagalign
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.tagalign1,
+                    process.out.tagalign2,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - tagalign - paired-end") {
+
+        when {
+            process {
+                """
+                input[0] = TAGALIGN_PE.out.tagalign
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.tagalign1,
+                    process.out.tagalign2,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - tagalign - single-end - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = TAGALIGN_SE.out.tagalign
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

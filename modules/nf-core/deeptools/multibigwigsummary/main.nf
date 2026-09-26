@@ -35,11 +35,11 @@ process DEEPTOOLS_MULTIBIGWIGSUMMARY {
         ${outrawcounts_cmd} \\
         $blacklist_cmd
     """
-
+    
     stub:
     def prefix = task.ext.prefix ?: "all_bigwig"
     """
     touch ${prefix}.bigwigSummary.npz
-    touch
+    touch ${prefix}.tsv
     """
 }

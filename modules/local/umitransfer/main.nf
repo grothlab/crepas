@@ -3,7 +3,7 @@ process UMITRANSFER {
     label "process_medium"
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/umi-transfer:1.5.0--h715e4b3_0' :
         'quay.io/biocontainers/umi-transfer:1.5.0--h715e4b3_0' }"
 
@@ -13,7 +13,7 @@ process UMITRANSFER {
     output:
     tuple val(meta), path("*.fastq.gz"), emit: reads
     tuple val(meta), path("*.log")     , emit: log
-    path  "versions.yml"               , emit: versions
+    tuple val("${task.process}"), val('umitransfer'), eval("umi-transfer external --version 2>&1 | tail -1 | sed 's/^umi-transfer-external //'"), emit: versions_umitransfer, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -30,15 +30,12 @@ process UMITRANSFER {
             --umi ${reads[1]} \\
             --threads $task.cpus \\
             --out ${prefix}.umitransfer.fastq.gz \\
-            --out2 '/dev/null' \\
+            --out2 ${prefix}.umitransfer_discard.fastq.gz \\
             --gzip \\
             $args \\
             > ${prefix}.umi_extract.log
-            
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            umi-transfer external: \$( umi-transfer external --version | sed '/version:/!d; s/.*: //' )
-        END_VERSIONS
+
+        rm -f ${prefix}.umitransfer_discard.fastq.gz
         """
     }  else {
         """
@@ -53,11 +50,6 @@ process UMITRANSFER {
             --gzip \\
             $args \\
             > ${prefix}.umitransfer.log
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            umi-transfer external: \$( umi-transfer external --version | sed '/version:/!d; s/.*: //' )
-        END_VERSIONS
         """
     }
 
@@ -72,10 +64,5 @@ process UMITRANSFER {
     """
     touch ${prefix}.umitransfer.log
     ${output_command}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        umi-transfer external: \$( umi-transfer external --version | sed '/version:/!d; s/.*: //' )
-    END_VERSIONS
     """
 }

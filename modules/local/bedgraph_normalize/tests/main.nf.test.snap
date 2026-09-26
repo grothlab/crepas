@@ -1,0 +1,69 @@
+{
+    "homo_sapiens - bedgraph - multiply with pseudocount - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BEDGRAPH_NORMALIZE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "normalized": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bedGraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "BEDGRAPH_NORMALIZE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:23:04.965186448",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - bedgraph - multiply with pseudocount": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.bedGraph:md5,065d1d0fe9c1fb81a1ce6858631a6961"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "BEDGRAPH_NORMALIZE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:22:53.834314238",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

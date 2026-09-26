@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: fastq_align_minibwa
+description: Align reads to a reference genome using minibwa, then sort, index and run samtools stats, flagstat and idxstats
+keywords:
+  - align
+  - fasta
+  - genome
+  - reference
+  - minibwa
+components:
+  - minibwa/map
+  - samtools/sort
+  - samtools/index
+  - samtools/stats
+  - samtools/idxstats
+  - samtools/flagstat
+  - bam_sort_stats_samtools
+input:
+  - ch_reads:
+      description: |
+        List of input FastQ files of size 1 and 2 for single-end and paired-end data,
+        respectively.
+        Structure: [ val(meta), [ path(reads) ] ]
+  - ch_index:
+      description: |
+        minibwa genome index files
+        Structure: [ val(meta2), path(index) ]
+  - val_sort_bam:
+      type: boolean
+      description: |
+        If true, minibwa sorts the resulting BAM file itself. This pipeline always passes false
+        so that minibwa emits an unsorted BAM and sorting is handled by bam_sort_stats_samtools.
+      pattern: "true|false"
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta3), path(fasta), path(fai) ]
+output:
+  - bam_orig:
+      description: |
+        Unsorted BAM/SAM/CRAM file produced by minibwa
+        Structure: [ val(meta), path(bam) ]
+  - bam:
+      description: |
+        BAM file sorted by samtools
+        Structure: [ val(meta), path(bam) ]
+  - index:
+      description: |
+        Index of the sorted BAM file
+        Structure: [ val(meta), path(index) ]
+  - stats:
+      description: |
+        File containing samtools stats output
+        Structure: [ val(meta), path(stats) ]
+  - flagstat:
+      description: |
+        File containing samtools flagstat output
+        Structure: [ val(meta), path(flagstat) ]
+  - idxstats:
+      description: |
+        File containing samtools idxstats output
+        Structure: [ val(meta), path(idxstats) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

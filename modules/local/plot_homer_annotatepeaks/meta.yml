@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "plot_homer_annotatepeaks"
+description: Generate summary plots (feature distribution, distance-to-TSS) and a MultiQC-ready summary table from HOMER annotatePeaks output
+keywords:
+  - homer
+  - annotatepeaks
+  - qc
+  - peaks
+tools:
+  - r-base:
+      description: |
+        The R programming language, used here (via the bundled `bin/plot_homer_annotatepeaks.r`
+        script) to summarise and plot HOMER `annotatePeaks.pl`
+        output across samples: a feature-distribution barplot, a distance-to-nearest-gene
+        barplot, a distance-to-TSS violin plot, and a MultiQC-ready summary table.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/other-docs.html
+      licence: ["GPL-2.0-or-later"]
+      identifier: "biotools:r-base"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - annos:
+        type: file
+        description: One or more HOMER `annotatePeaks.pl` output text files to summarise together
+        pattern: "*.txt"
+  - - mqc_header:
+        type: file
+        description: MultiQC custom-content header file prepended to the summary table
+        pattern: "*.txt"
+  - - suffix:
+        type: string
+        description: Suffix trimmed off each `annos` file basename to derive the sample id used in plot labels
+output:
+  txt:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.txt":
+          type: file
+          description: Per-feature/distance summary statistics table
+          pattern: "*.summary.txt"
+  pdf:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.pdf":
+          type: file
+          description: PDF report with feature-distribution, distance-to-gene, and distance-to-TSS plots
+          pattern: "*.plots.pdf"
+          ontologies:
+            - edam: "http://edamontology.org/format_3508" # PDF
+  tsv:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          type: file
+          description: Feature-distribution summary table prefixed with a MultiQC custom-content header
+          pattern: "*.summary_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@JoseEspinosa"
+  - "@drpatelh"
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

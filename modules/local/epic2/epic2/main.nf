@@ -3,19 +3,20 @@ process EPIC2 {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
         ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/9f/9f41b3fd2e4992c1a7012a86c5ec7f7c58db2cc262188117eedfb5d078de668f/data'
         : 'community.wave.seqera.io/library/epic2_pyranges_gawk:ae3474e51d3dfc5e'}"
 
     input:
-    tuple val(meta), path(treatment_bam), path(control_bam)
+    tuple val(meta), path(treatment_bam), path(treatment_bai), path(control_bam), path(control_bai)
     tuple val(meta2), path(chrom_sizes)
     val effective_genome_fraction
 
     output:
     tuple val(meta), path("*.bed"), emit: bed
     tuple val(meta), path("*.diffusePeak"), emit: peak
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('epic2'), eval("epic2 --version | sed -e 's/epic2 //g'"), topic: versions, emit: versions_epic2
+    tuple val("${task.process}"), val('gawk'), eval("gawk --version 2>&1 | sed 's/^.*GNU Awk //; s/, .*\$//'"), topic: versions, emit: versions_gawk
 
     when:
     task.ext.when == null || task.ext.when
@@ -49,22 +50,12 @@ process EPIC2 {
         printf "\\n" }' \\
         ${prefix}.bed \\
         > ${prefix}.diffusePeak
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        epic2: \$(epic2 --version | sed -e "s/epic2 //g")
-        gawk: \$(echo \$(gawk --version 2>&1) | sed 's/^.*GNU Awk //; s/, .*\$//')
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.bed
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        epic2: \$(epic2 --version | sed -e "s/epic2 //g")
-    END_VERSIONS
+    touch ${prefix}.diffusePeak
     """
 }

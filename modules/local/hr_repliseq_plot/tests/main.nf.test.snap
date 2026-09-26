@@ -1,0 +1,119 @@
+{
+    "homo_sapiens - 4 fractions - heatmap and feature summary": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.hr_repliseq.plots.pdf"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.hr_repliseq_heatmap_chr21_mqc.png:md5,57a37e56529b2a41ef851bab69f1046e"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    [
+                        "test.hr_repliseq_feature_sizes_mqc.json:md5,e9f30a13e7c9f6b61c4fb82971568782",
+                        "test.hr_repliseq_ttr_speed_mqc.json:md5,473d2ff7df7efd80dba737f6e880d724"
+                    ]
+                ]
+            ]
+        ],
+        "timestamp": "2026-08-26T17:20:14.624404967",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "homo_sapiens - 4 fractions - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_repliseq.plots.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    
+                ],
+                "2": [
+                    
+                ],
+                "3": [
+                    [
+                        "HR_REPLISEQ_PLOT",
+                        "python",
+                        "3.12.14"
+                    ]
+                ],
+                "4": [
+                    [
+                        "HR_REPLISEQ_PLOT",
+                        "matplotlib",
+                        "3.9.2"
+                    ]
+                ],
+                "5": [
+                    [
+                        "HR_REPLISEQ_PLOT",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "mqc_heatmap": [
+                    
+                ],
+                "mqc_sizes": [
+                    
+                ],
+                "plots": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_repliseq.plots.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_matplotlib": [
+                    [
+                        "HR_REPLISEQ_PLOT",
+                        "matplotlib",
+                        "3.9.2"
+                    ]
+                ],
+                "versions_pandas": [
+                    [
+                        "HR_REPLISEQ_PLOT",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "HR_REPLISEQ_PLOT",
+                        "python",
+                        "3.12.14"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-26T17:20:33.922408064",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

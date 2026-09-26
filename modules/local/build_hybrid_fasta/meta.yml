@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "build_hybrid_fasta"
+description: |
+  Concatenate an endogenous FASTA genome with a spike-in FASTA genome into a single hybrid
+  reference, suffixing every spike-in sequence header with `_<spikein_genome>`
+keywords:
+  - fasta
+  - spike-in
+  - reference
+  - awk
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to append `_<spikein_genome>` to every FASTA header (`>` line) of the spike-in
+        genome before concatenating it after the endogenous genome, so downstream alignment
+        against the combined reference can distinguish endogenous from spike-in chromosomes by
+        name.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - fasta:
+        type: file
+        description: Endogenous (main) genome FASTA file
+        pattern: "*.{fa,fasta}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1929" # FASTA
+    - genome:
+        type: string
+        description: Identifier of the endogenous genome, e.g. 'hg38'; used to name the output file
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing spike-in sample information
+          e.g. [ id:'spikein' ]
+    - spikein_fasta:
+        type: file
+        description: Spike-in genome FASTA file; every sequence header is suffixed with `_<spikein_genome>` before concatenation
+        pattern: "*.{fa,fasta}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1929" # FASTA
+    - spikein_genome:
+        type: string
+        description: Identifier of the spike-in genome, e.g. 'dm6'; appended as a `_<spikein_genome>` suffix to spike-in chromosome names and used to name the output file
+output:
+  fasta:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test' ]
+      - "${genome}_${spikein_genome}.fa":
+          type: file
+          description: Hybrid FASTA file with the endogenous genome followed by the spike-in genome, whose headers are suffixed with `_<spikein_genome>`
+          pattern: "*.fa"
+          ontologies:
+            - edam: "http://edamontology.org/format_1929" # FASTA
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

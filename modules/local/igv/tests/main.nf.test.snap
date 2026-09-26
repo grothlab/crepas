@@ -1,0 +1,63 @@
+{
+    "sarscov2 - bed - bigwig - igv session": {
+        "content": [
+            [
+                "igv_session.files.txt:md5,36edbfc71032d767e00e3c971399a6e1"
+            ],
+            [
+                "igv_session.xml:md5,ddda51a7c04dc3b2e4ee26af702e6e24"
+            ],
+            {
+                "versions_python": [
+                    [
+                        "IGV",
+                        "python",
+                        "3.8.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T16:21:55.110102139",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bed - bigwig - igv session - stub": {
+        "content": [
+            {
+                "0": [
+                    "igv_session.files.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "1": [
+                    "igv_session.xml:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "2": [
+                    [
+                        "IGV",
+                        "python",
+                        "3.8.3"
+                    ]
+                ],
+                "txt": [
+                    "igv_session.files.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "versions_python": [
+                    [
+                        "IGV",
+                        "python",
+                        "3.8.3"
+                    ]
+                ],
+                "xml": [
+                    "igv_session.xml:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T16:22:05.056707576",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

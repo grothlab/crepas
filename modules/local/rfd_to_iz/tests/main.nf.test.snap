@@ -1,0 +1,117 @@
+{
+    "sarscov2 - okseq rfd - initiation zones": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.prefiltered.bed:md5,367d0343480417d8839d751715263688"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.init_zones.bed:md5,367d0343480417d8839d751715263688"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.init_zones.rm_overlaps.bed:md5,367d0343480417d8839d751715263688"
+                ]
+            ],
+            {
+                "versions_rbase": [
+                    [
+                        "RFD_TO_IZ",
+                        "r-base",
+                        "4.4.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T15:10:03.857384539",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - okseq rfd - initiation zones - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.prefiltered.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.init_zones.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.rm_overlaps.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        "RFD_TO_IZ",
+                        "r-base",
+                        "4.4.3"
+                    ]
+                ],
+                "iz_bed": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.init_zones.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "iz_rm_overlaps_bed": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.rm_overlaps.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "okseq_filtered_bed": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.prefiltered.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "RFD_TO_IZ",
+                        "r-base",
+                        "4.4.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T14:54:28.482734084",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

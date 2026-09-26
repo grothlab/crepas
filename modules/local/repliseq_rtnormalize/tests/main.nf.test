@@ -1,0 +1,218 @@
+nextflow_process {
+
+    name "Test Process REPLISEQ_RTNORMALIZE"
+    script "../main.nf"
+    process "REPLISEQ_RTNORMALIZE"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "repliseq_rtnormalize"
+    tag "deeptools/multibamsummary"
+
+    setup {
+
+        run("DEEPTOOLS_MULTIBAMSUMMARY") {
+            script "../../../nf-core/deeptools/multibamsummary/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ],
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.markduplicates.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.recalibrated.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.markduplicates.sorted.bam', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.recalibrated.sorted.bam', checkIfExists: true)
+                    ],
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.markduplicates.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.recalibrated.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.markduplicates.sorted.bam.bai', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.recalibrated.sorted.bam.bai', checkIfExists: true)
+                    ],
+                    [ 'early_1', 'early_2', 'late_1', 'late_2' ]
+                ]
+                input[1] = [ [:], [] ]
+                """
+            }
+        }
+
+    }
+
+    test("homo_sapiens - 4 replicates - pipeline defaults (pooled, quantile-normalized, per-replicate loess)") {
+
+        when {
+            process {
+                """
+                input[0] = DEEPTOOLS_MULTIBAMSUMMARY.out.raw_counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'early', 'late', 'late' ], [ '1', '2', '1', '2' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.rt_index_raw,
+                    process.out.qc,
+                    process.out.summary,
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                        .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
+                    process.out.findAll { key, val -> key.startsWith("versions") }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - 4 replicates - CPM only, loess smoothed on the ratio") {
+
+        config "./nextflow_cpm_loess.config"
+
+        when {
+            process {
+                """
+                input[0] = DEEPTOOLS_MULTIBAMSUMMARY.out.raw_counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'early', 'late', 'late' ], [ '1', '2', '1', '2' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.rt_index_raw,
+                    process.out.qc,
+                    process.out.summary,
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                        .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
+                    process.out.findAll { key, val -> key.startsWith("versions") }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - 4 replicates - pooled, quantile-normalized, rolling-mean smoothed") {
+
+        config "./nextflow_pooled_qn_roll.config"
+
+        when {
+            process {
+                """
+                input[0] = DEEPTOOLS_MULTIBAMSUMMARY.out.raw_counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'early', 'late', 'late' ], [ '1', '2', '1', '2' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.rt_index_raw,
+                    process.out.qc,
+                    process.out.summary,
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                        .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
+                    process.out.findAll { key, val -> key.startsWith("versions") }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - 4 replicates - paired replicate combination") {
+
+        config "./nextflow_paired.config"
+
+        when {
+            process {
+                """
+                input[0] = DEEPTOOLS_MULTIBAMSUMMARY.out.raw_counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'early', 'late', 'late' ], [ '1', '2', '1', '2' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.rt_index_raw,
+                    process.out.qc,
+                    process.out.summary,
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                        .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
+                    process.out.findAll { key, val -> key.startsWith("versions") }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - 3 fractions - replication-timing index") {
+
+        when {
+            process {
+                """
+                input[0] = DEEPTOOLS_MULTIBAMSUMMARY.out.raw_counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'early', 'mid', 'late' ], [ '1', '2', '1', '1' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.rt_index_raw },
+                { assert process.out.rt_index_smooth },
+                { assert snapshot(
+                    process.out.rt_index_raw,
+                    process.out.qc,
+                    process.out.summary,
+                    // RT tracks vary in the last digits across environments (libm, loess threads): check name and row count
+                    process.out.findAll { key, val -> key in ["raw", "raw_covered", "smooth", "smooth_covered", "rt_index_smooth", "replicate_smooth"] }
+                        .collectEntries { key, val -> [ key, val.collect { meta, f -> [ meta, [f].flatten().collect { file(it.toString()).name + ":rows," + path(it.toString()).readLines().size() } ] } ] },
+                    process.out.findAll { key, val -> key.startsWith("versions") }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - 4 replicates - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = DEEPTOOLS_MULTIBAMSUMMARY.out.raw_counts.map { meta, counts ->
+                    [ meta, counts, [ 'early', 'early', 'late', 'late' ], [ '1', '2', '1', '2' ] ]
+                }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

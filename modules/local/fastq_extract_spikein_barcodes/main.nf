@@ -1,5 +1,5 @@
 //
-// Extract SNAP-CUTANA™ Spike-in barcodes from CUT&RUN and CUT&Tag reactions
+// Extract spike-in barcodes from CUT&RUN and CUT&Tag reactions
 // More info: https://support.epicypher.com/docs/analyzing-snap-cutana-spike-in-controls-and-results-cut-and-tag
 //
 process FASTQ_EXTRACT_SPIKEIN_BARCODES {
@@ -7,9 +7,9 @@ process FASTQ_EXTRACT_SPIKEIN_BARCODES {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/ubuntu:22.04'
-        : 'nf-core/ubuntu:22.04'}"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/6e/6e009cae040b62b96b2a9750b4d0ac9414d8deb4c87cd80ddbe34b09d8077207/data'
+        : 'community.wave.seqera.io/library/coreutils_gawk_pigz_ripgrep_sed:d5a69c5aa4d3b77d'}"
 
     input:
     tuple val(meta), path(reads)
@@ -17,7 +17,9 @@ process FASTQ_EXTRACT_SPIKEIN_BARCODES {
 
     output:
     tuple val(meta), path("${prefix}.tsv"), emit: counts
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('awk'), eval("awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'"), emit: versions_awk, topic: versions
+    tuple val("${task.process}"), val('pigz'), eval("pigz --version 2>&1 | sed 's/pigz //'"), emit: versions_pigz, topic: versions
+    tuple val("${task.process}"), val('coreutils'), eval("env paste --version | head -1 | sed 's/^paste (GNU coreutils) //'"), emit: versions_coreutils, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -28,7 +30,7 @@ process FASTQ_EXTRACT_SPIKEIN_BARCODES {
     count_barcodes_with_awk() {
         fastq_gz="\$1"
         barcode_tsv="\$2"
-        gzip -cd "\$fastq_gz" | awk -F'\\t' -v OFS='\\t' '
+        pigz -cd "\$fastq_gz" | awk -F'\\t' -v OFS='\\t' '
             NR==FNR {
                 if (FNR==1) next
                 n++
@@ -50,28 +52,19 @@ process FASTQ_EXTRACT_SPIKEIN_BARCODES {
         ' "\$barcode_tsv" -
     }
 
+    # Both R1 and R2 are searched because the barcoded side of nucleosome may be ligated in either direction relative to the P5 or P7 adapters.
     count_barcodes_with_awk "${reads[0]}" "${barcode_table}" > r1_counts.tsv
     count_barcodes_with_awk "${reads[1]}" "${barcode_table}" > r2_counts.tsv
 
     printf "barcode_target\\tbarcode_id\\tbarcode_sequence\\tR1_count\\tR2_count\\n" > ${prefix}.tsv
     paste r1_counts.tsv r2_counts.tsv | awk -F'\\t' -v OFS='\\t' '{ print \$1, \$2, \$3, \$4, \$8 }' >> ${prefix}.tsv
-    
+
     rm -f r1_counts.tsv r2_counts.tsv
-    
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-    END_VERSIONS
     """
 
     stub:
     prefix = task.ext.prefix ?: "${meta.id}.spikein_barcode_extract"
     """
     touch  ${prefix}.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-    END_VERSIONS
     """
 }

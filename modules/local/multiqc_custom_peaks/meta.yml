@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "multiqc_custom_peaks"
+description: Build MultiQC custom-content tables for per-sample peak count and FRiP score
+keywords:
+  - multiqc
+  - custom-content
+  - peaks
+  - frip
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to format the peak count as a MultiQC custom-content row.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - peak:
+        type: file
+        description: Peak/BED file whose line count is reported as the peak count
+        pattern: "*.{narrowPeak,broadPeak,bed}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+    - frip:
+        type: file
+        description: Single-line FRiP score text file (as produced by FRIP_SCORE)
+        pattern: "*.txt"
+  - peak_count_header:
+      type: file
+      description: MultiQC custom-content header file for the peak count table
+      pattern: "*.txt"
+  - frip_score_header:
+      type: file
+      description: MultiQC custom-content header file for the FRiP score table
+      pattern: "*.txt"
+output:
+  count:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.peak_count_mqc.tsv":
+          type: file
+          description: MultiQC custom-content file with the sample's peak count
+          pattern: "*.peak_count_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  frip:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.FRiP_mqc.tsv":
+          type: file
+          description: MultiQC custom-content file with the sample's FRiP score
+          pattern: "*.FRiP_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_gawk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env wc --version | head -1 | sed 's/^wc (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "gawk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env wc --version | head -1 | sed 's/^wc (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

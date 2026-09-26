@@ -1,0 +1,203 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "call_peaks"
+description: |
+  Wrapper subworkflow that calls peaks with each of the peak callers selected via peak_callers
+  (MACS3, epic2, Genrich, MACE, SEACR, Consenrich+ROCCO, DANPOS2, EDD or denopa), then, unless
+  skip_consensus_peaks is true, builds a consensus peak set across samples from the resulting
+  peaks
+keywords:
+  - peak-calling
+  - consensus-peaks
+  - chip-seq
+components:
+  - bam_peaks_call_qc_annotate_epic2_homer
+  - bam_peaks_call_qc_annotate_macs3_homer
+  - bam_peaks_call_qc_annotate_genrich_homer
+  - bam_peaks_call_qc_annotate_mace_homer
+  - bam_peaks_call_qc_annotate_danpos2_homer
+  - bam_peaks_call_qc_annotate_seacr_homer
+  - bam_peaks_call_qc_annotate_consenrich_rocco_homer
+  - edd
+  - denopa
+  - bed_consensus_quantify_qc_bedtools_featurecounts_deseq2
+input:
+  - ch_bam_index:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s), with indices
+        Structure: [ val(meta), [ path(bam) ], [ path(index) ] ]
+  - ch_bigwig_norm:
+      description: |
+        Normalised bigWig signal, used for the consensus-peak profile plots
+        Structure: [ val(meta), path(bigwig) ]
+  - ch_bedgraph_for_seacr:
+      description: |
+        IP and input-control bedGraph signal, used when 'seacr' is among peak_callers
+        Structure: [ val(meta), path(bedgraph) ]
+  - ch_peak_callers:
+      description: |
+        One peak caller name per element; every emitted caller is run on all applicable samples.
+        Each is one of: macs3, epic2, genrich, mace, seacr, consenrich,
+        dpeak/dpos/dregion/dtriple (DANPOS2), edd, denopa.
+        Structure: [ val(peak_caller) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - ch_gtf:
+      type: file
+      description: Reference GTF annotation file
+  - ch_effective_gfraction:
+      description: Effective genome fraction, used by epic2
+  - ch_chrom_sizes_endo:
+      type: file
+      description: Endogenous genome chromosome sizes file
+  - ch_blacklist:
+      type: file
+      description: Blacklist regions to exclude from called peaks
+  - ch_sparsebed:
+      type: file
+      description: Sparse regions BED file, used by Consenrich
+  - ch_active_regions:
+      type: file
+      description: Active regions BED file, used by Consenrich
+  - ch_rocco_params:
+      type: file
+      description: ROCCO parameters file
+  - ch_effective_gsize:
+      description: Effective genome size, used by ROCCO and MACS3
+  - ch_epic2_peak_count_header:
+      type: file
+      description: MultiQC custom-content header for the epic2 peak count table
+  - ch_epic2_frip_score_header:
+      type: file
+      description: MultiQC custom-content header for the epic2 FRiP score table
+  - ch_epic2_peak_annotation_header:
+      type: file
+      description: MultiQC custom-content header for the epic2 peak annotation plot
+  - ch_gr_peak_count_header:
+      type: file
+      description: MultiQC custom-content header for the Genrich peak count table
+  - ch_gr_frip_score_header:
+      type: file
+      description: MultiQC custom-content header for the Genrich FRiP score table
+  - ch_gr_peak_annotation_header:
+      type: file
+      description: MultiQC custom-content header for the Genrich peak annotation plot
+  - ch_mace_peak_count_header:
+      type: file
+      description: MultiQC custom-content header for the MACE peak count table
+  - ch_mace_frip_score_header:
+      type: file
+      description: MultiQC custom-content header for the MACE FRiP score table
+  - ch_mace_peak_annotation_header:
+      type: file
+      description: MultiQC custom-content header for the MACE peak annotation plot
+  - ch_macs3_peak_count_header:
+      type: file
+      description: MultiQC custom-content header for the MACS3 peak count table
+  - ch_macs3_frip_score_header:
+      type: file
+      description: MultiQC custom-content header for the MACS3 FRiP score table
+  - ch_macs3_peak_annotation_header:
+      type: file
+      description: MultiQC custom-content header for the MACS3 peak annotation plot
+  - ch_seacr_peak_count_header:
+      type: file
+      description: MultiQC custom-content header for the SEACR peak count table
+  - ch_seacr_frip_score_header:
+      type: file
+      description: MultiQC custom-content header for the SEACR FRiP score table
+  - ch_seacr_peak_annotation_header:
+      type: file
+      description: MultiQC custom-content header for the SEACR peak annotation plot
+  - ch_deseq2_pca_header:
+      type: file
+      description: MultiQC custom-content header for the consensus-peak DESeq2 PCA plot
+  - ch_deseq2_clustering_header:
+      type: file
+      description: MultiQC custom-content header for the consensus-peak DESeq2 clustering plot
+  - narrow_peak:
+      type: boolean
+      description: Whether peaks are narrow (true) or broad (false)
+      pattern: "true|false"
+  - skip_peak_annotation:
+      type: boolean
+      description: Skip HOMER annotation of called peaks
+      pattern: "true|false"
+  - skip_peak_qc:
+      type: boolean
+      description: Skip per-caller peak/annotation QC plots
+      pattern: "true|false"
+  - skip_bdgcmp:
+      type: boolean
+      description: Skip the MACS3 bdgcmp signal-vs-control bigWig generation
+      pattern: "true|false"
+  - skip_consensus_peaks:
+      type: boolean
+      description: Skip building the cross-sample consensus peak set
+      pattern: "true|false"
+  - skip_deseq2_qc:
+      type: boolean
+      description: Skip DESeq2 QC on the consensus-peak quantification
+      pattern: "true|false"
+  - skip_consensus_plotprofile:
+      type: boolean
+      description: Skip deepTools signal-profile plots over the consensus peaks
+      pattern: "true|false"
+  - input_cisrpm_in_plotprofile:
+      type: boolean
+      description: Include input-control CIS-RPM signal in the consensus-peak profile plots
+      pattern: "true|false"
+  - seacr_peak_threshold:
+      type: float
+      description: SEACR peak calling threshold, used when 'seacr' is among peak_callers
+output:
+  - edd_peaks:
+      description: |
+        EDD peaks, when 'edd' is among peak_callers
+        Structure: [ val(meta), path(peaks) ]
+  - macs3_peaks:
+      description: |
+        MACS3 peaks, when 'macs3' is among peak_callers
+        Structure: [ val(meta), path(peaks) ]
+  - genrich_peaks:
+      description: |
+        Genrich peaks, when 'genrich' is among peak_callers
+        Structure: [ val(meta), path(peaks) ]
+  - epic2_peaks:
+      description: |
+        epic2 peaks, when 'epic2' is among peak_callers
+        Structure: [ val(meta), path(peaks) ]
+  - seacr_peaks:
+      description: |
+        SEACR peaks, when 'seacr' is among peak_callers
+        Structure: [ val(meta), path(peaks) ]
+  - denopa_peaks:
+      description: |
+        denopa peaks, when 'denopa' is among peak_callers
+        Structure: [ val(meta), path(peaks) ]
+  - mace_peaks:
+      description: |
+        MACE border-pair peaks, when 'mace' is among peak_callers
+        Structure: [ val(meta), path(peaks) ]
+  - consenrich_tracks:
+      description: |
+        Consenrich signal, residuals and e-ratio tracks, when 'consenrich' is among peak_callers
+        Structure: [ val(meta), path(bigwig) ]
+  - rocco_peaks:
+      description: |
+        ROCCO consensus peaks, when 'consenrich' is among peak_callers
+        Structure: [ val(meta), path(bed) ]
+  - consensus_bed:
+      description: |
+        Cross-sample consensus peak set, when skip_consensus_peaks is false
+        Structure: [ val(meta), path(bed) ]
+  - consensus_txt:
+      description: |
+        Cross-sample consensus peak summary table, when skip_consensus_peaks is false
+        Structure: [ val(meta), path(txt) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

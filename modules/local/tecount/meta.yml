@@ -1,0 +1,130 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "tecount"
+description: Quantify reads mapped to genes and transposable element (TE) subfamilies using TEcount from the TEtranscripts suite
+keywords:
+  - tecount
+  - tetranscripts
+  - transposable elements
+  - te
+  - quantification
+  - rna-seq
+tools:
+  - tetranscripts:
+      description: |
+        A package for including transposable elements in differential enrichment analysis of
+        sequencing datasets. TEcount is a companion tool bundled with TEtranscripts that
+        quantifies reads mapping to genes and TE subfamilies for a single sample, making it
+        suitable for cluster/per-sample execution ahead of a separate differential analysis step.
+      homepage: https://github.com/mhammell-laboratory/TEtranscripts
+      documentation: https://hammelllab.labsites.cshl.edu/software/#TEtranscripts
+      tool_dev_url: https://github.com/mhammell-laboratory/TEtranscripts
+      doi: "10.1093/bioinformatics/btv422"
+      licence: ["GPL v3"]
+      identifier: "biotools:tetranscripts"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: |
+          A single BAM file of aligned reads. Must be unsorted or sorted by read name;
+          coordinate-sorted BAM files are not supported unless `--sortByPos` is supplied
+          via `task.ext.args`.
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing gene annotation information
+          e.g. [ id:'genome_gtf' ]
+    - genic_gtf_or_index:
+        type: file
+        description: |
+          Gene annotation, either as a GTF file or as a pre-built TEcount gene index
+          (a pickled `.ind` file produced by a previous TEcount/TEtranscripts run,
+          reused to skip re-parsing the GTF).
+        pattern: "*.{gtf,ind,Ind}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2306" # GTF
+  - - meta3:
+        type: map
+        description: |
+          Groovy Map containing TE annotation information
+          e.g. [ id:'te_gtf' ]
+    - te_gtf_or_index:
+        type: file
+        description: |
+          Curated transposable element annotation, either as a GTF file or as a pre-built
+          TEcount TE index (a pickled `.ind` file produced by a previous TEcount/TEtranscripts
+          run, reused to skip re-parsing the GTF).
+        pattern: "*.{gtf,ind,Ind}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2306" # GTF
+  - skip_gz:
+      type: boolean
+      description: Skip pigz compression of the output count table
+      pattern: "true or false"
+output:
+  counts:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.cntTable*":
+          type: file
+          description: |
+            Tab-delimited count table of reads assigned to genes and TE subfamilies,
+            pigz-compressed unless `skip_gz` is true.
+          pattern: "*.cntTable*"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_tecount:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "TEcount":
+          type: string
+          description: The name of the tool
+      - "TEcount --version 2>&1 | sed 's/TEcount //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_pigz:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "pigz":
+          type: string
+          description: The name of the tool
+      - "pigz --version 2>&1 | sed 's/pigz //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "TEcount":
+          type: string
+          description: The name of the tool
+      - "TEcount --version 2>&1 | sed 's/TEcount //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "pigz":
+          type: string
+          description: The name of the tool
+      - "pigz --version 2>&1 | sed 's/pigz //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

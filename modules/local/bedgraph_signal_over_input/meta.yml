@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bedgraph_signal_over_input"
+description: Compute the per-interval ratio of an IP/signal bedGraph track over a control/input bedGraph track
+keywords:
+  - bedgraph
+  - signal-over-input
+  - awk
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to compute, for each interval of the control bedGraph, the ratio of the matching
+        IP-track value (keyed by chromosome, start and end) over the control value, subject to
+        minimum-signal/minimum-input thresholds; intervals not meeting the thresholds are
+        reported as "NaN".
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - ip_bedgraph:
+        type: file
+        description: bedGraph file with the IP/signal track
+        pattern: "*.{bdg,bedGraph,bedgraph}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+    - control_bedgraph:
+        type: file
+        description: bedGraph file with the control/input track that `ip_bedgraph` is divided by
+        pattern: "*.{bdg,bedGraph,bedgraph}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+output:
+  bedgraph:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bedgraph":
+          type: file
+          description: |
+            bedGraph file with the signal-over-input ratio at each control-track interval;
+            "NaN" where signal/input do not meet `--min_signal`/`--min_input` (from
+            `task.ext.args2`, defaults 0 and 0.001)
+          pattern: "*.bedgraph"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

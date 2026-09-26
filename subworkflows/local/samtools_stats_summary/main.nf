@@ -2,9 +2,9 @@
 // Create a summary of samtools stat tables
 //
 
-include { SAMTOOLS_STATS_TRANSPOSE             } from '../../../modules/local/samtools/stats_transpose/main'
-include { SAMTOOLS_STATS_CAT                  } from '../../../modules/local/samtools/stats_cat/main'
-include { FINAL_STAT_SUMMARY } from '../../../modules/local/samtools/final_stat_summary/main'
+include { STATS_TRANSPOSE     } from '../../../modules/local/stats_transpose/main'
+include { STATS_CAT           } from '../../../modules/local/stats_cat/main'
+include { STATS_SUMMARY       } from '../../../modules/local/stats_summary/main'
 
 workflow SAMTOOLS_STATS_SUMMARY {
 
@@ -15,29 +15,23 @@ workflow SAMTOOLS_STATS_SUMMARY {
 
     main:
 
-    ch_versions = channel.empty()
-
-    SAMTOOLS_STATS_TRANSPOSE (
+    STATS_TRANSPOSE (
         ch_stats
     )
-    ch_col_stats = SAMTOOLS_STATS_TRANSPOSE.out.t_stats.collect{ it -> it[1] }
-    ch_versions = ch_versions.mix(SAMTOOLS_STATS_TRANSPOSE.out.versions.first())
+    ch_col_stats = STATS_TRANSPOSE.out.t_stats.collect{ it -> it[1] }
 
-    SAMTOOLS_STATS_CAT (
+    STATS_CAT (
         ch_col_stats
     )
-    ch_versions = ch_versions.mix(SAMTOOLS_STATS_CAT.out.versions)
 
-    FINAL_STAT_SUMMARY (
-        SAMTOOLS_STATS_CAT.out.cat,
+    STATS_SUMMARY (
+        STATS_CAT.out.cat,
         genome,
         spikein_genome
     )
-    ch_versions = ch_versions.mix(FINAL_STAT_SUMMARY.out.versions)
 
     emit:
 
-    summary     = FINAL_STAT_SUMMARY.out.tsv    // channel: [ val(meta), [ tsv ] ]
-    
-    versions    = ch_versions               // channel: [ versions.yml ]
+    summary     = STATS_SUMMARY.out.tsv    // channel: [ val(meta), [ tsv ] ]
+
 }

@@ -1,0 +1,123 @@
+{
+    "sarscov2 - bed - filter blacklist": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.flTbl.bed:md5,e92c777541723ce763fd8563b61d9e2e"
+                ]
+            ],
+            {
+                "versions_bedtools": [
+                    [
+                        "BED_FILTER_BLACKLIST",
+                        "bedtools",
+                        "2.31.1"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "BED_FILTER_BLACKLIST",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:21:12.941269644",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bed - filter blacklist - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.flTbl.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BED_FILTER_BLACKLIST",
+                        "bedtools",
+                        "2.31.1"
+                    ]
+                ],
+                "2": [
+                    [
+                        "BED_FILTER_BLACKLIST",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ],
+                "peaks": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.flTbl.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_bedtools": [
+                    [
+                        "BED_FILTER_BLACKLIST",
+                        "bedtools",
+                        "2.31.1"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "BED_FILTER_BLACKLIST",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:21:33.727207279",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bed - filter blacklist - filter_chr drops non-chr-prefixed contigs": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.flTbl.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            ],
+            {
+                "versions_bedtools": [
+                    [
+                        "BED_FILTER_BLACKLIST",
+                        "bedtools",
+                        "2.31.1"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "BED_FILTER_BLACKLIST",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:27:24.018586113",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

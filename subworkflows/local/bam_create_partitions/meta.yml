@@ -9,15 +9,19 @@ keywords:
 components:
   - bam_split_by_strand
   - samtools/index
+  - bam_stats_samtools
   - bedtools/genomecov
+  - file_sort
   - bedtools/makewindows
-  - bigtools/bigwigaverageoverbed
+  - ucsc/bigwigaverageoverbed
   - bedgraph_normalize
   - bedgraph_signal_minus_input
   - partition_or_rfd_smooth
   - collect_partitions
-  - bigtools/bedgraphtobigwig
-  - partition_plot
+  - partition_average
+  - ucsc/bedgraphtobigwig
+  - rfd_to_iz
+  - partition_or_rfd_plot
 input:
   - ch_bam:
       type: file
@@ -42,7 +46,7 @@ input:
   - rpm_use_flT2_total:
       type: string
       description: |
-        Comma-separated list of antibodies for which to use flT2_total_mapped_reads 
+        Comma-separated list of antibodies for which to use flT2_total_mapped_reads
         instead of flT3_total_mapped_reads for RPM normalization
   - smooth_radius:
       type: integer

@@ -1,0 +1,42 @@
+---
+import { renderRepoMarkdown } from "../lib/markdown";
+import { getManifest, githubRef, repoFileExists, type SiteVersion } from "../lib/repo";
+import Toc from "./Toc.astro";
+
+export interface Props {
+    file: string;
+    version: SiteVersion;
+}
+
+const { file, version } = Astro.props;
+const exists = repoFileExists(file, version.ref);
+const { html, headings } = exists ? await renderRepoMarkdown(file, version, true) : { html: "", headings: [] };
+const editUrl = `${getManifest(version.ref).homePage}/blob/${githubRef(version)}/${file}`;
+---
+
+<div class="row">
+    <article class="col-12 col-md-8 col-xxl-9 pt-3 markdown-content">
+        {
+            exists ? (
+                <Fragment set:html={html} />
+            ) : (
+                <div class="alert alert-secondary mt-3">
+                    <code>{file}</code> does not exist in version <code>{version.id}</code>.
+                </div>
+            )
+        }
+        {
+            exists && (
+                <p class="small text-body-secondary border-top pt-3 mt-5">
+                    <i class="fa-brands fa-github me-1" />
+                    <a class="text-body-secondary" href={editUrl}>
+                        View this page's source on GitHub
+                    </a>
+                </p>
+            )
+        }
+    </article>
+    <div class="col-12 col-md-4 col-xxl-3 d-none d-md-block">
+        <Toc headings={headings} />
+    </div>
+</div>

@@ -1,0 +1,69 @@
+{
+    "sarscov2 + homo_sapiens - hybrid fasta": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "sarscov2"
+                    },
+                    "sarscov2_homo_sapiens.fa:md5,2ad3300bb31d90c739457c0506525538"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "BUILD_HYBRID_FASTA",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-10T10:10:00.676408588",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 + homo_sapiens - hybrid fasta - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "sarscov2"
+                        },
+                        "sarscov2_homo_sapiens.fa:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BUILD_HYBRID_FASTA",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "fasta": [
+                    [
+                        {
+                            "id": "sarscov2"
+                        },
+                        "sarscov2_homo_sapiens.fa:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "BUILD_HYBRID_FASTA",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-10T10:10:12.09666993",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

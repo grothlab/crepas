@@ -1,0 +1,107 @@
+nextflow_process {
+
+    name "Test Process ROCCO"
+    script "../main.nf"
+    process "ROCCO"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "rocco"
+    tag "bedtools/genomecov"
+    tag "ucsc/bedgraphtobigwig"
+
+    test("sarscov2 - bigwig") {
+
+        setup {
+            run("BEDTOOLS_GENOMECOV") {
+                script "../../../nf-core/bedtools/genomecov/main.nf"
+                process {
+                    """
+                    input[0] = [
+                        [ id:'test' ], // meta map
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                        0
+                    ]
+                    input[1] = file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true)
+                    input[2] = 'bedgraph'
+                    input[3] = true
+                    """
+                }
+            }
+            run("UCSC_BEDGRAPHTOBIGWIG") {
+                script "../../../nf-core/ucsc/bedgraphtobigwig/main.nf"
+                process {
+                    """
+                    input[0] = BEDTOOLS_GENOMECOV.out.genomecov
+                    input[1] = file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true)
+                    """
+                }
+            }
+        }
+
+        when {
+            process {
+                """
+                input[0] = UCSC_BEDGRAPHTOBIGWIG.out.bigwig.map { meta, bw -> [ meta, bw, [], [] ] }
+                input[1] = [
+                    [ id:'genome' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true)
+                ]
+                input[2] = [ [:], [] ]
+                input[3] = 29903
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                // NOTE: ROCCO's peak boundaries are not perfectly byte-reproducible across runs
+                // (observed +/-a few bp jitter on rare peaks, even with the deterministic 'glop'
+                // solver), most likely from floating-point summation order in its multi-threaded
+                // signal aggregation. The number of peaks varies too (12 locally, 15 on the
+                // GitHub runners), so we only check that peaks were called, plus the filename.
+                { assert path(process.out.bed[0][1]).readLines().size() > 0 },
+                { assert snapshot(
+                    file(process.out.bed[0][1]).name,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bigwig - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bedgraph/test.bedgraph', checkIfExists: true),
+                    [],
+                    []
+                ]
+                input[1] = [
+                    [ id:'genome' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true)
+                ]
+                input[2] = [ [:], [] ]
+                input[3] = []
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

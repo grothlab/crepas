@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "partition_or_rfd_smooth"
+description: Compute a smoothed SCAR-seq partition or OK-seq RFD score per window from forward/reverse strand coverage, together with its derivative and zero-crossing metrics
+keywords:
+  - scar-seq
+  - ok-seq
+  - rfd
+  - partition
+  - replication-timing
+  - smoothing
+tools:
+  - perl:
+      description: |
+        Perl 5 interpreter running the bundled `partition_or_rfd_smooth.pl` script, which
+        computes per-window partition = (F-R)/(F+R) (SCAR-seq) or RFD = (R-F)/(R+F) (OK-seq),
+        a smoothed value over a sliding window, and the corresponding derivative and
+        zero-crossing metrics.
+      homepage: https://www.perl.org/
+      documentation: https://perldoc.perl.org/
+      licence: ["Artistic-1.0", "GPL-1.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - partition_or_rfd:
+        type: string
+        description: "Signal mode: 'partition' for SCAR-seq or 'RFD' for OK-seq"
+    - f_tab:
+        type: file
+        description: |
+          Forward-strand per-window coverage table (BigWigAverageOverBed-style); column 1 is a
+          `<chromosome>_<window>` window ID and column 4 the coverage value used for the score.
+        pattern: "*.{tab,tsv}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+    - r_tab:
+        type: file
+        description: |
+          Reverse-strand per-window coverage table with the same windows and row order as `f_tab`.
+        pattern: "*.{tab,tsv}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+  - radius:
+      type: integer
+      description: Smoothing window radius (>= 1)
+  - dradius:
+      type: integer
+      description: Derivative window radius (<= radius)
+  - zradius:
+      type: integer
+      description: Zero-crossing window radius (<= radius)
+output:
+  rfd:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          type: file
+          description: |
+            Tab-delimited per-window table: window ID, raw partition/RFD value, smoothed value,
+            derivative, boundary score, and zero-crossing derivative.
+          pattern: "*.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_perl:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "perl":
+          type: string
+          description: The name of the tool
+      - "perl --version 2>&1 | sed -n 's/.*(v\\([0-9.]*\\)).*/\\1/p' | head -1":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "perl":
+          type: string
+          description: The name of the tool
+      - "perl --version 2>&1 | sed -n 's/.*(v\\([0-9.]*\\)).*/\\1/p' | head -1":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

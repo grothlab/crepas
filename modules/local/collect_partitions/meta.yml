@@ -1,0 +1,132 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "collect_partitions"
+description: Paste together per-window BigWigAverageOverBed counts/RPMs and a normalized/smoothed RFD (replication-fork-direction) score into one partition table, and derive a filtered bedGraph of the smoothed score
+keywords:
+  - awk
+  - paste
+  - partitions
+  - rfd
+  - replication-timing
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to filter the pasted partition table to windows with non-zero forward/reverse
+        counts, and to format the filtered table into a 4-column bedGraph.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - windows:
+        type: file
+        description: BED file of genomic windows (columns 1-3 are used as chromosome/start/end for all output rows)
+        pattern: "*.{bed,tsv}"
+    - bwaob_fwd:
+        type: file
+        description: BigWigAverageOverBed output (per-window forward-strand raw counts and RPM) for the same windows, same row order as `windows`
+        pattern: "*.tab"
+    - bwaob_rev:
+        type: file
+        description: BigWigAverageOverBed output (per-window reverse-strand raw counts and RPM) for the same windows, same row order as `windows`
+        pattern: "*.tab"
+    - norm_or_smi_fwd:
+        type: file
+        description: Per-window raw and smoothed partition/RFD score (forward strand), same row order as `windows`
+        pattern: "*.tsv"
+    - norm_or_smi_rev:
+        type: file
+        description: Per-window raw and smoothed partition/RFD score (reverse strand), same row order as `windows`
+        pattern: "*.tsv"
+    - rfd:
+        type: file
+        description: Per-window RFD derivative and second-derivative values, same row order as `windows`
+        pattern: "*.tsv"
+output:
+  tsv:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          type: file
+          description: Combined, coordinate-sorted 12-column partition table (chrom, start, end, fwd/rev counts and RPMs, raw/smoothed/derivative RFD scores)
+          pattern: "*.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  filtered_tsv:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.flT_by_counts.tsv":
+          type: file
+          description: Partition table filtered to windows with non-zero forward or reverse counts
+          pattern: "*.flT_by_counts.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  filtered_bdg:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.flT_by_counts.bdg":
+          type: file
+          description: bedGraph of the smoothed partition/RFD score, restricted to windows with non-zero forward or reverse counts
+          pattern: "*.flT_by_counts.bdg"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env paste --version | head -1 | sed 's/^paste (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env paste --version | head -1 | sed 's/^paste (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

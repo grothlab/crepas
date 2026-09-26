@@ -1,0 +1,191 @@
+{
+    "sarscov2 - tagalign - single-end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.spr1.tagAlign:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.spr2.tagAlign:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ],
+                "3": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "4": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "openssl",
+                        "3.5.3"
+                    ]
+                ],
+                "tagalign1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.spr1.tagAlign:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tagalign2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.spr2.tagAlign:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ],
+                "versions_openssl": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "openssl",
+                        "3.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:28:53.034435698",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - tagalign - paired-end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.spr1.tagAlign:md5,709a994272f9ff1e27f44a148bf29c7b"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.spr2.tagAlign:md5,388b68b0aa6526f103617878c5ca1443"
+                ]
+            ],
+            {
+                "versions_coreutils": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ],
+                "versions_openssl": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "openssl",
+                        "3.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:28:43.499208787",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - tagalign - single-end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.spr1.tagAlign:md5,3d4da5a1fa9932ef6dcdaf8e6183db5b"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.spr2.tagAlign:md5,8ab1ef93dcb4bd7125da1c0984e40cf8"
+                ]
+            ],
+            {
+                "versions_coreutils": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ],
+                "versions_openssl": [
+                    [
+                        "TAGALIGN_SELF_PSEUDOREPLICATES",
+                        "openssl",
+                        "3.5.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:28:33.587817197",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

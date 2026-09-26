@@ -1,23 +1,23 @@
 cff-version: 1.2.0
 message: "If you use [crepas](https://github.com/grothlab/crepas) in your work, please cite it as below."
 authors:
-- family-names: "Ruiz-Pérez"
-  given-names: "Samuel"
-  orcid: "https://orcid.org/0000-0002-5577-8341"
-- family-names: "Du"
-  given-names: "Qian"
-  orcid: "https://orcid.org/0000-0003-3393-681X"
-- family-names: "Biran"
-  given-names: "Alva"
-  orcid: "https://orcid.org/0000-0002-0276-2004"
-- family-names: "Groth"
-  given-names: "Anja"
-  orcid: "https://orcid.org/0000-0003-0577-1771"
-- family-names: "Alcaraz"
-  given-names: "Nicolas"
-  orcid: "https://orcid.org/0000-0003-0839-8423"
+  - family-names: "Ruiz-Pérez"
+    given-names: "Samuel"
+    orcid: "https://orcid.org/0000-0002-5577-8341"
+  - family-names: "Du"
+    given-names: "Qian"
+    orcid: "https://orcid.org/0000-0003-3393-681X"
+  - family-names: "Biran"
+    given-names: "Alva"
+    orcid: "https://orcid.org/0000-0002-0276-2004"
+  - family-names: "Groth"
+    given-names: "Anja"
+    orcid: "https://orcid.org/0000-0003-0577-1771"
+  - family-names: "Alcaraz"
+    given-names: "Nicolas"
+    orcid: "https://orcid.org/0000-0003-0839-8423"
 title: "CREPAS: a reproducible nascent chromatin sequencing analysis pipeline for epigenome replication studies."
-version: 0.1.0
+version: 1.1.0
 doi: 10.5281/zenodo.20788108
-date-released: 2026-06-30
+date-released: 2026-09-25
 url: "https://github.com/grothlab/crepas"

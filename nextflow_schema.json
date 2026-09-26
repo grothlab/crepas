@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/grothlab/crepas/master/nextflow_schema.json",
     "title": "grothlab/crepas pipeline parameters",
-    "description": "grothlab/crepas is a bioinformatics pipeline for the analysis of chromatin sequencing data (ChIP-seq, ATAC-seq, SCAR-seq, ChOR-seq, etc.).",
+    "description": "a reproducible nascent chromatin sequencing analysis pipeline for epigenome replication studies.",
     "type": "object",
     "$defs": {
         "input_output_options": {
@@ -20,7 +20,7 @@
                     "schema": "assets/schema_input.json",
                     "exists": true,
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row. See [usage docs](https://github.com/grothlab/crepas/blob/main/docs/usage.md).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. See [usage docs](https://crepas.grothlab.workers.dev/usage/).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "fragment_size": {
@@ -44,7 +44,7 @@
                     "description": "Read length used to calculate MACS3 genome size for peak calling if `--macs_gsize` isn't provided.",
                     "fa_icon": "fas fa-chart-area",
                     "enum": [50, 75, 100, 150, 200],
-                    "default": 50
+                    "default": 75
                 },
                 "outdir": {
                     "type": "string",
@@ -71,7 +71,7 @@
             "type": "object",
             "fa_icon": "fas fa-dna",
             "description": "Reference genome related files and options required for the workflow.",
-            "required": ["genome", "fasta", "gtf"],
+            "required": ["genome"],
             "properties": {
                 "genome": {
                     "type": "string",
@@ -84,7 +84,7 @@
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "exists": true,
-                    "description": "Path to FASTA genome file.",
+                    "description": "Path to FASTA genome file. Required unless `--hybrid_fasta` is provided or the file is supplied by a reference genome config (iGenomes/Refgenie).",
                     "help_text": "If you don't have the appropriate alignment index available this will be generated for you automatically based on this file. Combine with `--save_reference` to save alignment index for future runs.",
                     "fa_icon": "far fa-file-code"
                 },
@@ -95,6 +95,15 @@
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "exists": true,
                     "description": "Path to exogenous (spike-in) FASTA genome file. If you provide this, the a hybrid fasta reference file will be generated and used for alignment index building.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "hybrid_fasta": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
+                    "exists": true,
+                    "description": "Path to a pre-built hybrid (endogenous + spike-in) FASTA genome file, with spike-in contigs named `<chromosome_name>_<spikein_genome>`. If provided, this is used directly instead of generating a hybrid fasta from `--fasta`/`--spikein_fasta`. Mutually exclusive with `--fasta`: providing both raises an error.",
                     "fa_icon": "far fa-file-code"
                 },
                 "gtf": {
@@ -120,9 +129,14 @@
                     "description": "Path to directory or tar.gz archive for pre-built BWA index.",
                     "fa_icon": "fas fa-bezier-curve"
                 },
-                "bwa_mem2_index": {
+                "bwamem2_index": {
                     "type": "string",
                     "description": "Path to directory or tar.gz archive for pre-built BWAMEM2 index.",
+                    "fa_icon": "fas fa-bezier-curve"
+                },
+                "minibwa_index": {
+                    "type": "string",
+                    "description": "Path to directory or tar.gz archive for pre-built minibwa index.",
                     "fa_icon": "fas fa-bezier-curve"
                 },
                 "bowtie_index": {
@@ -197,7 +211,7 @@
                 "macs_gsize": {
                     "type": "number",
                     "description": "Effective genome size parameter required by MACS3.",
-                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3.",
+                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3. Provide the number written out in full (e.g. `--macs_gsize 2700000000`), not in scientific notation: `2.7e9`.",
                     "fa_icon": "fas fa-arrows-alt-h"
                 },
                 "blacklist": {
@@ -252,7 +266,6 @@
                 },
                 "skip_gtf_index": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Skip indexing the GTF file with tabix before processing.",
                     "help_text": "Set this parameter to true to skip indexing the GTF file with tabix. This may be useful if your GTF file is already indexed or if you encounter issues with tabix.",
                     "fa_icon": "fas fa-fast-forward"
@@ -292,12 +305,11 @@
                 "skip_markduplicates": {
                     "type": "boolean",
                     "description": "Skip the MarkDuplicates step with Picard for samples without UMIs.",
-                    "fa_icon": "fas fa-fast-forward",
-                    "default": false
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "umitools_extract_method": {
                     "type": "string",
-                    "description": "UMI pattern to use. Can be either `string` (default) or `regex`.",
+                    "description": "UMI pattern to use.",
                     "help_text": "More details can be found in the [UMI-tools documentation](https://umi-tools.readthedocs.io/en/latest/reference/extract.html#extract-method).\n",
                     "fa_icon": "fas fa-dna",
                     "default": "string",
@@ -350,15 +362,14 @@
                 "save_dedup_intermeds": {
                     "type": "boolean",
                     "description": "Save intermediate files from the UMI deduplication step.",
-                    "fa_icon": "fas fa-save",
-                    "default": true
+                    "fa_icon": "fas fa-save"
                 },
                 "skip_split_by_chrom": {
                     "type": "boolean",
                     "description": "Skip splitting the BAM file by chromosome for UMI deduplication.",
                     "fa_icon": "fas fa-fast-forward",
-                    "default": false,
-                    "help_text": "BAMs are splitted by chromosome, deduplicated, and then merged back to improve parallelization of the deduplication step. Set this parameter to true to skip this splitting step. This may be useful if you encounter issues with the splitting or merging steps or if your BAM files are small and you don't think that parallelization will speed up the deduplication step."}
+                    "help_text": "BAMs are splitted by chromosome, deduplicated, and then merged back to improve parallelization of the deduplication step. Set this parameter to true to skip this splitting step. This may be useful if you encounter issues with the splitting or merging steps or if your BAM files are small and you don't think that parallelization will speed up the deduplication step."
+                }
             }
         },
         "adapter_trimming_options": {
@@ -480,9 +491,20 @@
                 "aligner": {
                     "type": "string",
                     "default": "chromap",
-                    "description": "Specifies the alignment algorithm to use. The available options are `bwa`, `bowtie2`, `chromap`, `star`, and `hisat2`.",
+                    "description": "Specifies the alignment algorithm to use.",
                     "fa_icon": "fas fa-map-signs",
-                    "enum": ["bwa", "bwamem2", "bowtie", "bowtie2", "chromap", "star", "hisat2", "strobealign", "minimap2"]
+                    "enum": [
+                        "bwa",
+                        "bwamem2",
+                        "minibwa",
+                        "bowtie",
+                        "bowtie2",
+                        "chromap",
+                        "star",
+                        "hisat2",
+                        "strobealign",
+                        "minimap2"
+                    ]
                 },
                 "bwa_min_score": {
                     "type": "integer",
@@ -493,12 +515,6 @@
                     "type": "integer",
                     "description": "Don't output BWAMEM2 alignments with score lower than this parameter.",
                     "fa_icon": "fas fa-hand-paper"
-                },
-                "sort_bam": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Should the BAM files be sorted by coordinate? Only relevant if Bowtie2 or BWA are used as aligners.",
-                    "fa_icon": "fas fa-sort-numeric-down"
                 },
                 "save_align_intermeds": {
                     "type": "boolean",
@@ -541,6 +557,25 @@
                     "default": 11,
                     "description": "Minimizer window size to use for minimap2 indexing and alignment. See the [minimap2 documentation](https://lh3.github.io/minimap2/minimap2.html) for more details.",
                     "fa_icon": "fas fa-map-signs"
+                },
+                "minibwa_preset": {
+                    "type": "string",
+                    "default": "sr",
+                    "description": "Preset to use for minibwa alignment. See the [minibwa documentation](https://github.com/lh3/minibwa) for more details.",
+                    "fa_icon": "fas fa-map-signs",
+                    "enum": ["sr", "lr", "adap"]
+                },
+                "minibwa_min_seed_length": {
+                    "type": "integer",
+                    "default": 19,
+                    "description": "Minimum seed length to use for minibwa alignment. See the [minibwa documentation](https://github.com/lh3/minibwa) for more details.",
+                    "fa_icon": "fas fa-map-signs"
+                },
+                "minibwa_bandwidth": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "Bandwidth to use for minibwa alignment. See the [minibwa documentation](https://github.com/lh3/minibwa) for more details.",
+                    "fa_icon": "fas fa-map-signs"
                 }
             }
         },
@@ -557,7 +592,6 @@
                 },
                 "save_spikein_intermeds": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Save intermediate files during spike-in splitting and filtering of BAMs. These include the split and filtered BAM files before coordinate-sorting.",
                     "fa_icon": "fas fa-save"
                 }
@@ -571,7 +605,7 @@
             "properties": {
                 "multimap_allocation_method": {
                     "type": "string",
-                    "description": "Method to allocate multimappers. Options are `allo`, `chromap`, and `mmr`. Not setting this parameter means that multimappers will not be allocated (the default).",
+                    "description": "Method to allocate multimappers. Not setting this parameter means that multimappers will not be allocated (the default).",
                     "fa_icon": "fas fa-dice-d20",
                     "enum": ["allo", "chromap", "mmr"]
                 },
@@ -583,7 +617,6 @@
                 },
                 "save_allocation_intermeds": {
                     "type": "boolean",
-                    "default": true,
                     "description": "Save the intermediate BAM files from the multimapper allocation step.",
                     "fa_icon": "fas fa-save"
                 }
@@ -597,7 +630,6 @@
             "properties": {
                 "save_shifting_intermeds": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to save the intermediate files from the alignment shifting (only done on ATAC-seq data).",
                     "fa_icon": "fas fa-save"
                 }
@@ -611,13 +643,11 @@
             "properties": {
                 "skip_flT3": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to skip the flT3 filtering step (filtering by mapping quality, which also removes multimapping reads in most cases).",
                     "fa_icon": "fas fa-filter"
                 },
                 "skip_flTbl": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to skip the blacklist filtering step. This serves to skip the removal of blacklisted regions from the BAM files even if a blacklist BED file is provided.",
                     "fa_icon": "fas fa-filter"
                 }
@@ -631,14 +661,12 @@
             "properties": {
                 "skip_srpm": {
                     "type": "boolean",
-                    "default": false,
-                    "description": "Whether to skip the SRPM normalization step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details.",
+                    "description": "Whether to skip the SRPM normalization step. See the [output documentation](https://crepas.grothlab.workers.dev/output/#normalized-bigwig-files) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "skip_cisrpm": {
                     "type": "boolean",
-                    "default": false,
-                    "description": "Whether to skip the CISRPM normalization step. See the [output documentation](https://github.com/grothlab/crepas/blob/dev/docs/output.md#normalized-bigwig-files) for more details.",
+                    "description": "Whether to skip the CISRPM normalization step. See the [output documentation](https://crepas.grothlab.workers.dev/output/#normalized-bigwig-files) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "coverage_extend_reads": {
@@ -656,13 +684,11 @@
                 },
                 "coverage_skip_nas": {
                     "type": "boolean",
-                    "default": false,
                     "description": "This parameter determines if non-covered regions (regions without overlapping reads) should be skipped. The default is to treat those regions as having a value of zero. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html#read-coverage-normalization-options) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "skip_signal_vs_input": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to skip the signal vs input comparison step.",
                     "fa_icon": "fas fa-chart-area"
                 },
@@ -687,7 +713,7 @@
                 },
                 "bw_compare_pseudocount": {
                     "type": "number",
-                    "default": 1,
+                    "default": 0,
                     "description": "A small number to avoid x/0. Only useful together with `--operation log2` or `--operation ratio`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/bigwigCompare.html#named-arguments) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
@@ -705,7 +731,6 @@
                 },
                 "save_coverage_intermeds": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to save the intermediate files from the coverage calculation step. These include the coverage files in bedGraph format.",
                     "fa_icon": "fas fa-save"
                 },
@@ -717,7 +742,6 @@
                 },
                 "skip_bw_average": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to skip the generation of average bigWig files across replicates for each sample group.",
                     "fa_icon": "fas fa-chart-area"
                 },
@@ -729,7 +753,6 @@
                 },
                 "skip_multibigwigsummary": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to skip the generation of a table with the bin value for all the samples.",
                     "fa_icon": "fas fa-chart-area"
                 },
@@ -813,13 +836,11 @@
                 },
                 "skip_tecount_gz": {
                     "type": "boolean",
-                    "default": true,
                     "description": "Skip gzip compression of TEcount output files.",
                     "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_telocal_gz": {
                     "type": "boolean",
-                    "default": true,
                     "description": "Skip gzip compression of TElocal output files.",
                     "fa_icon": "fas fa-fast-forward"
                 },
@@ -874,23 +895,28 @@
             "fa_icon": "fas fa-chart-area",
             "description": "Options to adjust peak calling criteria.",
             "properties": {
-                "peak_caller": {
+                "skip_peak_calling": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip peak calling altogether, for every peak caller listed in `peak_callers`."
+                },
+                "peak_callers": {
                     "type": "string",
                     "default": "macs3",
-                    "description": "Specifies the peak calling algorithm to use.",
+                    "description": "Comma-separated list of peak calling algorithms to use.",
+                    "help_text": "One or more of `macs3`, `genrich`, `consenrich`, `epic2`, `mace`, `dpeak`, `dpos`, `dregion`, `dtriple`, `edd`, `denopa`, `seacr`, given as a comma-separated list without spaces, e.g. `--peak_callers macs3,genrich`. Every listed peak caller is run on all applicable samples. Use `--skip_peak_calling` to switch peak calling off entirely. `denopa` is currently not supported: no usable container for it exists yet.",
                     "fa_icon": "fas fa-chart-area",
-                    "enum": ["macs3", "genrich", "consenrich", "epic2", "mace", "dpeak", "dpos", "dregion", "edd", "denopa", "seacr"]
+                    "pattern": "^(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr)(,(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr))*$"
                 },
                 "narrow_peak": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to call narrow peaks with MACS3 and Genrich. Default is to call broad peaks.",
                     "fa_icon": "fas fa-arrows-alt-h"
                 },
                 "peak_cutoff_method": {
                     "type": "string",
                     "default": "qvalue",
-                    "description": "Whether to use q-value or p-value as the cutoff for peak calling.",
+                    "description": "Type of statistical cutoff to use for peak calling.",
                     "fa_icon": "fas fa-sort-amount-down",
                     "enum": ["qvalue", "pvalue"]
                 },
@@ -906,7 +932,7 @@
                     "description": "Specifies broad cutoff value (p-value or q-value) for MACS3 and Genrich peak calling.",
                     "fa_icon": "fas fa-hand-scissors"
                 },
-                "min_reps_consensus": {
+                "consensus_min_replicates_per_sample": {
                     "type": "number",
                     "default": 1,
                     "description": "Number of biological replicates required from a given condition for a peak to contribute to a consensus peak.",
@@ -1008,9 +1034,8 @@
                     "description": "Whether to plot all samples in a group together in the consensus peak profile plot. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html#per-group) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
-                "input_cisrpm_in_plotprofile" : {
+                "input_cisrpm_in_plotprofile": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to include the input CISRPM signal in the gene or consensus peak profile plots.",
                     "fa_icon": "fas fa-chart-area"
                 },
@@ -1021,7 +1046,9 @@
                     "fa_icon": "fas fa-fast-forward"
                 },
                 "save_macs_bdgcmp_intermeds": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Save intermediate bedGraph/bigWig files generated by the MACS3 bdgcmp step.",
+                    "fa_icon": "fas fa-save"
                 },
                 "edd_bin_size": {
                     "type": "string",
@@ -1178,7 +1205,7 @@
                 },
                 "mace_norm_method": {
                     "type": "string",
-                    "description": "methods (\u201cEM\u201d, \u201cAM\u201d, \u201cGM\u201d, or \u201cSNR\u201d) used to consolidate replicates and reduce noise. \u201cEM\u201d = Entropy weighted mean, \u201cAM\u201d=Arithmetic mean, \u201cGM\u201d=Geometric mean, \u201cSNR\u201d=Signal-to-noise ratio. default=EM. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
+                    "description": "Method used to consolidate replicates and reduce noise. \u201cEM\u201d = Entropy weighted mean, \u201cAM\u201d=Arithmetic mean, \u201cGM\u201d=Geometric mean, \u201cSNR\u201d=Signal-to-noise ratio. See the [MACE documentation](https://chipexo.sourceforge.net/) for more details.",
                     "fa_icon": "fas fa-dna",
                     "enum": ["EM", "AM", "GM", "SNR"]
                 },
@@ -1209,7 +1236,6 @@
                 },
                 "save_mace_intermeds": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to save the intermediate files from the MACE peak calling step. These include the MACE peak files in bedGraph format.",
                     "fa_icon": "fas fa-save"
                 }
@@ -1230,12 +1256,12 @@
                     "type": "string",
                     "format": "file-path",
                     "pattern": "^\\S+\\.tsv(\\.gz)?$",
-                    "description": "Path to a tab-delimited file containing the spike-in barcode targets, ids, and sequences. See the [sc_spikein_barcodes.tsv](https://github.com/grothlab/crepas/assets/barcodes/sc_spikein_barcodes.tsv) for an example. This is only useful for CUT&Tag or CUT&RUN experiments with SNAP-CUTANA™ Spike-ins (See https://support.epicypher.com/v1/docs/analyzing-snap-cutana-spike-in-controls-and-expected-results).",
+                    "description": "Path to a tab-delimited file containing the spike-in barcode targets, ids, and sequences. See the [sc_spikein_barcodes.tsv](https://github.com/grothlab/crepas/assets/barcodes/sc_spikein_barcodes.tsv) for an example. This is only useful for CUT&Tag or CUT&RUN experiments with SNAP-CUTANA\u2122 Spike-ins (See https://support.epicypher.com/v1/docs/analyzing-snap-cutana-spike-in-controls-and-expected-results).",
                     "fa_icon": "fas fa-file-alt"
                 },
                 "skip_spikein_barcode_extract": {
                     "type": "boolean",
-                    "description": "Whether to skip the extraction of spike-in barcodes from FASTQ files. This is useful for CUT&Tag or CUT&RUN experiments with SNAP-CUTANA™ Spike-ins (See https://support.epicypher.com/v1/docs/analyzing-snap-cutana-spike-in-controls-and-expected-results).",
+                    "description": "Whether to skip the extraction of spike-in barcodes from FASTQ files. This is useful for CUT&Tag or CUT&RUN experiments with SNAP-CUTANA\u2122 Spike-ins (See https://support.epicypher.com/v1/docs/analyzing-snap-cutana-spike-in-controls-and-expected-results).",
                     "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_picard_metrics": {
@@ -1259,8 +1285,7 @@
                 "skip_genes_plotprofile": {
                     "type": "boolean",
                     "description": "Skip deepTools plotProfile.",
-                    "fa_icon": "fas fa-fast-forward",
-                    "default": false
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "genes_plotprofile_mode": {
                     "type": "string",
@@ -1278,25 +1303,24 @@
                 },
                 "genes_plotprofile_region_body_length": {
                     "type": "integer",
-                    "default": 3000,
+                    "default": 1000,
                     "description": "Region body length (in bp) for deepTools plotProfile when `--genes_plotprofile_mode` is `scale_regions`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "genes_plotprofile_upstream": {
                     "type": "integer",
-                    "default": 3000,
+                    "default": 2000,
                     "description": "Upstream distance (in bp) from the reference point for deepTools plotProfile when `--genes_plotprofile_mode` is `reference_point`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "genes_plotprofile_downstream": {
                     "type": "integer",
-                    "default": 3000,
+                    "default": 2000,
                     "description": "Downstream distance (in bp) from the reference point for deepTools plotProfile when `--genes_plotprofile_mode` is `reference_point`. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "genes_plotprofile_skip_zeros": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to skip regions with zero coverage in all samples when computing the matrix for deepTools plotProfile. This is determined BEFORE any applicable pseudocount is added. See the [deepTools documentation](https://deeptools.readthedocs.io/en/develop/content/tools/computeMatrix.html#named-arguments) for more details.",
                     "fa_icon": "fas fa-chart-area"
                 },
@@ -1380,7 +1404,15 @@
                 "partition_plot_range": {
                     "type": "integer",
                     "default": 100,
-                    "description": "Plot range for partition analysis visualization.",
+                    "description": "Distance (kb) up- and downstream of each initiation zone to plot.",
+                    "help_text": "Independent of `partition_iz_rm_overlap_range`: when `partition_plot_range` is the larger of the two, the plotted flanks can reach neighbouring initiation zones and a partition bin may then contribute to more than one profile.",
+                    "fa_icon": "fas fa-chart-area"
+                },
+                "partition_iz_rm_overlap_range": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "Distance (kb) around each initiation zone used to discard overlapping ones.",
+                    "help_text": "Any initiation zone whose window of this radius overlaps another one is discarded before plotting. Set to 0 to skip the removal of overlapping initiation zones entirely and keep them all. Independent of `partition_plot_range`, so the plotted range can be widened without discarding more initiation zones.",
                     "fa_icon": "fas fa-chart-area"
                 },
                 "partition_exclude_scaffolds": {
@@ -1395,11 +1427,323 @@
                     "description": "Comma-separated list of chromosomes to exclude from partition analysis. Typically sex chromosomes and mitochondrial chromosomes are excluded. See [this reference](https://www.science.org/doi/10.1126/science.aau0294#supplementary-materials) for more details.",
                     "fa_icon": "fas fa-ban"
                 },
+                "skip_partition_group_plot": {
+                    "type": "boolean",
+                    "description": "Whether to skip the grouped partition plots, which combine all samples of the same antibody in a single plot. Per-sample partition plots are still generated.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
                 "save_partition_intermeds": {
                     "type": "boolean",
-                    "default": false,
                     "description": "Whether to save the intermediate files from the partition/RFD analysis step.",
                     "fa_icon": "fas fa-save"
+                }
+            }
+        },
+        "repliseq_analysis_options": {
+            "title": "Repli-seq analysis options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Options to adjust Repli-seq replication-timing (RT) track analysis.",
+            "properties": {
+                "repliseq_bin_size": {
+                    "type": "integer",
+                    "default": 50000,
+                    "description": "Bin size (in bp) used by deepTools `multiBamSummary` when counting reads per window for Repli-seq replication-timing (RT) tracks (e.g. 5000, 10000, 20000, 50000, 100000 for 5/10/20/50/100 kb resolution).",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                },
+                "repliseq_replicate_method": {
+                    "type": "string",
+                    "default": "pooled",
+                    "enum": ["auto", "paired", "pooled"],
+                    "description": "How to combine early/late biological replicates when calculating the Repli-seq RT ratio. `paired` computes the ratio per matched early/late biological-replicate pair (matched by `biological_replicate`) and averages; `pooled` averages replicates within each phase first, then computes one ratio; `auto` chooses between the two via a correlation heuristic (see `--repliseq_pairing_threshold`).",
+                    "fa_icon": "fas fa-random"
+                },
+                "repliseq_normalization": {
+                    "type": "string",
+                    "default": "qn",
+                    "enum": ["cpm", "qn"],
+                    "description": "`cpm` only CPM-normalizes each Repli-seq replicate; `qn` additionally quantile-normalizes between replicates, on top of CPM.",
+                    "fa_icon": "fas fa-balance-scale"
+                },
+                "repliseq_smooth": {
+                    "type": "string",
+                    "default": "loess",
+                    "enum": ["loess", "roll", "none"],
+                    "description": "Smoothing strategy applied to the raw Repli-seq RT track.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_smooth_stage": {
+                    "type": "string",
+                    "default": "replicate",
+                    "enum": ["replicate", "ratio"],
+                    "description": "Where smoothing enters the Repli-seq RT calculation. `replicate` smooths each replicate's normalized coverage track and then takes the early/late ratio; `ratio` takes the ratio first and smooths that. Only affects the smoothed track; the raw track is always the unsmoothed ratio.",
+                    "fa_icon": "fas fa-layer-group"
+                },
+                "repliseq_clamp_negative": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Floor smoothed replicate coverage at zero before taking the Repli-seq early/late ratio. Coverage cannot be negative, but a loess fit can undershoot below it. Only applies with `--repliseq_smooth_stage replicate`.",
+                    "fa_icon": "fas fa-hand-paper"
+                },
+                "repliseq_ratio_direction": {
+                    "type": "string",
+                    "default": "early_over_late",
+                    "enum": ["early_over_late", "late_over_early"],
+                    "description": "Orientation of the Repli-seq log2 ratio. `early_over_late` makes high values early-replicating, which is the usual convention; `late_over_early` inverts it.",
+                    "fa_icon": "fas fa-exchange-alt"
+                },
+                "repliseq_loess_degree": {
+                    "type": "integer",
+                    "default": 2,
+                    "enum": [1, 2],
+                    "description": "Degree of the local polynomial fitted by loess when smoothing Repli-seq RT tracks.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_loess_family": {
+                    "type": "string",
+                    "default": "gaussian",
+                    "enum": ["gaussian", "symmetric"],
+                    "description": "Loess fitting family used when smoothing Repli-seq RT tracks. `symmetric` reweights to resist outliers, but is undefined on sequences where over half the residuals are exactly zero, in which case it falls back to `gaussian` for that sequence.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_loess_window": {
+                    "type": "integer",
+                    "default": 500000,
+                    "description": "Width (in bp) of the loess smoothing window used when `--repliseq_smooth loess`. It is converted to a per-sequence span, so the same genomic scale is smoothed over on every sequence regardless of its length.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_loess_span": {
+                    "type": "number",
+                    "description": "Loess span given directly, as a fraction of the bins on each sequence, used when `--repliseq_smooth loess`. Overrides `--repliseq_loess_window` when set. Because it is a fraction rather than a fixed width, a long chromosome is smoothed over a proportionally wider stretch of sequence than a short one.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_roll_k": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Rolling-mean window size, in bins, used when `--repliseq_smooth roll`.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_corr_method": {
+                    "type": "string",
+                    "default": "spearman",
+                    "enum": ["spearman", "pearson"],
+                    "description": "Correlation method used by the `--repliseq_replicate_method auto` heuristic.",
+                    "fa_icon": "fas fa-square-root-alt"
+                },
+                "repliseq_pairing_threshold": {
+                    "type": "number",
+                    "default": 0.02,
+                    "description": "Under `--repliseq_replicate_method auto`, `paired` is chosen when (matched-replicate-pair average correlation - mismatched-replicate-pair average correlation) is at least this value; otherwise `pooled` is used.",
+                    "fa_icon": "fas fa-square-root-alt"
+                },
+                "repliseq_exclude_scaffolds": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Exclude scaffolds and alternate sequences from the Repli-seq RT track. deepTools `multiBamSummary` bins every sequence in the BAM header, and these are short and usually barely covered, which makes their RT values meaningless. A sequence counts as one when its name begins with `chrUn`, ends with `_random`, `_alt` or `_fix`, or contains a dot. They are dropped before CPM normalization, so the normalization reflects primary-chromosome depth only.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "repliseq_min_bin_reads": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Fewest reads a bin needs across the early and late fractions combined to appear in the `.covered` copy of the Repli-seq ratio track. A bin with no reads in either fraction still gets a ratio of exactly log2(1/1) = 0, which is indistinguishable from a genuinely mid-replicating bin, so replication-timing domains are called on the covered copy while the unfiltered track keeps every bin.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "skip_repliseq_domains": {
+                    "type": "boolean",
+                    "description": "Skip calling domains of constant replication timing from the Repli-seq ratio track.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "repliseq_domain_track": {
+                    "type": "string",
+                    "default": "both",
+                    "enum": ["smooth", "raw", "both"],
+                    "description": "Which Repli-seq ratio track to segment into replication-timing domains. The default `both` segments the raw and the smoothed track. Set `smooth` or `raw` to segment only one.",
+                    "fa_icon": "fas fa-layer-group"
+                },
+                "repliseq_domain_classification": {
+                    "type": "string",
+                    "default": "three_way",
+                    "enum": ["three_way", "binary"],
+                    "description": "How to call each replication-timing domain. `binary` calls every domain early or late from the sign of its segment mean; `three_way` additionally calls domains whose mean sits within `--repliseq_domain_threshold` of zero as intermediate, i.e. replicating throughout S phase.",
+                    "fa_icon": "fas fa-tags"
+                },
+                "repliseq_domain_threshold": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Half-width of the intermediate band around a segment mean of zero, in log2 ratio units. Only used with `--repliseq_domain_classification three_way`.",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "repliseq_domain_alpha": {
+                    "type": "number",
+                    "default": 0.01,
+                    "description": "Significance level for accepting a change point in DNAcopy's circular binary segmentation of the Repli-seq ratio track.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "repliseq_domain_min_width": {
+                    "type": "integer",
+                    "default": 2,
+                    "enum": [2, 3, 4, 5],
+                    "description": "Smallest number of bins a replication-timing domain may contain. DNAcopy's `segment()` accepts 2 to 5.",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                },
+                "repliseq_domain_undo_sd": {
+                    "type": "number",
+                    "default": 1,
+                    "description": "Merge adjacent replication-timing domains whose segment means differ by fewer than this many standard deviations. Zero or less turns the merging off.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "repliseq_domain_smooth_outliers": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Run DNAcopy's `smooth.CNA()` before segmenting, which pulls single-bin outliers towards their neighbours so that one noisy bin does not become its own domain.",
+                    "fa_icon": "fas fa-chart-line"
+                },
+                "repliseq_domain_seed": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Random seed for replication-timing domain calling. DNAcopy locates change points with a permutation test, so without a fixed seed the same track segments slightly differently on every run.",
+                    "fa_icon": "fas fa-dice"
+                },
+                "skip_repliseq_gene_classification": {
+                    "type": "boolean",
+                    "description": "Skip classifying genes by the S-phase fraction with the highest read density over their gene body.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "repliseq_min_gene_reads": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Fewest reads a gene needs summed over every S-phase fraction before it is classified. Genes below it are reported as `unclassified`, because with only a handful of reads the fraction with the highest density is decided by sampling noise.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "repliseq_gene_min_margin": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Fewest CPM by which the winning S-phase fraction must exceed the runner-up for a gene to be classified. Zero accepts any winner.",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "repliseq_skip_gene_plots": {
+                    "type": "boolean",
+                    "description": "Skip the diagnostic plots of the Repli-seq gene classification. The classification table and BEDs are still written.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "repliseq_skip_domain_plots": {
+                    "type": "boolean",
+                    "description": "Skip the diagnostic plots of the Repli-seq replication-timing domains. The domain BEDs and QC are still written.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "save_repliseq_intermeds": {
+                    "type": "boolean",
+                    "description": "Whether to save the intermediate files from the Repli-seq RT-track analysis step (raw counts tables and raw, unsmoothed bedGraph tracks).",
+                    "fa_icon": "fas fa-save"
+                }
+            }
+        },
+        "hr_repliseq_analysis_options": {
+            "title": "High-resolution Repli-seq analysis options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Options to adjust high-resolution (16-fraction) Repli-seq analysis.",
+            "properties": {
+                "hr_repliseq_bin_size": {
+                    "type": "integer",
+                    "default": 50000,
+                    "description": "Bin size (in bp) used by deepTools `multiBamSummary` when counting reads per window for high-resolution Repli-seq. 50 kb is the usual resolution: a 30 min BrdU pulse at a fork speed of 1.8 kb/min labels at least 50 kb per fork.",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                },
+                "hr_repliseq_normalization": {
+                    "type": "string",
+                    "default": "auto",
+                    "enum": ["auto", "none", "rpm", "g1_filter", "g1_ratio"],
+                    "description": "How each S phase fraction is normalized before the Repli-seq array is built. `g1_filter` drops the bins a `G1` whole-genome control does not cover, the mappability correction, and keeps the fractions as reads per million. `g1_ratio` additionally replaces each fraction with log2 of its ratio to the control, floored at zero: a stricter correction, but because every fraction and the control share the same mean the floor zeroes about half of each fraction, and on H1 it collapses the initiation-zone calls from ~2950 to 9, so it should not be used to call features. `rpm` corrects for sequencing depth only. `auto` uses `g1_filter` when a `G1` fraction is present in the samplesheet and `rpm` otherwise.",
+                    "fa_icon": "fas fa-balance-scale"
+                },
+                "hr_repliseq_g1_label": {
+                    "type": "string",
+                    "default": "G1",
+                    "description": "Value of the `rt_fraction` samplesheet column that marks the G1 whole-genome-sequencing control.",
+                    "fa_icon": "fas fa-tag",
+                    "hidden": true
+                },
+                "hr_repliseq_g1_min_rpm": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Bins whose G1 control coverage is at or below this many reads per million are dropped, since their ratio to the control is undefined.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "hr_repliseq_exclude_chromosomes": {
+                    "type": "string",
+                    "default": "chrX,chrY,chrM",
+                    "description": "Comma-separated sequences to drop before building the array, matched by name. The default removes the sex chromosomes, whose copy number differs from the autosomes, and the mitochondrial genome, which does not replicate on the nuclear schedule. Set to an empty string to keep every sequence.",
+                    "fa_icon": "fas fa-ban"
+                },
+                "hr_repliseq_chromosomes": {
+                    "type": "string",
+                    "description": "Comma-separated list of sequences to restrict the array to (e.g. `chr1,chr2,chr3`), which also sets the order of the output. Leave unset to use every sequence that survives the scaffold and sex-chromosome filtering.",
+                    "fa_icon": "fas fa-list"
+                },
+                "hr_repliseq_birch_threshold": {
+                    "type": "number",
+                    "default": 0.5,
+                    "description": "BIRCH clustering threshold used to group bins into replication features. Lower values split the array into more, smaller clusters.",
+                    "fa_icon": "fas fa-sitemap"
+                },
+                "hr_repliseq_birch_n_clusters": {
+                    "type": "integer",
+                    "description": "Number of BIRCH clusters to reduce the subclusters to. Leave unset to keep the subclusters themselves.",
+                    "fa_icon": "fas fa-sitemap",
+                    "hidden": true
+                },
+                "hr_repliseq_termination_max_size": {
+                    "type": "integer",
+                    "default": 100000,
+                    "description": "Valleys in the replication-timing profile up to this size (in bp) are called termination sites; larger ones are called late constant-timing regions.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "hr_repliseq_partition_priority": {
+                    "type": "string",
+                    "default": "TTR,breakage,CTR,termination,IZ",
+                    "description": "Order in which overlapping feature calls are resolved into the partition, in which every analysed bin belongs to exactly one feature. Later entries win, so the last one listed takes precedence.",
+                    "fa_icon": "fas fa-sort"
+                },
+                "hr_repliseq_s_phase_hours": {
+                    "type": "number",
+                    "default": 10,
+                    "description": "Assumed length of S phase in hours. A timing transition region is traversed by a single fork, so its length divided by the stretch of S phase it spans gives that fork's speed; this sets how long that stretch is in minutes. The method's paper assumes 10 h, the longest of the five cell lines it profiles, and reports a median of 1.7-2.0 kb/min.",
+                    "fa_icon": "fas fa-clock"
+                },
+                "hr_repliseq_plot_chromosomes": {
+                    "type": "string",
+                    "description": "Comma-separated list of chromosomes to draw a Repli-seq heatmap page for. Leave unset to draw every chromosome in the array.",
+                    "fa_icon": "fas fa-image"
+                },
+                "hr_repliseq_mqc_chromosome": {
+                    "type": "string",
+                    "description": "Chromosome whose Repli-seq heatmap is shown in the MultiQC report. Defaults to the first one drawn.",
+                    "fa_icon": "fas fa-image"
+                },
+                "hr_repliseq_example_pages": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "How many pages of example features to add to the plots PDF. Each page draws one randomly chosen instance of every feature shape: the cluster-centroid rank profile with the feature's bins picked out, over the heatmap of the same bins. Set to 0 to leave them out.",
+                    "fa_icon": "fas fa-images"
+                },
+                "hr_repliseq_example_flank_bins": {
+                    "type": "integer",
+                    "default": 4,
+                    "description": "How many bins to show either side of an example feature. Smaller zooms in on the shape itself, larger gives it more surrounding context.",
+                    "fa_icon": "fas fa-search-plus"
+                },
+                "hr_repliseq_example_seed": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Seed for choosing which feature instances the example pages show, so that a rerun draws the same ones.",
+                    "fa_icon": "fas fa-dice",
+                    "hidden": true
+                },
+                "skip_hr_repliseq_plots": {
+                    "type": "boolean",
+                    "description": "Skip the high-resolution Repli-seq heatmaps and feature summary plots.",
+                    "fa_icon": "fas fa-fast-forward"
                 }
             }
         },
@@ -1520,6 +1864,50 @@
                     "default": true,
                     "fa_icon": "fas fa-check-square",
                     "hidden": true
+                },
+                "help_full": {
+                    "type": "boolean",
+                    "description": "Display the full detailed help message."
+                },
+                "show_hidden": {
+                    "type": "boolean",
+                    "description": "Display hidden parameters in the help message (only works when --help or --help_full are provided)."
+                },
+                "version": {
+                    "type": "boolean",
+                    "description": "Display version and exit.",
+                    "fa_icon": "fas fa-question-circle",
+                    "hidden": true
+                },
+                "multiqc_logo": {
+                    "type": "string",
+                    "description": "Custom logo file to supply to MultiQC. File name must also be set in the MultiQC config file",
+                    "fa_icon": "fas fa-image",
+                    "hidden": true
+                },
+                "multiqc_methods_description": {
+                    "type": "string",
+                    "description": "Custom MultiQC yaml file containing HTML including a methods description.",
+                    "fa_icon": "fas fa-cog"
+                },
+                "pipelines_testdata_base_path": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/nf-core/test-datasets/",
+                    "description": "Base URL or local path to location of pipeline test dataset files",
+                    "fa_icon": "far fa-check-circle",
+                    "hidden": true
+                },
+                "crepas_testdata_base_path": {
+                    "type": "string",
+                    "description": "Base URL or local path to location of grothlab/crepas-specific test dataset files.",
+                    "fa_icon": "far fa-check-circle",
+                    "hidden": true
+                },
+                "trace_report_suffix": {
+                    "type": "string",
+                    "description": "Suffix to add to the trace report filename. Default is the date and time in the format yyyy-MM-dd_HH-mm-ss.",
+                    "fa_icon": "far fa-clock",
+                    "hidden": true
                 }
             }
         }
@@ -1574,35 +1962,16 @@
             "$ref": "#/$defs/partition_and_rfd_analysis_options"
         },
         {
+            "$ref": "#/$defs/repliseq_analysis_options"
+        },
+        {
+            "$ref": "#/$defs/hr_repliseq_analysis_options"
+        },
+        {
             "$ref": "#/$defs/institutional_config_options"
         },
         {
             "$ref": "#/$defs/generic_options"
         }
-    ],
-    "properties": {
-        "multiqc_logo": {
-            "type": "string"
-        },
-        "multiqc_methods_description": {
-            "type": "string"
-        },
-        "hook_url": {
-            "type": "string"
-        },
-        "version": {
-            "type": "boolean"
-        },
-        "pipelines_testdata_base_path": {
-            "type": "string",
-            "default": "https://raw.githubusercontent.com/nf-core/test-datasets/"
-        },
-        "crepas_testdata_base_path": {
-            "type": "string"
-        },
-        "trace_report_suffix": {
-            "type": "string",
-            "default": "2025-08-03_12-45-27"
-        }
-    }
+    ]
 }

@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bam_split_by_genome"
+description: |
+  Split a BAM file aligned to a concatenated (endogenous + spike-in) reference into endogenous-
+  or exogenous-only reads, based on a genome-name suffix appended to chromosome names
+keywords:
+  - bam
+  - spike-in
+  - samtools
+  - split
+tools:
+  - samtools:
+      description: |
+        SAMtools is a suite of programs for interacting with high-throughput sequencing data in
+        SAM/BAM/CRAM format. Used here (via `samtools view`/`grep`/`sed`) to keep or drop
+        alignments to chromosomes whose name is suffixed with the spike-in genome identifier.
+      homepage: http://www.htslib.org/
+      documentation: http://www.htslib.org/doc/samtools.html
+      tool_dev_url: https://github.com/samtools/samtools
+      doi: "10.1093/bioinformatics/btp352"
+      licence: ["MIT"]
+      identifier: "biotools:samtools"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: BAM file aligned to a concatenated endogenous + spike-in reference, with spike-in chromosome names suffixed by `_<exo_genome>`
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+  - endo_genome:
+      type: string
+      description: Identifier of the endogenous (main) genome, e.g. 'hg38'; used only to name the output file
+  - exo_genome:
+      type: string
+      description: Identifier of the exogenous (spike-in) genome, e.g. 'dm6'; chromosome names suffixed with `_<exo_genome>` are treated as spike-in
+  - reads_to_keep:
+      type: string
+      description: Which set of reads to keep, `'endo'` (drop alignments to `_<exo_genome>`-suffixed chromosomes) or `'exo'` (keep only those alignments, with the suffix stripped)
+      pattern: "endo|exo"
+output:
+  bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bam":
+          type: file
+          description: BAM file containing only the endogenous or exogenous alignments, as requested
+          pattern: "*.bam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+  versions_samtools:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "samtools":
+          type: string
+          description: The name of the tool
+      - "samtools version | sed '1!d;s/.* //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "samtools":
+          type: string
+          description: The name of the tool
+      - "samtools version | sed '1!d;s/.* //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

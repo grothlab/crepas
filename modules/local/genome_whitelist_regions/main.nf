@@ -5,7 +5,7 @@ process GENOME_WHITELIST_REGIONS {
     tag "$sizes"
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/26/2630bdd473cdd42149279090d3dd2a1c0e5d8a88af9346fff4c11ada3fc039ec/data':
         'community.wave.seqera.io/library/bedtools_gawk:3b83c7920e9b7f4a' }"
 
@@ -15,7 +15,8 @@ process GENOME_WHITELIST_REGIONS {
 
     output:
     tuple val(meta), path("*.bed")     , emit: bed
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('bedtools'), eval("bedtools --version | sed -e 's/bedtools v//g'"), topic: versions, emit: versions_bedtools
+    tuple val("${task.process}"), val('gawk'), eval("awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*\$//'"), topic: versions, emit: versions_gawk
 
     when:
     task.ext.when == null || task.ext.when
@@ -28,20 +29,10 @@ process GENOME_WHITELIST_REGIONS {
     if (blacklist) {
         """
         sortBed ${args} -i $blacklist -g $sizes | complementBed ${args2} -i stdin -g $sizes > ${prefix}.bed
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
-        END_VERSIONS
         """
     } else {
         """
         awk ${args3} '{print \$1, '0' , \$2}' OFS='\t' $sizes > ${prefix}.bed
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            awk: \$(echo \$(awk -Wversion 2>&1) | sed 's/^.*(GNU Awk) //; s/ Copyright.*\$//')
-        END_VERSIONS
         """
     }
 
@@ -49,10 +40,5 @@ process GENOME_WHITELIST_REGIONS {
     def prefix = task.ext.prefix ?: "${meta.id}.${sizes.simpleName}.whitelist"
     """
     touch ${prefix}.bed
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
-    END_VERSIONS
     """
 }

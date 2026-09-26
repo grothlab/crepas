@@ -1,0 +1,65 @@
+Changes in component 'nf-core/deeptools/multibamsummary'
+Changes in 'deeptools/multibamsummary/meta.yml':
+--- modules/nf-core/deeptools/multibamsummary/meta.yml
++++ modules/nf-core/deeptools/multibamsummary/meta.yml
+@@ -62,6 +62,20 @@
+             deeptool utilities
+           pattern: "all_bam.bamSummary.npz"
+           ontologies: []
++  raw_counts:
++    - - meta:
++          type: map
++          description: |
++            Groovy Map containing sample information
++            e.g. [ id:'test', single_end:false ]
++      - "*.tsv":
++          type: file
++          description: |
++            Raw per-bin read counts table (written when `--outRawCounts` is not already present in
++            `task.ext.args`), one column per input BAM
++          pattern: "all_bam.tsv"
++          ontologies:
++            - edam: "http://edamontology.org/format_3475" # TSV
+   versions_deeptools:
+     - - ${task.process}:
+           type: string
+
+Changes in 'deeptools/multibamsummary/main.nf':
+--- modules/nf-core/deeptools/multibamsummary/main.nf
++++ modules/nf-core/deeptools/multibamsummary/main.nf
+@@ -13,6 +13,7 @@
+ 
+     output:
+     tuple val(meta), path("*.npz"), emit: matrix
++    tuple val(meta), path("*.tsv"), emit: raw_counts, optional: true
+     tuple val("${task.process}"), val('deeptools'), eval('multiBamSummary --version | sed "s/multiBamSummary //g"') , emit: versions_deeptools, topic: versions
+ 
+     when:
+@@ -22,6 +23,7 @@
+     def args   = task.ext.args ?: ''
+     def prefix = task.ext.prefix ?: "all_bam"
+     def blacklist_cmd = blacklist ? "--blackListFileName ${blacklist}" : ""
++    def outrawcounts_cmd = args.contains('--outRawCounts') ? '' : "--outRawCounts ${prefix}.tsv"
+     def label  = labels ? "--labels ${labels.join(' ')}" : ''
+     """
+     multiBamSummary bins \\
+@@ -30,6 +32,7 @@
+         --bamfiles ${bams.join(' ')} \\
+         --numberOfProcessors $task.cpus \\
+         --outFileName ${prefix}.bamSummary.npz \\
++        ${outrawcounts_cmd} \\
+         $blacklist_cmd
+     """
+ 
+@@ -37,5 +40,6 @@
+     def prefix = task.ext.prefix ?: "all_bam"
+     """
+     touch ${prefix}.bamSummary.npz
++    touch ${prefix}.tsv
+     """
+ }
+
+'modules/nf-core/deeptools/multibamsummary/environment.yml' is unchanged
+'modules/nf-core/deeptools/multibamsummary/tests/main.nf.test' is unchanged
+'modules/nf-core/deeptools/multibamsummary/tests/main.nf.test.snap' is unchanged
+************************************************************

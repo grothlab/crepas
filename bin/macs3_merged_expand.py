@@ -36,13 +36,13 @@ import argparse
 
 
 
-def parse_min_replicates(value):
+def parse_min_replicates_per_sample(value):
     try:
         ivalue = int(value)
     except ValueError:
-        raise argparse.ArgumentTypeError("min_replicates must be an integer (use -1 for all replicates)")
+        raise argparse.ArgumentTypeError("min_replicates_per_sample must be an integer (use -1 for all replicates)")
     if ivalue == 0 or ivalue < -1:
-        raise argparse.ArgumentTypeError("min_replicates must be >= 1, or -1 for all replicates")
+        raise argparse.ArgumentTypeError("min_replicates_per_sample must be >= 1, or -1 for all replicates")
     return ivalue
 
 
@@ -87,8 +87,8 @@ def get_group_id(sample_id):
 Description = "Add sample boolean files and aggregate columns from merged MACS narrow or broad peak file."
 Epilog = (
     "Example usage: python macs3_merged_expand.py <MERGED_INTERVAL_FILE> "
-    "<SAMPLE_NAME_LIST> <OUTFILE> --is_narrow_peak --min_replicates 1\n"
-    "Or require all replicates per group: --min_replicates max"
+    "<SAMPLE_NAME_LIST> <OUTFILE> --is_narrow_peak --min_replicates_per_sample 1\n"
+    "Or require all replicates per group: --min_replicates_per_sample -1"
 )
 
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
@@ -118,9 +118,9 @@ argParser.add_argument(
 )
 argParser.add_argument(
     "-mr",
-    "--min_replicates",
-    type=parse_min_replicates,
-    dest="MIN_REPLICATES",
+    "--min_replicates_per_sample",
+    type=parse_min_replicates_per_sample,
+    dest="MIN_REPLICATES_PER_SAMPLE",
     default=1,
     help="Minimum number of replicates per sample required to contribute to merged peak. Use -1 to require all replicates for each sample group (default: 1).",
 )
@@ -145,7 +145,7 @@ args = argParser.parse_args()
 ## > merged_peaks.txt
 
 
-def macs3_merged_expand(MergedIntervalTxtFile, SampleNameList, OutFile, isNarrow=False, minReplicates=1):
+def macs3_merged_expand(MergedIntervalTxtFile, SampleNameList, OutFile, isNarrow=False, minReplicatesPerSample=1):
 
     makedir(os.path.dirname(OutFile))
 
@@ -219,10 +219,10 @@ def macs3_merged_expand(MergedIntervalTxtFile, SampleNameList, OutFile, isNarrow
         ## GET SAMPLES THAT PASS REPLICATE THRESHOLD
         passRepThreshList = []
         for gID, sIDs in groupDict.items():
-            if minReplicates == -1:
+            if minReplicatesPerSample == -1:
                 required_reps = sampleReplicateCount.get(gID, len(sIDs))
             else:
-                required_reps = minReplicates
+                required_reps = minReplicatesPerSample
 
             if len(sIDs) >= required_reps:
                 passRepThreshList += sIDs
@@ -323,5 +323,5 @@ macs3_merged_expand(
     SampleNameList=args.SAMPLE_NAME_LIST.split(","),
     OutFile=args.OUTFILE,
     isNarrow=args.IS_NARROW_PEAK,
-    minReplicates=args.MIN_REPLICATES,
+    minReplicatesPerSample=args.MIN_REPLICATES_PER_SAMPLE,
 )

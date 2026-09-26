@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "picard_downsamplesam"
+description: Randomly downsample a SAM/BAM/CRAM file to a target probability, or pass it through unchanged (via a symlink) when no downsampling is required
+keywords:
+  - picard
+  - downsample
+  - bam
+tools:
+  - picard:
+      description: |
+        A set of command line tools (in Java) for manipulating high-throughput sequencing (HTS)
+        data and formats such as SAM/BAM/CRAM and VCF. Used here (`DownsampleSam`) to randomly
+        remove reads to reach a target fraction, based on `meta.downsampling_prob`.
+      homepage: https://broadinstitute.github.io/picard/
+      documentation: https://broadinstitute.github.io/picard/
+      licence: ["MIT"]
+      identifier: biotools:picard_tools
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information, must include `downsampling_prob` (float, 0-1)
+          e.g. [ id:'test', single_end:false, downsampling_prob:0.5 ]
+    - reads:
+        type: file
+        description: BAM/CRAM file to downsample
+        pattern: "*.{bam,cram}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - index:
+        type: file
+        description: Index of `reads`; always required, since it is symlinked through unchanged when `downsampling_prob` is 1
+        pattern: "*.{bai,crai}"
+        ontologies: []
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing reference genome information
+          e.g. [ id:'genome' ]
+    - fasta:
+        type: file
+        description: Reference genome FASTA file, used for CRAM decoding, optional
+        pattern: "*.{fasta,fa}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1929" # FASTA
+    - fai:
+        type: file
+        description: FASTA index of `fasta`, optional
+        pattern: "*.fai"
+        ontologies: []
+output:
+  bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bam":
+          type: file
+          description: Downsampled (or symlinked, if `downsampling_prob` is 1) BAM file, optional
+          pattern: "*.bam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+  index:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bai":
+          type: file
+          description: BAM index, optional
+          pattern: "*.bai"
+          ontologies: []
+  cram:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.cram":
+          type: file
+          description: Downsampled (or symlinked) CRAM file, optional
+          pattern: "*.cram"
+          ontologies: []
+  metrics:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.metrics.txt":
+          type: file
+          description: Picard DownsampleSam metrics file, optional (only produced when `downsampling_prob` < 1)
+          pattern: "*.DownsampleSam.metrics.txt"
+  versions_picard:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "picard":
+          type: string
+          description: The name of the tool
+      - "picard DownsampleSam --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "picard":
+          type: string
+          description: The name of the tool
+      - "picard DownsampleSam --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -1,0 +1,102 @@
+nextflow_process {
+
+    name "Test Process TAGALIGN_FRIP_SCORE"
+    script "../main.nf"
+    process "TAGALIGN_FRIP_SCORE"
+
+    tag "modules"
+    tag "modules_local"
+    tag "tagalign_frip_score"
+    tag "bed_to_tagalign"
+    tag "phantompeakqualtools"
+
+    setup {
+
+        run("BED_TO_TAGALIGN") {
+            script "../../bed_to_tagalign/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:true ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        run("PHANTOMPEAKQUALTOOLS") {
+            script "../../phantompeakqualtools/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:true ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.single_end.bam', checkIfExists: true),
+                    []
+                ]
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - tagalign - frip score") {
+
+        when {
+            process {
+                """
+                input[0] = BED_TO_TAGALIGN.out.tagalign
+                    .join(PHANTOMPEAKQUALTOOLS.out.ccscores, by: 0)
+                    .map { meta, tagalign, ccscores ->
+                        [ meta, tagalign, ccscores, file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test2.bed', checkIfExists: true) ]
+                    }
+                input[1] = [
+                    [ id:'genome' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.bed,
+                    process.out.frip,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - tagalign - frip score - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = BED_TO_TAGALIGN.out.tagalign
+                    .join(PHANTOMPEAKQUALTOOLS.out.ccscores, by: 0)
+                    .map { meta, tagalign, ccscores ->
+                        [ meta, tagalign, ccscores, file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test2.bed', checkIfExists: true) ]
+                    }
+                input[1] = [
+                    [ id:'genome' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

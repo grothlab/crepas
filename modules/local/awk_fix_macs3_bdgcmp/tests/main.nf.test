@@ -1,0 +1,103 @@
+nextflow_process {
+
+    name "Test Process AWK_FIX_MACS3_BDGCMP"
+    script "../main.nf"
+    process "AWK_FIX_MACS3_BDGCMP"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "awk_fix_macs3_bdgcmp"
+    tag "samtools/sort"
+    tag "macs3/callpeak"
+    tag "macs3/bdgcmp"
+    tag "bedtools/slop"
+
+    setup {
+
+        run("SAMTOOLS_SORT") {
+            script "../../../nf-core/samtools/sort/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.bam', checkIfExists: true)
+                ]
+                input[1] = [ [ id:'test' ], [], [] ]
+                input[2] = ''
+                """
+            }
+        }
+
+        run("MACS3_CALLPEAK") {
+            script "../../../nf-core/macs3/callpeak/main.nf"
+            process {
+                """
+                input[0] = SAMTOOLS_SORT.out.bam.map { meta, bam -> [ meta, bam, [] ] }
+                input[1] = 30000
+                """
+            }
+        }
+
+        run("MACS3_BDGCMP") {
+            script "../../../local/macs3/bdgcmp/main.nf"
+            process {
+                """
+                input[0] = MACS3_CALLPEAK.out.pileup_bdg.join(MACS3_CALLPEAK.out.lambda_bdg, by: [0])
+                """
+            }
+        }
+
+        run("BEDTOOLS_SLOP") {
+            script "../../../nf-core/bedtools/slop/main.nf"
+            process {
+                """
+                input[0] = MACS3_BDGCMP.out.bdg
+                input[1] = file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true)
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - bed - fix macs3 bdgcmp") {
+
+        when {
+            process {
+                """
+                input[0] = BEDTOOLS_SLOP.out.bed
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bed - fix macs3 bdgcmp - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = BEDTOOLS_SLOP.out.bed
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

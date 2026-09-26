@@ -1,0 +1,65 @@
+{
+    "sarscov2 - bam (reheadered to chr1) - consensus signal extraction": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.consenrich_output.tsv:md5,cbfa80d3db7c610cef73b62371580679"
+                ]
+            ],
+            {
+                "versions_consenrich": [
+                    [
+                        "CONSENRICH",
+                        "consenrich",
+                        "Version: 0.1.7b1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-14T15:37:32.168294832",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam (reheadered to chr1) - consensus signal extraction - stub": {
+        "content": [
+            [
+                "test.consenrich_output.tsv"
+            ],
+            [
+                "test.consenrich_signal_track.bw"
+            ],
+            [
+                "test.consenrich_residuals_track.bw"
+            ],
+            [
+                "test.consenrich_eratio_track.bw"
+            ],
+            [
+                "consenrich_test_args.json"
+            ],
+            [
+                "test_consenrich_matrix.npz"
+            ],
+            {
+                "versions_consenrich": [
+                    [
+                        "CONSENRICH",
+                        "consenrich",
+                        "Version: 0.1.7b1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-14T15:30:25.438832036",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

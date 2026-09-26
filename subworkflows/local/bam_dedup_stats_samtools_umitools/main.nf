@@ -9,7 +9,7 @@ include { BAM_STATS_SAMTOOLS } from '../../../subworkflows/nf-core/bam_stats_sam
 
 workflow BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS {
     take:
-    ch_bam_bai          // channel: [ val(meta), path(bam), path(bai/csi) ]
+    ch_bam_index          // channel: [ val(meta), path(bam), path(index/csi) ]
     ch_chrom_sizes       // channel: [ val(meta), path(chrom_sizes) ]
     val_get_dedup_stats // boolean: true/false
     skip_split_by_chrom // boolean: true/false
@@ -47,7 +47,7 @@ workflow BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS {
         //         split_id, chrom ->
         //             "${split_id}\t${chrom}"
         //     }
-        //     .collectFile( name: 'ch_chroms.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS" )     
+        //     .collectFile( name: 'ch_chroms.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS" )
 
         // print ch_split_count to file for debugging
         // ch_split_count
@@ -55,39 +55,39 @@ workflow BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS {
         //     .collectFile( name: 'ch_split_count.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS" )
 
 
-        ch_bam_bai
+        ch_bam_index
             .combine(ch_chroms)
             .combine(ch_split_count)
             .map {
-                meta, bam, bai, split_id, chrom_list, split_count ->
+                meta, bam, index, split_id, chrom_list, split_count ->
                     def meta_clone = meta.clone()
                     meta_clone.split_id = split_id
                     meta_clone.chrom_list = chrom_list
                     meta_clone.split_count = split_count
-                    [ meta_clone, bam, bai, chrom_list ]
+                    [ meta_clone, bam, index, chrom_list ]
             }
-            .set { ch_bam_bai_chroms }
+            .set { ch_bam_index_chroms }
 
         // print for debugging
-        ch_bam_bai_chroms
+        ch_bam_index_chroms
             .map {
-                meta, bam, bai, chrom ->
-                    "${meta}\t${bam}\t${bai}\t${chrom}"
+                meta, bam, index, chrom ->
+                    "${meta}\t${bam}\t${index}\t${chrom}"
             }
-            .collectFile( name: 'ch_bam_bai_chroms.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS" )
+            .collectFile( name: 'ch_bam_index_chroms.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS" )
 
         // Split BAMs by chromosome
         BAM_SPLIT_BY_CHROMOSOME (
-            ch_bam_bai_chroms,
+            ch_bam_index_chroms,
             'bai' // index_format
         )
-        ch_bam_bai = BAM_SPLIT_BY_CHROMOSOME.out.bam.join(BAM_SPLIT_BY_CHROMOSOME.out.bai, by: [0])
+        ch_bam_index = BAM_SPLIT_BY_CHROMOSOME.out.bam.join(BAM_SPLIT_BY_CHROMOSOME.out.bai, by: [0])
     }
 
     //
     // UMI-tools dedup
     //
-    UMITOOLS_DEDUP ( ch_bam_bai, val_get_dedup_stats )
+    UMITOOLS_DEDUP ( ch_bam_index, val_get_dedup_stats )
     ch_dedup_bam = UMITOOLS_DEDUP.out.bam
 
     if (!skip_split_by_chrom) {
@@ -121,8 +121,8 @@ workflow BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS {
         // print for debugging
         ch_dedup_bams_for_merge
             .map {
-                meta, bams, bais ->
-                    "${meta}\t${bams}\t${bais}"
+                meta, bams, indices ->
+                    "${meta}\t${bams}\t${indices}"
             }
             .collectFile( name: 'ch_dedup_bams_for_merge.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS" )
 
@@ -132,36 +132,22 @@ workflow BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS {
         //
         SAMTOOLS_MERGE (
             ch_dedup_bams_for_merge,
-            channel.value([[:], [], [], []]),
-            'bai'
+            channel.value([[:], [], [], []])
         )
         ch_dedup_bam = SAMTOOLS_MERGE.out.bam
-        ch_dedup_bai = SAMTOOLS_MERGE.out.bai
-        ch_dedup_csi = SAMTOOLS_MERGE.out.csi
+        ch_dedup_index = SAMTOOLS_MERGE.out.index
 
     } else {
         //
         // Index BAM file and run samtools stats, flagstat and idxstats
         //
         SAMTOOLS_INDEX ( UMITOOLS_DEDUP.out.bam )
-        ch_dedup_bai = SAMTOOLS_INDEX.out.bai
-        ch_dedup_csi = SAMTOOLS_INDEX.out.csi
+        ch_dedup_index = SAMTOOLS_INDEX.out.index
     }
 
+    ch_bam_index_dedup = ch_dedup_bam.join(ch_dedup_index, by: [0])
 
-    ch_bam_bai_dedup = ch_dedup_bam
-        .join(ch_dedup_bai, by: [0], remainder: true)
-        .join(ch_dedup_csi, by: [0], remainder: true)
-        .map {
-            meta, bam, bai, csi ->
-                if (bai) {
-                    [ meta, bam, bai ]
-                } else {
-                    [ meta, bam, csi ]
-                }
-        }
-
-    BAM_STATS_SAMTOOLS ( ch_bam_bai_dedup, [ [:], [] ] )
+    BAM_STATS_SAMTOOLS ( ch_bam_index_dedup, [ [:], [], [] ] )
 
     emit:
     bam                  = ch_dedup_bam                             // channel: [ val(meta), path(bam) ]
@@ -170,8 +156,7 @@ workflow BAM_DEDUP_STATS_SAMTOOLS_UMITOOLS {
     tsv_per_umi          = UMITOOLS_DEDUP.out.tsv_per_umi          // channel: [ val(meta), path(tsv) ]
     tsv_umi_per_position = UMITOOLS_DEDUP.out.tsv_umi_per_position // channel: [ val(meta), path(tsv) ]
 
-    bai                  = ch_dedup_bai                 // channel: [ val(meta), path(bai) ]
-    csi                  = ch_dedup_csi                  // channel: [ val(meta), path(csi) ]
+    index                = ch_dedup_index               // channel: [ val(meta), path(index) ]
     stats                = BAM_STATS_SAMTOOLS.out.stats            // channel: [ val(meta), path(stats) ]
     flagstat             = BAM_STATS_SAMTOOLS.out.flagstat         // channel: [ val(meta), path(flagstat) ]
     idxstats             = BAM_STATS_SAMTOOLS.out.idxstats         // channel: [ val(meta), path(idxstats) ]

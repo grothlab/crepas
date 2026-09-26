@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "spikein_barcode_merge"
+description: Merge spike-in barcode count tables across technical replicates by summing per-barcode R1/R2 counts
+keywords:
+  - spikein
+  - barcode
+  - merge
+tools:
+  - r-base:
+      description: |
+        The R programming language, used here (via the bundled `bin/spikein_barcode_merge.R`
+        script) to sum `R1_count`/`R2_count` per unique barcode_target/barcode_id/barcode_sequence
+        across one or more count tables from resequenced technical replicates of the same sample.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/other-docs.html
+      licence: ["GPL-2.0-or-later"]
+      identifier: "biotools:r-base"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - counts:
+        type: file
+        description: One or more spike-in barcode count tables (columns barcode_target, barcode_id, barcode_sequence, R1_count, R2_count) to merge; a single table is symlinked through unchanged
+        pattern: "*.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  merged_counts:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          type: file
+          description: Merged (or symlinked, if only one input table) spike-in barcode count table
+          pattern: "*.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bedgraph_normalize"
+description: Normalize the score (4th) column of a bedGraph file by a scaling factor, using multiply, divide, add or subtract, with an optional pseudocount
+keywords:
+  - bedgraph
+  - normalization
+  - awk
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to apply a normalization factor to the score column of a bedGraph file via one of
+        four arithmetic operations (multiply, divide, add, subtract), with an optional
+        pseudocount added beforehand.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bdg:
+        type: file
+        description: bedGraph file whose 4th (score) column should be normalized
+        pattern: "*.{bdg,bedGraph,bedgraph}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+  - extension:
+      type: string
+      description: File extension to give the normalized output file (e.g. `bedGraph`)
+output:
+  normalized:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.${extension}":
+          type: file
+          description: |
+            bedGraph file with the score column normalized. Normalization factor and operation
+            are read from `task.ext.args2` (`--norm_factor <value>`, `--norm_operation
+            <multiply|divide|add|subtract>`, default `multiply`) and pseudocount from
+            `--add_pseudocount`.
+          pattern: "*.{bdg,bedGraph,bedgraph}"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

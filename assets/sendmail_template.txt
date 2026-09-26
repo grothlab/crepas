@@ -1,36 +1,19 @@
 To: $email
 Subject: $subject
 Mime-Version: 1.0
-Content-Type: multipart/related;boundary="nfcoremimeboundary"
+Content-Type: multipart/related;boundary="crepasmimeboundary"
 
---nfcoremimeboundary
+--crepasmimeboundary
 Content-Type: text/html; charset=utf-8
 
 $email_html
-
---nfcoremimeboundary
-Content-Type: image/png;name="grothlab-crepas_logo.png"
-Content-Transfer-Encoding: base64
-Content-ID: <nfcorepipelinelogo>
-Content-Disposition: inline; filename="grothlab-crepas_logo_light.png"
-
-<% out << new File("$projectDir/assets/grothlab-crepas_logo_light.png").
-    bytes.
-    encodeBase64().
-    toString().
-    tokenize( '\n' )*.
-    toList()*.
-    collate( 76 )*.
-    collect { it.join() }.
-    flatten().
-    join( '\n' ) %>
 
 <%
 if (mqcFile){
 def mqcFileObj = new File("$mqcFile")
 if (mqcFileObj.length() < mqcMaxSize){
 out << """
---nfcoremimeboundary
+--crepasmimeboundary
 Content-Type: text/html; name=\"multiqc_report\"
 Content-Transfer-Encoding: base64
 Content-ID: <mqcreport>
@@ -50,4 +33,4 @@ ${mqcFileObj.
 }}
 %>
 
---nfcoremimeboundary--
+--crepasmimeboundary--

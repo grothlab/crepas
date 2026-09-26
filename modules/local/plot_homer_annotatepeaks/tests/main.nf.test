@@ -1,0 +1,99 @@
+nextflow_process {
+
+    name "Test Process PLOT_HOMER_ANNOTATEPEAKS"
+    script "../main.nf"
+    process "PLOT_HOMER_ANNOTATEPEAKS"
+
+    tag "modules"
+    tag "modules_local"
+    tag "plot_homer_annotatepeaks"
+    tag "homer/annotatepeaks"
+
+    setup {
+
+        run("HOMER_ANNOTATEPEAKS", alias: "ANNOTATE_SAMPLE1") {
+            script "../../../nf-core/homer/annotatepeaks/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'sample1' ],
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
+                ]
+                input[1] = file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true)
+                input[2] = file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.gtf', checkIfExists: true)
+                """
+            }
+        }
+
+        run("HOMER_ANNOTATEPEAKS", alias: "ANNOTATE_SAMPLE2") {
+            script "../../../nf-core/homer/annotatepeaks/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'sample2' ],
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test2.bed', checkIfExists: true)
+                ]
+                input[1] = file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true)
+                input[2] = file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.gtf', checkIfExists: true)
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - 2 samples - homer annotatepeaks plots") {
+
+        when {
+            process {
+                """
+                input[0] = ANNOTATE_SAMPLE1.out.txt
+                    .mix(ANNOTATE_SAMPLE2.out.txt)
+                    .map { meta, txt -> [ [ id: 'test_group' ], txt ] }
+                    .groupTuple()
+                input[1] = file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
+                input[2] = '.annotatePeaks.txt'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    file(process.out.txt[0][1]).name,
+                    file(process.out.pdf[0][1]).name,
+                    file(process.out.tsv[0][1]).name,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - 2 samples - homer annotatepeaks plots - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = ANNOTATE_SAMPLE1.out.txt
+                    .mix(ANNOTATE_SAMPLE2.out.txt)
+                    .map { meta, txt -> [ [ id: 'test_group' ], txt ] }
+                    .groupTuple()
+                input[1] = file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
+                input[2] = '.annotatePeaks.txt'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

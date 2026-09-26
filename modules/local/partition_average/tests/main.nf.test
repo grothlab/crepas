@@ -1,0 +1,151 @@
+nextflow_process {
+
+    name "Test Process PARTITION_AVERAGE"
+    script "../main.nf"
+    process "PARTITION_AVERAGE"
+
+    tag "modules"
+    tag "modules_local"
+    tag "partition_average"
+    tag "collect_partitions"
+    tag "find/concatenate"
+
+    setup {
+
+        // Build two real 12-column partition tables (one per biological replicate) by
+        // running COLLECT_PARTITIONS twice. Its six inputs are cheap FIND_CONCATENATE copies of a
+        // single real BED file (same approach as the COLLECT_PARTITIONS test).
+        run("FIND_CONCATENATE", alias: "CAT_WINDOWS") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'windows' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                """
+            }
+        }
+        run("FIND_CONCATENATE", alias: "CAT_BWAOB_FWD") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'bwaob_fwd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                """
+            }
+        }
+        run("FIND_CONCATENATE", alias: "CAT_BWAOB_REV") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'bwaob_rev' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                """
+            }
+        }
+        run("FIND_CONCATENATE", alias: "CAT_NORM_FWD") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'norm_fwd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                """
+            }
+        }
+        run("FIND_CONCATENATE", alias: "CAT_NORM_REV") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'norm_rev' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                """
+            }
+        }
+        run("FIND_CONCATENATE", alias: "CAT_RFD") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'rfd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                """
+            }
+        }
+
+        run("COLLECT_PARTITIONS", alias: "COLLECT_REP1") {
+            script "../../collect_partitions/main.nf"
+            process {
+                """
+                input[0] = CAT_WINDOWS.out.file_out
+                    .combine(CAT_BWAOB_FWD.out.file_out.map { meta, f -> f })
+                    .combine(CAT_BWAOB_REV.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORM_FWD.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORM_REV.out.file_out.map { meta, f -> f })
+                    .combine(CAT_RFD.out.file_out.map { meta, f -> f })
+                    .map { meta, windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ->
+                        [ [ id:'rep1' ], windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ]
+                    }
+                """
+            }
+        }
+        run("COLLECT_PARTITIONS", alias: "COLLECT_REP2") {
+            script "../../collect_partitions/main.nf"
+            process {
+                """
+                input[0] = CAT_WINDOWS.out.file_out
+                    .combine(CAT_BWAOB_FWD.out.file_out.map { meta, f -> f })
+                    .combine(CAT_BWAOB_REV.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORM_FWD.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORM_REV.out.file_out.map { meta, f -> f })
+                    .combine(CAT_RFD.out.file_out.map { meta, f -> f })
+                    .map { meta, windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ->
+                        [ [ id:'rep2' ], windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ]
+                    }
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - partitions - average across replicates") {
+
+        when {
+            process {
+                """
+                input[0] = COLLECT_REP1.out.tsv
+                    .combine(COLLECT_REP2.out.tsv.map { meta, f -> f })
+                    .map { meta, tsv1, tsv2 -> [ [ id:'test' ], [ tsv1, tsv2 ] ] }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.tsv,
+                    process.out.filtered_tsv,
+                    process.out.filtered_bdg,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - partitions - average across replicates - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = COLLECT_REP1.out.tsv
+                    .combine(COLLECT_REP2.out.tsv.map { meta, f -> f })
+                    .map { meta, tsv1, tsv2 -> [ [ id:'test' ], [ tsv1, tsv2 ] ] }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

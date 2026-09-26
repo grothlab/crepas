@@ -1,0 +1,110 @@
+{
+    "sarscov2 - bigwig - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.narrowPeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.mps:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        "ROCCO",
+                        "rocco",
+                        "1.6.3"
+                    ]
+                ],
+                "bed": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "counts": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "model_mps": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.mps:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "narrow_peak": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.narrowPeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_rocco": [
+                    [
+                        "ROCCO",
+                        "rocco",
+                        "1.6.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T13:03:30.845567276",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "sarscov2 - bigwig": {
+        "content": [
+            "test.bed",
+            {
+                "versions_rocco": [
+                    [
+                        "ROCCO",
+                        "rocco",
+                        "1.6.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T13:03:17.943472982",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    }
+}

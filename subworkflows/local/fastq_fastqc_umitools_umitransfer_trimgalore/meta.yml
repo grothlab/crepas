@@ -1,102 +1,133 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
-name: "fastq_fastqc_umitools_trimgalore"
-description: Read QC, UMI extraction and trimming
+name: "fastq_fastqc_umitools_umitransfer_trimgalore"
+description: Read QC, spike-in barcode extraction, UMI extraction/transfer and (hard-)trimming
 keywords:
   - fastq
   - fastqc
   - qc
-  - UMI
+  - umi
+  - umitransfer
   - trimming
   - trimgalore
 components:
   - fastqc
-  - umitransfer
+  - fastq_extract_spikein_barcodes
   - umitools/extract
+  - umitransfer
   - trimgalore
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. [ id:'test' ]
-  - reads:
-      type: file
+  - ch_reads:
       description: |
         List of input FastQ files of size 1 and 2 for single-end and paired-end data,
-        respectively.
+        respectively. Samples with `meta.sep_umi_fq == true` are expected to carry their UMI
+        sequence as an extra, final FastQ file (routed to umi-transfer). Samples with
+        `meta.extract_umi == true` (and `meta.sep_umi_fq` not true) have their UMI embedded in
+        the read sequence/header (routed to UMI-tools extract).
+        Structure: [ val(meta), [ path(reads) ] ]
   - skip_fastqc:
       type: boolean
-      description: |
-        Skip fastqc process
-  - with_umi:
+      description: Skip FastQC
+      pattern: "true|false"
+  - skip_spikein_barcode_extract:
       type: boolean
+      description: Skip spike-in barcode extraction and counting
+      pattern: "true|false"
+  - ch_spikein_barcode_table:
+      type: file
       description: |
-        With or without umi detection
-  - skip_umi_extract:
-      type: boolean
-      description: |
-        With or without umi extrection
+        Table of spike-in barcode sequences, required when skip_spikein_barcode_extract is false
+        Structure: [ val(meta), path(spikein_barcode_table.tsv) ]
   - skip_trimming:
       type: boolean
-      description: |
-        Allows to skip trimgalore execution
+      description: Skip TrimGalore adapter trimming (and hard-trimming)
+      pattern: "true|false"
   - umi_discard_read:
       type: integer
       description: |
-        Discard R1 / R2 if required
+        After UMI-tools extract, discard read 1 (1) or read 2 (2) and treat the sample as
+        single-end. Any other value keeps both reads.
   - min_trimmed_reads:
       type: integer
       description: |
-        Inputs with fewer than this reads will be filtered out of the "reads" output channel
+        Inputs with fewer trimmed reads than this (after TrimGalore) are filtered out of the
+        "reads" output channel
+  - hardtrim3_length:
+      type: integer
+      description: |
+        If set (> 0), hard-trim this many bp from the 3' end of trimmed reads with a second
+        TrimGalore pass
+  - hardtrim5_length:
+      type: integer
+      description: |
+        If set (> 0), hard-trim this many bp from the 5' end of trimmed reads with a second
+        TrimGalore pass
 output:
   - reads:
-      type: file
-      description: >
-        Extracted FASTQ files. | For single-end reads, pattern is \${prefix}.umi_extract.fastq.gz. |
-
-
-
-          For paired-end reads, pattern is \${prefix}.umi_extract_{1,2}.fastq.gz.
-      pattern: "*.{fastq.gz}"
-  - fastqc_html:
-      type: file
-      description: FastQC report
-      pattern: "*_{fastqc.html}"
-  - fastqc_zip:
-      type: file
-      description: FastQC report archive
-      pattern: "*_{fastqc.zip}"
-  - log:
-      type: file
-      description: Logfile for umi_tools
-      pattern: "*.{log}"
-  - trim_unpaired:
-      type: file
       description: |
-        FastQ files containing unpaired reads from read 1 or read 2
-      pattern: "*unpaired*.fq.gz"
+        Processed FastQ files: UMI-extracted/transferred (as applicable), adapter-trimmed and,
+        if hardtrim3_length or hardtrim5_length is set, hard-trimmed
+        Structure: [ val(meta), [ path(reads) ] ]
+  - barcode_counts:
+      description: |
+        Spike-in barcode counts, when skip_spikein_barcode_extract is false
+        Structure: [ val(meta), path(tsv) ]
+  - fastqc_html:
+      description: |
+        FastQC report, when skip_fastqc is false
+        Structure: [ val(meta), path(html) ]
+  - fastqc_zip:
+      description: |
+        FastQC report archive, when skip_fastqc is false
+        Structure: [ val(meta), path(zip) ]
+  - sep_umi_fq_log:
+      description: |
+        umi-transfer log, for samples with meta.sep_umi_fq == true
+        Structure: [ val(meta), path(log) ]
+  - no_sep_umi_fq_log:
+      description: |
+        UMI-tools extract log, for samples with meta.extract_umi == true
+        Structure: [ val(meta), path(log) ]
+  - trim_unpaired:
+      description: |
+        FastQ files containing unpaired reads from read 1 or read 2, when skip_trimming is false
+        Structure: [ val(meta), [ path(reads) ] ]
   - trim_html:
-      type: file
-      description: FastQC report (optional)
-      pattern: "*_{fastqc.html}"
+      description: |
+        TrimGalore FastQC report, when skip_trimming is false
+        Structure: [ val(meta), [ path(html) ] ]
   - trim_zip:
-      type: file
-      description: FastQC report archive (optional)
-      pattern: "*_{fastqc.zip}"
+      description: |
+        TrimGalore FastQC report archive, when skip_trimming is false
+        Structure: [ val(meta), [ path(zip) ] ]
   - trim_log:
-      type: file
-      description: Trim Galore! trimming report
-      pattern: "*_{report.txt}"
+      description: |
+        TrimGalore trimming report, when skip_trimming is false
+        Structure: [ val(meta), [ path(txt) ] ]
   - trim_read_count:
-      type: integer
-      description: Number of reads remaining after trimming for all input samples
-  - versions:
-      type: file
-      description: File containing software versions
-      pattern: "versions.yml"
+      description: |
+        Number of reads remaining after TrimGalore trimming, when skip_trimming is false
+        Structure: [ val(meta), val(count) ]
+  - htrim_unpaired:
+      description: |
+        FastQ files containing unpaired reads from read 1 or read 2 after hard-trimming, when
+        hardtrim3_length or hardtrim5_length is set
+        Structure: [ val(meta), [ path(reads) ] ]
+  - htrim_html:
+      description: |
+        FastQC report after hard-trimming, when hardtrim3_length or hardtrim5_length is set
+        Structure: [ val(meta), [ path(html) ] ]
+  - htrim_zip:
+      description: |
+        FastQC report archive after hard-trimming, when hardtrim3_length or hardtrim5_length is set
+        Structure: [ val(meta), [ path(zip) ] ]
+  - htrim_log:
+      description: |
+        TrimGalore trimming report for the hard-trimming pass, when hardtrim3_length or
+        hardtrim5_length is set
+        Structure: [ val(meta), [ path(txt) ] ]
 authors:
   - "@drpatelh"
   - "@KamilMaliszArdigen"
+  - "@samuelruizperez"
 maintainers:
-  - "@drpatelh"
-  - "@KamilMaliszArdigen"
+  - "@samuelruizperez"

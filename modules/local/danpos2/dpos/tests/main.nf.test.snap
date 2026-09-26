@@ -1,0 +1,234 @@
+{
+    "sarscov2 - bam - dpos - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.smooth.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.smooth.positions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test_input.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.positions.integrative.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.reference_positions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.positions.ref_adjust.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "7": [
+                    [
+                        "DANPOS2_DPOS",
+                        "danpos",
+                        "2.2.2"
+                    ]
+                ],
+                "diff_wig": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "integrative_pos": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.positions.integrative.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pooled_input_wig": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test_input.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pooled_smooth_positions": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.smooth.positions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pooled_treat_wig": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.smooth.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pos_ref_adjust": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.positions.ref_adjust.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "reference_pos": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.reference_positions.xls:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_danpos": [
+                    [
+                        "DANPOS2_DPOS",
+                        "danpos",
+                        "2.2.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T13:22:55.808493058",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - dpos - with background": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.bgsub.smooth.wig:md5,3e214d71e8f691ec2b704bfb380496c8"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.bgsub.smooth.positions.xls:md5,94dbd45364c60ad25e9c953da624d076"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test_input.wig:md5,85fcfab3ba82e5a45fda43d6dab939cf"
+                ]
+            ],
+            {
+                "versions_danpos": [
+                    [
+                        "DANPOS2_DPOS",
+                        "danpos",
+                        "2.2.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T13:22:42.659460762",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - dpos - no background": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.smooth.wig:md5,53b886d44eac62542b13d72b70f4530a"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.smooth.positions.xls:md5,3084e7505c144f02cb0a5fac1d4be335"
+                ]
+            ],
+            {
+                "versions_danpos": [
+                    [
+                        "DANPOS2_DPOS",
+                        "danpos",
+                        "2.2.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T13:22:29.183750048",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

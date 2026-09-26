@@ -1,5 +1,5 @@
 //
-// Alignment with BWAMEM2 
+// Alignment with BWAMEM2
 //
 
 include { BWAMEM2_MEM                 } from '../../../modules/nf-core/bwamem2/mem/main'
@@ -10,13 +10,14 @@ workflow FASTQ_ALIGN_BWAMEM2 {
     ch_reads        // channel (mandatory): [ val(meta), [ path(reads) ] ]
     ch_index        // channel (mandatory): [ val(meta2), path(index) ]
     val_sort_bam    // boolean (mandatory): true or false
-    ch_fasta        // channel (optional) : [ val(meta3), path(fasta) ]
+    ch_fasta_fai    // channel (optional) : [ val(meta3), path(fasta), path(fai) ]
 
     main:
 
     //
     // Map reads with BWAMEM2_MEM
     //
+    ch_fasta = ch_fasta_fai.map { meta, fasta, _fai -> [ meta, fasta ] }
 
     BWAMEM2_MEM ( ch_reads, ch_index, ch_fasta, val_sort_bam )
 
@@ -24,13 +25,12 @@ workflow FASTQ_ALIGN_BWAMEM2 {
     // Sort, index BAM file and run samtools stats, flagstat and idxstats
     //
 
-    BAM_SORT_STATS_SAMTOOLS ( BWAMEM2_MEM.out.bam, ch_fasta )
+    BAM_SORT_STATS_SAMTOOLS ( BWAMEM2_MEM.out.bam, ch_fasta_fai )
 
     emit:
     bam_orig = BWAMEM2_MEM.out.bam                  // channel: [ val(meta), path(bam) ]
     bam      = BAM_SORT_STATS_SAMTOOLS.out.bam      // channel: [ val(meta), path(bam) ]
-    bai      = BAM_SORT_STATS_SAMTOOLS.out.bai      // channel: [ val(meta), path(bai) ]
-    csi      = BAM_SORT_STATS_SAMTOOLS.out.csi      // channel: [ val(meta), path(csi) ]
+    index    = BAM_SORT_STATS_SAMTOOLS.out.index    // channel: [ val(meta), path(index) ]
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats    // channel: [ val(meta), path(stats) ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat // channel: [ val(meta), path(flagstat) ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats // channel: [ val(meta), path(idxstats) ]

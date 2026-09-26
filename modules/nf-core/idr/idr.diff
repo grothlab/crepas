@@ -1,0 +1,42 @@
+Changes in component 'nf-core/idr'
+'modules/nf-core/idr/environment.yml' is unchanged
+Changes in 'idr/main.nf':
+--- modules/nf-core/idr/main.nf
++++ modules/nf-core/idr/main.nf
+@@ -8,7 +8,7 @@
+         'quay.io/biocontainers/idr:2.0.4.2--py39hcbe4a3b_5' }"
+ 
+     input:
+-    tuple val(meta), path(peaks), val(peak_type)
++    tuple val(meta), path(peaks), val(peak_type), path(peak_list)
+ 
+     output:
+     tuple val(meta), path("*idrValues.txt"), emit: idr
+@@ -29,10 +29,12 @@
+     if (!peak_types.contains(peak_type)) {
+         log.error "[ERROR] Invalid option: '${peak_type}'. Valid options for 'peak_type': ${peak_types.join(', ')}."
+     }
+-    prefix = task.ext.prefix ?: "${meta.id}"
++    def peak_list_arg = peak_list ? "--peak-list ${peak_list}" : ''
++    def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+     idr \\
+         --samples ${peaks} \\
++        ${peak_list_arg} \\
+         --input-file-type ${peak_type} \\
+         --output-file ${prefix}.idrValues.txt \\
+         --log-output-file ${prefix}.log.txt \\
+@@ -48,7 +50,7 @@
+     if (!peak_types.contains(peak_type)) {
+         log.error "[ERROR] Invalid option: '${peak_type}'. Valid options for 'peak_type': ${peak_types.join(', ')}."
+     }
+-    prefix = task.ext.prefix ?: "${meta.id}"
++    def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+     touch ${prefix}.idrValues.txt
+     touch ${prefix}.log.txt
+
+'modules/nf-core/idr/meta.yml' is unchanged
+'modules/nf-core/idr/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/idr/tests/main.nf.test' is unchanged
+************************************************************

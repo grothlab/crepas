@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "gff3sort"
+description: Sort a GFF3/GTF file by chromosome and position, correctly ordering parent features before their children
+keywords:
+  - gff3sort
+  - gff3
+  - gtf
+  - sort
+  - annotation
+tools:
+  - gff3sort:
+      description: |
+        GFF3sort properly sorts GFF3/GTF files by chromosome and start position while keeping
+        parent features ordered before their children, unlike plain GNU sort, producing output
+        suitable for tabix indexing and genome browsers such as JBrowse.
+      homepage: https://github.com/billzt/gff3sort
+      documentation: https://github.com/billzt/gff3sort
+      tool_dev_url: https://github.com/billzt/gff3sort
+      licence: ["Perl"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - gxf:
+        type: file
+        description: GFF3 or GTF file to sort; the output keeps the same file extension as the input
+        pattern: "*.{gff3,gtf}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1975" # GFF3
+          - edam: "http://edamontology.org/format_2306" # GTF
+output:
+  sorted:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.${gxf.extension}":
+          type: file
+          description: Sorted GFF3/GTF file, same extension as the input
+          pattern: "*.{gff3,gtf}"
+          ontologies:
+            - edam: "http://edamontology.org/format_1975" # GFF3
+            - edam: "http://edamontology.org/format_2306" # GTF
+  versions_perl:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "perl":
+          type: string
+          description: The name of the tool
+      - "perl --version 2>&1 | grep 'This is perl' | sed 's/.*(v\\(.*\\)) built.*/\\1/'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "perl":
+          type: string
+          description: The name of the tool
+      - "perl --version 2>&1 | grep 'This is perl' | sed 's/.*(v\\(.*\\)) built.*/\\1/'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

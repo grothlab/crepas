@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "umitransfer"
+description: Integrate UMIs provided as a separate FASTQ file into the read headers of paired (or single) FASTQ files
+keywords:
+  - UMI
+  - barcode
+  - umi-transfer
+  - fastq
+tools:
+  - umitransfer:
+      description: |
+        A command line tool for transferring Unique Molecular Identifiers (UMIs) provided as a
+        separate FASTQ file (e.g. read out from the index alongside demultiplexing) to the
+        header of records in single or paired FASTQ files, using the `external` subcommand.
+      homepage: https://github.com/SciLifeLab/umi-transfer
+      documentation: https://github.com/SciLifeLab/umi-transfer#readme
+      tool_dev_url: https://github.com/SciLifeLab/umi-transfer
+      doi: "10.5281/zenodo.12581602"
+      licence: ["MIT"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - reads:
+        type: list
+        description: |
+          List of input FASTQ files with the UMI sequence to transfer supplied as a separate,
+          final FASTQ file. For single-end data: `[ read, umi ]`. For paired-end data:
+          `[ read1, read2, umi ]`.
+        pattern: "*.{fastq.gz}"
+output:
+  reads:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.fastq.gz":
+          type: file
+          description: >
+            FASTQ files with the UMI sequence transferred into the read header. | For
+            single-end reads, pattern is ${prefix}.umitransfer.fastq.gz. | For paired-end
+            reads, pattern is ${prefix}.umitransfer_{1,2}.fastq.gz.
+          pattern: "*.{fastq.gz}"
+          ontologies: []
+  log:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.log":
+          type: file
+          description: Logfile for umi-transfer
+          pattern: "*.{log}"
+          ontologies: []
+  versions_umitransfer:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - umitransfer:
+          type: string
+          description: The name of the tool
+      - "umi-transfer external --version 2>&1 | tail -1 | sed 's/^umi-transfer-external //'":
+          type: eval
+          description: The expression to obtain the version of umi-transfer
+
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - umitransfer:
+          type: string
+          description: The name of the tool
+      - "umi-transfer external --version 2>&1 | tail -1 | sed 's/^umi-transfer-external //'":
+          type: eval
+          description: The expression to obtain the version of umi-transfer
+
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

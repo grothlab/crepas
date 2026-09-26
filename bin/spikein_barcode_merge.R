@@ -88,6 +88,8 @@ read_count_table <- function(path) {
       paste(missing_cols, collapse = ", ")
     )
   }
+
+  df
 }
 
 # ===============================================================================

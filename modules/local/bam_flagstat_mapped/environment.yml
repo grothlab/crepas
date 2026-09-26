@@ -3,4 +3,7 @@
 channels:
   - conda-forge
 dependencies:
-  - conda-forge::gawk=5.3.1
+  - conda-forge::coreutils=9.5
+  - conda-forge::gawk=5.4.0
+  - conda-forge::ripgrep=15.1.0
+  - conda-forge::sed=4.10

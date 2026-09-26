@@ -1,0 +1,64 @@
+{
+    "sarscov2 - gtf - gene index - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "TEtranscripts_index.ind:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "TETRANSCRIPTS_INDEXER",
+                        "TEtranscripts_indexer",
+                        "2.0.3"
+                    ]
+                ],
+                "index": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "TEtranscripts_index.ind:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_tetranscripts_indexer": [
+                    [
+                        "TETRANSCRIPTS_INDEXER",
+                        "TEtranscripts_indexer",
+                        "2.0.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:33:38.295560671",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - gtf - gene index": {
+        "content": [
+            [
+                "genome.gtf.ind"
+            ],
+            {
+                "versions_tetranscripts_indexer": [
+                    [
+                        "TETRANSCRIPTS_INDEXER",
+                        "TEtranscripts_indexer",
+                        "2.0.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:33:27.558462683",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

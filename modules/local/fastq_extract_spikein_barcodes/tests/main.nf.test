@@ -1,0 +1,70 @@
+nextflow_process {
+
+    name "Test Process FASTQ_EXTRACT_SPIKEIN_BARCODES"
+    script "../main.nf"
+    process "FASTQ_EXTRACT_SPIKEIN_BARCODES"
+
+    tag "modules"
+    tag "modules_local"
+    tag "fastq_extract_spikein_barcodes"
+
+    test("sarscov2 - fastq - paired_end") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true) ]
+                ]
+                input[1] = [
+                    [ id:'spikein_barcodes' ], // meta2 map
+                    file('https://raw.githubusercontent.com/grothlab/crepas/6d7eb52e32f7e83e7e43664ae9ed955f51e68171/assets/barcodes/sc_spikein_barcodes.tsv', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.counts,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - fastq - paired_end - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true) ]
+                ]
+                input[1] = [
+                    [ id:'spikein_barcodes' ], // meta2 map
+                    file('https://raw.githubusercontent.com/grothlab/crepas/6d7eb52e32f7e83e7e43664ae9ed955f51e68171/assets/barcodes/sc_spikein_barcodes.tsv', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

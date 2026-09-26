@@ -1,0 +1,107 @@
+name: "deeptools_multibamsummary"
+description: Computes read coverage for genomic regions (bins) across the entire
+  genome.
+keywords:
+  - bam
+  - coverage
+  - genome
+  - bin
+tools:
+  - deeptools:
+      description: A set of user-friendly tools for normalization and
+        visualization of deep-sequencing data
+      documentation: https://deeptools.readthedocs.io/en/develop/index.html
+      tool_dev_url: https://github.com/deeptools/deepTools
+      doi: "10.1093/nar/gku365"
+      licence:
+        - "GPL v3"
+      identifier: biotools:deeptools
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bams:
+        type: file
+        description: One or more BAM files
+        pattern: "*.{bam}"
+        ontologies: []
+    - bais:
+        type: file
+        description: Corresponding BAM file indexes
+        pattern: "*.bam.bai"
+        ontologies: []
+    - labels:
+        type: string
+        description: User specified labels instead of default labels (file names).
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing blacklist metadata
+          e.g. [ id:'blacklist' ]
+    - blacklist:
+        type: file
+        description: BED/GTF file containing regions to exclude from analysis
+        pattern: "*.{bed,gtf}"
+        ontologies:
+          - edam: "http://edamontology.org/data_3002"
+          - edam: "http://edamontology.org/format_3003"
+        optional: true
+output:
+  matrix:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.npz":
+          type: file
+          description: |
+            compressed numpy array of read coverage data used by plotCorrelation and plotPCA
+            deeptool utilities
+          pattern: "all_bam.bamSummary.npz"
+          ontologies: []
+  raw_counts:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          type: file
+          description: |
+            Raw per-bin read counts table (written when `--outRawCounts` is not already present in
+            `task.ext.args`), one column per input BAM
+          pattern: "all_bam.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_deeptools:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - deeptools:
+          type: string
+          description: The name of the tool
+      - multiBamSummary --version | sed "s/multiBamSummary //g":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - deeptools:
+          type: string
+          description: The name of the tool
+      - multiBamSummary --version | sed "s/multiBamSummary //g":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@tamara-hodgetts"
+  - "@chris-cheshire"
+  - "@joseespinosa"
+maintainers:
+  - "@tamara-hodgetts"
+  - "@chris-cheshire"
+  - "@joseespinosa"

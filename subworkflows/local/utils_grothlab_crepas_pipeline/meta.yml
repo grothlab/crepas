@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "utils_grothlab_crepas_pipeline"
+description: |
+  Pipeline-specific utility workflows and helper functions for grothlab/crepas. This file
+  exports three workflows rather than a single reusable one:
+    - PIPELINE_INITIALISATION: nf-core boilerplate pipeline setup (version/help printing,
+      parameter validation, config checks).
+    - INPUT_CHECK: validates and reshapes the parsed samplesheet (technical replicate
+      numbering, read-group construction, input-control cross-checks, per-experiment-type
+      metadata validation).
+    - PIPELINE_COMPLETION: nf-core boilerplate completion tasks (summary email, completion
+      summary logging).
+  It also exports the plain functions getGenomeAttribute, getMacsGsize and
+  validateInputParameters, used by the top-level entrypoint and INPUT_CHECK.
+keywords:
+  - utility
+  - pipeline
+  - initialise
+  - input-check
+  - completion
+components:
+  - utils_nfschema_plugin
+  - utils_nfcore_pipeline
+  - utils_nextflow_pipeline
+  - completionemail
+  - completionsummary
+  - logcolours
+input:
+  - success:
+      type: boolean
+      description: |
+        Dummy input, present only to satisfy the subworkflow meta.yml schema. This file exports
+        three separate workflows (PIPELINE_INITIALISATION, INPUT_CHECK, PIPELINE_COMPLETION),
+        each with its own distinct take:/emit: signature; see main.nf for their real inputs.
+output:
+  - success:
+      type: boolean
+      description: |
+        Dummy output, present only to satisfy the subworkflow meta.yml schema. This file exports
+        three separate workflows (PIPELINE_INITIALISATION, INPUT_CHECK, PIPELINE_COMPLETION),
+        each with its own distinct take:/emit: signature; see main.nf for their real outputs.
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "partition_average"
+description: Average matching per-window partition tables across biological replicates into a single mean partition table, and derive a filtered bedGraph of the smoothed score
+keywords:
+  - awk
+  - paste
+  - partitions
+  - rfd
+  - replication-timing
+  - average
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to average columns 4-12 of the pasted per-replicate partition tables (ignoring
+        NA values), filter to windows with non-zero forward/reverse counts, and format the
+        result into a 4-column bedGraph.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - partitions:
+        type: file
+        description: |
+          One or more 12-column partition tables (as produced by COLLECT_PARTITIONS) for the
+          biological replicates to be averaged. All tables must share the same windows and row
+          order (chrom, start, end in columns 1-3); columns 4-12 are averaged across files.
+        pattern: "*.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  tsv:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          type: file
+          description: 12-column partition table with columns 4-12 averaged across the input replicates
+          pattern: "*.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  filtered_tsv:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.flT_by_counts.tsv":
+          type: file
+          description: Averaged partition table filtered to windows with non-zero forward or reverse counts
+          pattern: "*.flT_by_counts.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  filtered_bdg:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.flT_by_counts.bdg":
+          type: file
+          description: bedGraph of the averaged smoothed partition/RFD score, restricted to windows with non-zero forward or reverse counts
+          pattern: "*.flT_by_counts.bdg"
+          ontologies:
+            - edam: "http://edamontology.org/format_3583" # bedGraph
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env paste --version | head -1 | sed 's/^paste (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env paste --version | head -1 | sed 's/^paste (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

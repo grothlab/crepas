@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "mmr"
+description: Resolve multi-mapped reads (MMRs) to their most likely genomic origin by locally minimizing coverage "roughness"
+keywords:
+  - mmr
+  - multimapping
+  - read allocation
+  - bam
+tools:
+  - mmr:
+      description: |
+        MMR (Multi-Mapper Resolution) infers the best mapping location for multi-mapped reads
+        by locally minimizing the variability ("roughness") of position-wise coverage within a
+        window around each candidate alignment, iteratively selecting the alignments that
+        yield the smoothest overall coverage.
+      homepage: https://github.com/ratschlab/mmr
+      documentation: https://github.com/ratschlab/mmr/blob/master/DOCUMENTATION
+      tool_dev_url: https://github.com/ratschlab/mmr
+      doi: "10.1093/bioinformatics/btv624"
+      licence: ["GPL-3.0-or-later"]
+      identifier: "biotools:mmr"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: |
+          BAM file containing uniquely- and multi-mapped read alignments to be resolved by MMR.
+          Must be sorted by read ID (name-sorted) unless `--no-sort-check` is supplied via
+          `task.ext.args`.
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+output:
+  bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bam":
+          type: file
+          description: BAM file containing MMR-resolved read alignments
+          pattern: "*.bam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+  versions_mmr:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "mmr":
+          type: string
+          description: The name of the tool
+      - "echo $VERSION":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "mmr":
+          type: string
+          description: The name of the tool
+      - "echo $VERSION":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

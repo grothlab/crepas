@@ -3,9 +3,9 @@ process MACE_PREPROCESSOR {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
         ? 'https://depot.galaxyproject.org/singularity/mace:1.2--py27he7e273a_2'
-        : 'biocontainers/mace:1.2_cv1'}"
+        : 'biocontainers/mace:1.2--py27he7e273a_2'}"
 
     input:
     tuple val(meta), path(bam), path(bai)
@@ -14,7 +14,7 @@ process MACE_PREPROCESSOR {
     output:
     tuple val(meta), path("*_Forward.wig"), emit: forward_wig
     tuple val(meta), path("*_Reverse.wig"), emit: reverse_wig
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('mace'), eval("preprocessor.py --version 2>&1 | sed 's/^preprocessor\\.py //'"), topic: versions, emit: versions_mace
 
     when:
     task.ext.when == null || task.ext.when
@@ -29,11 +29,6 @@ process MACE_PREPROCESSOR {
         ${treatment} \\
         --chromSize ${chrom_sizes} \\
         --outPrefix ${prefix}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        mace_preprocessor: \$(preprocessor.py --version | sed -e "s/mace //g")
-    END_VERSIONS
     """
 
     stub:
@@ -41,10 +36,5 @@ process MACE_PREPROCESSOR {
     """
     touch ${prefix}_Forward.wig
     touch ${prefix}_Reverse.wig
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        mace_preprocessor: \$(preprocessor.py --version | sed -e "s/mace //g")
-    END_VERSIONS
     """
 }

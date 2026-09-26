@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "telocal_indexer"
+description: Build a TElocal gene or transposable-element locus index from a GTF file, for use by TElocal
+keywords:
+  - telocal
+  - transposable-element
+  - index
+tools:
+  - telocal:
+      description: |
+        A locus-level extension of TEtranscripts for quantifying transposable element expression
+        at individual genomic loci. Used here via the bundled `bin/TElocal_indexer.py` script to
+        pre-build the gene- or TE-locus index that `TElocal` otherwise builds on every run, so it
+        can instead be built once and reused across samples.
+      homepage: https://github.com/mhammell-laboratory/TElocal
+      documentation: https://github.com/mhammell-laboratory/TElocal
+      tool_dev_url: https://github.com/mhammell-laboratory/TElocal
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - gtf:
+        type: file
+        description: Gene or transposable-element locus annotation GTF file to index
+        pattern: "*.gtf"
+        ontologies:
+          - edam: "http://edamontology.org/format_2306" # GTF
+  - - index_type:
+        type: string
+        description: Type of annotation being indexed, passed to `--itype` (e.g. 'gene' or 'TE')
+output:
+  index:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test' ]
+      - "*.{ind,locInd}":
+          type: file
+          description: TElocal gene (`.ind`) or locus-level (`.locInd`) index file, for use as input to TElocal
+          pattern: "*.{ind,locInd}"
+          ontologies: []
+  versions_telocal_indexer:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "TElocal_indexer":
+          type: string
+          description: The name of the tool
+      - "TElocal_indexer.py --version | sed 's/TElocal_indexer //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "TElocal_indexer":
+          type: string
+          description: The name of the tool
+      - "TElocal_indexer.py --version | sed 's/TElocal_indexer //g'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

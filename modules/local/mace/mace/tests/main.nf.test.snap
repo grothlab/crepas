@@ -1,0 +1,107 @@
+{
+    "sarscov2 - bigwig - border detection and pairing - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border_cluster.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border_pair_elite.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border_pair.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border_pair.peak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
+                    [
+                        "MACE_MACE",
+                        "mace",
+                        "1.2"
+                    ]
+                ],
+                "border": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "border_cluster": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border_cluster.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "border_pair": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border_pair.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "border_pair_elite": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border_pair_elite.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "border_pair_peak": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.border_pair.peak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_mace": [
+                    [
+                        "MACE_MACE",
+                        "mace",
+                        "1.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T17:11:25.171318914",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

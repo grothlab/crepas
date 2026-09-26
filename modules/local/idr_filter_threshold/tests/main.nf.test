@@ -1,0 +1,102 @@
+nextflow_process {
+
+    name "Test Process IDR_FILTER_THRESHOLD"
+    script "../main.nf"
+    process "IDR_FILTER_THRESHOLD"
+
+    tag "modules"
+    tag "modules_local"
+    tag "idr_filter_threshold"
+    tag "idr"
+
+    setup {
+        run("IDR") {
+            script "../../../nf-core/idr/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/narrowpeak/test.narrowPeak', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/narrowpeak/test2.narrowPeak', checkIfExists: true)
+                    ],
+                    'narrowPeak',
+                    []
+                ]
+                """
+            }
+        }
+    }
+
+    test("homo_sapiens - narrowPeak - default idr threshold") {
+
+        when {
+            process {
+                """
+                input[0] = IDR.out.idr
+                input[1] = 'narrowPeak'
+                input[2] = 0.05
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.peaks,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - narrowPeak - permissive idr threshold keeps more peaks") {
+
+        when {
+            process {
+                """
+                input[0] = IDR.out.idr
+                input[1] = 'narrowPeak'
+                input[2] = 1.0
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.peaks,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - narrowPeak - default idr threshold - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = IDR.out.idr
+                input[1] = 'narrowPeak'
+                input[2] = 0.05
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

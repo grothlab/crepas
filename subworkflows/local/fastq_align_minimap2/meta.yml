@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: fastq_align_minimap2
+description: Align reads to a reference genome using minimap2 and run samtools stats, flagstat and idxstats
+keywords:
+  - align
+  - fasta
+  - genome
+  - reference
+  - minimap2
+components:
+  - minimap2/align
+  - samtools/stats
+  - samtools/idxstats
+  - samtools/flagstat
+  - bam_stats_samtools
+input:
+  - ch_reads:
+      description: |
+        List of input FastQ files of size 1 and 2 for single-end and paired-end data,
+        respectively.
+        Structure: [ val(meta), [ path(reads) ] ]
+  - ch_index:
+      description: |
+        Reference sequence, either a FASTA file or a pre-built minimap2 (.mmi) index
+        Structure: [ val(meta2), path(reference) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta3), path(fasta), path(fai) ]
+  - bam_format:
+      type: boolean
+      description: If true, then produces a BAM file instead of the default PAF format
+      pattern: "true|false"
+  - bam_index_extension:
+      type: string
+      description: The BAM index extension to produce (e.g. 'bai' or 'csi'). Leave empty to skip indexing.
+  - cigar_paf_format:
+      type: boolean
+      description: If true, then output the cigar string in the PAF format
+      pattern: "true|false"
+  - cigar_bam:
+      type: boolean
+      description: If true, then output the cigar string in the BAM file
+      pattern: "true|false"
+output:
+  - bam:
+      description: |
+        Aligned BAM file, when bam_format is true
+        Structure: [ val(meta), path(bam) ]
+  - index:
+      description: |
+        Index of the aligned BAM file, when bam_index_extension is set
+        Structure: [ val(meta), path(index) ]
+  - stats:
+      description: |
+        File containing samtools stats output
+        Structure: [ val(meta), path(stats) ]
+  - flagstat:
+      description: |
+        File containing samtools flagstat output
+        Structure: [ val(meta), path(flagstat) ]
+  - idxstats:
+      description: |
+        File containing samtools idxstats output
+        Structure: [ val(meta), path(idxstats) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

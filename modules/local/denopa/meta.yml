@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "denopa"
+description: Predict nucleosome positions from ATAC-seq BAM data, including at low/sparse sequencing depth
+keywords:
+  - atacseq
+  - nucleosome-positioning
+  - peak-calling
+tools:
+  - denopa:
+      description: |
+        deNOPA is a nucleosome positioning algorithm that predicts nucleosome positions from
+        ATAC-seq data, and is particularly effective on sparsely sequenced datasets.
+      homepage: https://gitee.com/bxxu/denopa
+      documentation: https://gitee.com/bxxu/denopa
+      tool_dev_url: https://gitee.com/bxxu/denopa
+      doi: "10.1093/bib/bbab469"
+      licence: ["GPL-3.0-only"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false, exp_type:'ATAC-seq' ]
+    - bam:
+        type: file
+        description: Coordinate-sorted ATAC-seq BAM file
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - bai:
+        type: file
+        description: |
+          BAM index file matching bam. Required: deNOPA's candidateNucleosomes stage does
+          indexed random-access reads (pysam.fetch) internally, which needs a pre-built index.
+        pattern: "*.bai"
+output:
+  arers:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false, exp_type:'ATAC-seq' ]
+      - "*_ARERs.txt":
+          type: file
+          description: Accessible/open-chromatin regions detected before nucleosome calling
+          pattern: "*_ARERs.txt"
+  nfrs:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false, exp_type:'ATAC-seq' ]
+      - "*_NFR.txt":
+          type: file
+          description: Predicted nucleosome-free regions
+          pattern: "*_NFR.txt"
+  nucleosomes:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false, exp_type:'ATAC-seq' ]
+      - "*_nucleosomes.txt":
+          type: file
+          description: Predicted nucleosome positions
+          pattern: "*_nucleosomes.txt"
+  candidates:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false, exp_type:'ATAC-seq' ]
+      - "*_candidates.pkl":
+          type: file
+          description: Pickled intermediate candidate nucleosome positions, optional
+          pattern: "*_candidates.pkl"
+  frag_len:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false, exp_type:'ATAC-seq' ]
+      - "*_frag_len.pkl":
+          type: file
+          description: Pickled fragment-length distribution, optional
+          pattern: "*_frag_len.pkl"
+  pileup:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false, exp_type:'ATAC-seq' ]
+      - "*_pileup_signal.hdf":
+          type: file
+          description: HDF5 pileup signal track, optional
+          pattern: "*_pileup_signal.hdf"
+  smooth:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false, exp_type:'ATAC-seq' ]
+      - "*_smooth.hdf":
+          type: file
+          description: HDF5 smoothed signal track, optional
+          pattern: "*_smooth.hdf"
+  versions_denopa:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "denopa":
+          type: string
+          description: The name of the tool
+      - '/root/miniconda3/bin/python3 -c "import pkg_resources; print(pkg_resources.get_distribution(''deNOPA'').version)"':
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "denopa":
+          type: string
+          description: The name of the tool
+      - '/root/miniconda3/bin/python3 -c "import pkg_resources; print(pkg_resources.get_distribution(''deNOPA'').version)"':
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

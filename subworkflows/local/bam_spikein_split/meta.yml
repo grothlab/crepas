@@ -1,0 +1,107 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_spikein_split"
+description: |
+  Split a hybrid-genome BAM file by genome origin (endogenous vs spike-in), name-sort, remove
+  orphan reads, coordinate-sort/index and run samtools stats, flagstat and idxstats on both the
+  combined and per-genome BAM files
+keywords:
+  - spikein
+  - split
+  - bam
+components:
+  - bam_split_by_genome
+  - samtools/sort
+  - bam_remove_orphans
+  - bam_sort_stats_samtools
+  - bam_flagstat_mapped
+  - bam_flagstat_mapped
+input:
+  - ch_bam:
+      description: |
+        Input hybrid-genome BAM file and its index
+        Structure: [ val(meta), path(bam), path(index) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Hybrid reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - genome:
+      type: string
+      description: Endogenous genome identifier, e.g. 'hg38'
+  - spikein_genome:
+      type: string
+      description: Spike-in genome identifier, e.g. 'mm10'
+  - total_mapped_reads_key:
+      type: string
+      description: |
+        Name of the meta field to store each sample's total mapped read count under, used
+        downstream for read-depth-based normalisation
+output:
+  - bam:
+      description: |
+        Combined (endogenous + spike-in) BAM file
+        Structure: [ val(meta), path(bam) ]
+  - endo_bam:
+      description: |
+        Endogenous-only BAM file
+        Structure: [ val(meta), path(bam) ]
+  - exo_bam:
+      description: |
+        Spike-in-only BAM file
+        Structure: [ val(meta), path(bam) ]
+  - index:
+      description: |
+        Index of the combined BAM file
+        Structure: [ val(meta), path(index) ]
+  - endo_index:
+      description: |
+        Index of the endogenous-only BAM file
+        Structure: [ val(meta), path(index) ]
+  - exo_index:
+      description: |
+        Index of the spike-in-only BAM file
+        Structure: [ val(meta), path(index) ]
+  - stats:
+      description: |
+        Samtools stats output for the combined BAM file
+        Structure: [ val(meta), path(stats) ]
+  - endo_stats:
+      description: |
+        Samtools stats output for the endogenous-only BAM file
+        Structure: [ val(meta), path(stats) ]
+  - exo_stats:
+      description: |
+        Samtools stats output for the spike-in-only BAM file
+        Structure: [ val(meta), path(stats) ]
+  - flagstat:
+      description: |
+        Samtools flagstat output for the combined BAM file
+        Structure: [ val(meta), path(flagstat) ]
+  - endo_flagstat:
+      description: |
+        Samtools flagstat output for the endogenous-only BAM file
+        Structure: [ val(meta), path(flagstat) ]
+  - exo_flagstat:
+      description: |
+        Samtools flagstat output for the spike-in-only BAM file
+        Structure: [ val(meta), path(flagstat) ]
+  - idxstats:
+      description: |
+        Samtools idxstats output for the combined BAM file
+        Structure: [ val(meta), path(idxstats) ]
+  - endo_idxstats:
+      description: |
+        Samtools idxstats output for the endogenous-only BAM file
+        Structure: [ val(meta), path(idxstats) ]
+  - exo_idxstats:
+      description: |
+        Samtools idxstats output for the spike-in-only BAM file
+        Structure: [ val(meta), path(idxstats) ]
+  - multiqc_files:
+      description: |
+        Files collected for MultiQC
+        Structure: [ path(file) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

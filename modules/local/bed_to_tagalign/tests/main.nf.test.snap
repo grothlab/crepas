@@ -1,0 +1,99 @@
+{
+    "sarscov2 - bed - single-end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.tagAlign:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BED_TO_TAGALIGN",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "tagalign": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.tagAlign:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "BED_TO_TAGALIGN",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:22:41.622238008",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bed - single-end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.tagAlign:md5,24e693954956096abbf0f5cd8e8c6603"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "BED_TO_TAGALIGN",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:22:20.132288345",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bed - paired-end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.tagAlign:md5,59353497f12a219a767f0d889d758638"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "BED_TO_TAGALIGN",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:22:30.787990992",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

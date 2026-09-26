@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "file_sort"
+description: Sort a text file's lines (via GNU sort) and write it out under a chosen extension
+keywords:
+  - sort
+  - coreutils
+tools:
+  - coreutils:
+      description: |
+        GNU Core Utilities is the basic file, shell and text manipulation utilities of the
+        GNU operating system. Used here (`sort`) to lexicographically sort the lines of a
+        text file, with `ext.args`/`ext.args2` available for e.g. coordinate-aware `-k`
+        sort keys.
+      homepage: https://www.gnu.org/software/coreutils/
+      documentation: https://www.gnu.org/software/coreutils/manual/html_node/sort-invocation.html
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - file:
+        type: file
+        description: Text file whose lines should be sorted
+  - extension:
+      type: string
+      description: File extension to give the sorted output file, e.g. `sorted`
+output:
+  sorted:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.${extension}":
+          type: file
+          description: Sorted `file`
+  versions_coreutils:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env sort --version | head -1 | sed 's/^sort (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "coreutils":
+          type: string
+          description: The name of the tool
+      - "env sort --version | head -1 | sed 's/^sort (GNU coreutils) //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

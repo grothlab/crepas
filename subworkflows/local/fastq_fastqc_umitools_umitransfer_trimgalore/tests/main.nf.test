@@ -1,22 +1,20 @@
 nextflow_workflow {
 
-    name "Test Subworkflow FASTQ_FASTQC_UMITOOLS_TRIMGALORE"
+    name "Test Subworkflow FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE"
     script "../main.nf"
-    workflow "FASTQ_FASTQC_UMITOOLS_TRIMGALORE"
-    config './nextflow.config'
+    config "./nextflow.config"
+    workflow "FASTQ_FASTQC_UMITOOLS_UMITRANSFER_TRIMGALORE"
 
     tag "subworkflows"
     tag "subworkflows_nfcore"
-    tag "subworkflows/fastq_fastqc_umitools_trimgalore"
+    tag "subworkflows/fastq_fastqc_umitools_umitransfer_trimgalore"
     tag "fastqc"
+    tag "fastq_extract_spikein_barcodes"
     tag "umitools/extract"
+    tag "umitransfer"
     tag "trimgalore"
 
-    tag "FASTQC"
-    tag "UMITOOLS_EXTRACT"
-    tag "TRIMGALORE"
-
-    test("test single end read with UMI") {
+    test("single_end_no_umi") {
 
         when {
             workflow {
@@ -25,97 +23,155 @@ nextflow_workflow {
                     [ id:'test', single_end:true ], // meta map
                     [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ]
                 ])
-                input[1] = false // skip_fastqc
-                input[2] = true  // with_umi
-                input[3] = false // skip_umi_extract
-                input[4] = false // skip_trimming
-                input[5] = 1     // umi_discard_read
-                input[6] = 1     // min_trimmed_reads
+                input[1] = false           // skip_fastqc
+                input[2] = true            // skip_spikein_barcode_extract
+                input[3] = Channel.of([[:], []]) // ch_spikein_barcode_table
+                input[4] = false           // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 0               // hardtrim5_length
                 """
             }
         }
 
         then {
             assertAll(
-                { assert workflow.success},
+                { assert workflow.success },
                 { assert path(workflow.out.fastqc_html[0][1]).text.contains("<tr><td>File type</td><td>Conventional base calls</td></tr>") },
                 { assert snapshot(
                     workflow.out.reads,
                     workflow.out.trim_read_count,
-                    workflow.out.trim_unpaired,
-                    workflow.out.versions).match() }
+                    workflow.out.trim_unpaired
+                ).match() }
             )
         }
     }
 
-    test("test paired end read with UMI") {
+    test("paired_end_umitools_extract") {
 
         when {
             workflow {
                 """
                 input[0] = Channel.of([
-                    [ id:'test', single_end:false ], // meta map
+                    [ id:'test', single_end:false, extract_umi:true ], // meta map
                     [
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
                     ]
                 ])
-                input[1] = false // skip_fastqc
-                input[2] = true  // with_umi
-                input[3] = false // skip_umi_extract
-                input[4] = false // skip_trimming
-                input[5] = 1     // umi_discard_read
-                input[6] = 1     // min_trimmed_reads
+                input[1] = false           // skip_fastqc
+                input[2] = true            // skip_spikein_barcode_extract
+                input[3] = Channel.of([[:], []]) // ch_spikein_barcode_table
+                input[4] = false           // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 0               // hardtrim5_length
                 """
             }
         }
 
         then {
             assertAll(
-                { assert workflow.success},
+                { assert workflow.success },
+                { assert workflow.out.no_sep_umi_fq_log.size() == 1 },
                 { assert snapshot(
                     workflow.out.reads,
                     workflow.out.trim_read_count,
-                    workflow.out.trim_unpaired,
-                    workflow.out.versions).match() }
+                    workflow.out.trim_unpaired
+                ).match() }
             )
         }
     }
-    test("test paired end read without UMI") {
+
+    test("single_end_umitransfer_sep_umi_fq") {
 
         when {
             workflow {
                 """
                 input[0] = Channel.of([
-                    [ id:'test', single_end:false ], // meta map
+                    [ id:'test', single_end:true, sep_umi_fq:true ], // meta map
                     [
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
                     ]
                 ])
-                input[1] = false // skip_fastqc
-                input[2] = false // with_umi
-                input[3] = false // skip_umi_extract
-                input[4] = false // skip_trimming
-                input[5] = 1     // umi_discard_read
-                input[6] = 1     // min_trimmed_reads
+                input[1] = false           // skip_fastqc
+                input[2] = true            // skip_spikein_barcode_extract
+                input[3] = Channel.of([[:], []]) // ch_spikein_barcode_table
+                input[4] = false           // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 0               // hardtrim5_length
                 """
             }
         }
 
         then {
             assertAll(
-                { assert workflow.success},
+                { assert workflow.success },
+                { assert workflow.out.sep_umi_fq_log.size() == 1 },
                 { assert snapshot(
                     workflow.out.reads,
                     workflow.out.trim_read_count,
-                    workflow.out.trim_unpaired,
-                    workflow.out.versions).match() }
+                    workflow.out.trim_unpaired
+                ).match() }
             )
         }
     }
 
-    test("test skip all steps") {
+    test("paired_end_with_spikein_barcode_extract_and_hardtrim") {
+
+        when {
+            params {
+                // TRIMGALORE_HARDTRIM's ext.args reads params.hardtrim5_length directly (not the
+                // subworkflow's own hardtrim5_length take: value), matching how the real pipeline
+                // always passes params.hardtrim5_length in as that take: argument too.
+                hardtrim5_length = 10
+            }
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false ], // meta map
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
+                    ]
+                ])
+                input[1] = true            // skip_fastqc
+                input[2] = false           // skip_spikein_barcode_extract
+                input[3] = Channel.of([
+                    [ id:'spikein_barcodes' ],
+                    file('https://raw.githubusercontent.com/grothlab/crepas/6d7eb52e32f7e83e7e43664ae9ed955f51e68171/assets/barcodes/sc_spikein_barcodes.tsv', checkIfExists: true)
+                ])
+                input[4] = false           // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 10              // hardtrim5_length
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.barcode_counts.size() == 1 },
+                // TrimGalore's --hardtrim5/--hardtrim3 modes just chop bases and don't run
+                // adapter/quality trimming, so no *_trimming_report.txt (htrim_log) is produced.
+                { assert workflow.out.reads[0][1][0] ==~ ".*10bp_5prime.*" },
+                { assert snapshot(
+                    workflow.out.reads,
+                    workflow.out.barcode_counts,
+                    workflow.out.trim_read_count
+                ).match() }
+            )
+        }
+    }
+
+    test("skip_all_steps") {
 
         when {
             workflow {
@@ -127,28 +183,27 @@ nextflow_workflow {
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
                     ]
                 ])
-                input[1] = true // skip_fastqc
-                input[2] = true // with_umi
-                input[3] = true // skip_umi_extract
-                input[4] = true // skip_trimming
-                input[5] = 0    // umi_discard_read
-                input[6] = 1    // min_trimmed_reads
+                input[1] = true            // skip_fastqc
+                input[2] = true            // skip_spikein_barcode_extract
+                input[3] = Channel.of([[:], []]) // ch_spikein_barcode_table
+                input[4] = true            // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 0               // hardtrim5_length
                 """
             }
         }
 
         then {
             assertAll(
-                { assert workflow.success},
-                { assert snapshot(
-                    workflow.out.trim_read_count,
-                    workflow.out.trim_unpaired,
-                    workflow.out.versions).match() }
+                { assert workflow.success }
+                // No snapshot when skipping all steps, as output is input
             )
         }
     }
 
-    test("test single end read with UMI - stub") {
+    test("single_end_no_umi - stub") {
 
         options "-stub"
 
@@ -159,29 +214,102 @@ nextflow_workflow {
                     [ id:'test', single_end:true ], // meta map
                     [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ]
                 ])
-                input[1] = false // skip_fastqc
-                input[2] = true  // with_umi
-                input[3] = false // skip_umi_extract
-                input[4] = false // skip_trimming
-                input[5] = 1     // umi_discard_read
-                input[6] = 1     // min_trimmed_reads
+                input[1] = false           // skip_fastqc
+                input[2] = true            // skip_spikein_barcode_extract
+                input[3] = Channel.of([[:], []]) // ch_spikein_barcode_table
+                input[4] = false           // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 0               // hardtrim5_length
                 """
             }
         }
 
         then {
             assertAll(
-                { assert workflow.success},
+                { assert workflow.success },
                 { assert snapshot(workflow.out).match() }
             )
         }
     }
 
-    test("test paired end read with UMI - stub") {
+    test("paired_end_umitools_extract - stub") {
 
         options "-stub"
 
         when {
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false, extract_umi:true ], // meta map
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
+                    ]
+                ])
+                input[1] = false           // skip_fastqc
+                input[2] = true            // skip_spikein_barcode_extract
+                input[3] = Channel.of([[:], []]) // ch_spikein_barcode_table
+                input[4] = false           // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 0               // hardtrim5_length
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(workflow.out).match() }
+            )
+        }
+    }
+
+    test("single_end_umitransfer_sep_umi_fq - stub") {
+
+        options "-stub"
+
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:true, sep_umi_fq:true ], // meta map
+                    [
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
+                    ]
+                ])
+                input[1] = false           // skip_fastqc
+                input[2] = true            // skip_spikein_barcode_extract
+                input[3] = Channel.of([[:], []]) // ch_spikein_barcode_table
+                input[4] = false           // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 0               // hardtrim5_length
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(workflow.out).match() }
+            )
+        }
+    }
+
+    test("paired_end_with_spikein_barcode_extract_and_hardtrim - stub") {
+
+        options "-stub"
+
+        when {
+            params {
+                hardtrim5_length = 10
+            }
             workflow {
                 """
                 input[0] = Channel.of([
@@ -191,83 +319,25 @@ nextflow_workflow {
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
                     ]
                 ])
-                input[1] = false // skip_fastqc
-                input[2] = true  // with_umi
-                input[3] = false // skip_umi_extract
-                input[4] = false // skip_trimming
-                input[5] = 1     // umi_discard_read
-                input[6] = 1     // min_trimmed_reads
-                """
-            }
-        }
-
-        then {
-            assertAll(
-                { assert workflow.success},
-                { assert snapshot(workflow.out).match() }
-            )
-        }
-    }
-    test("test paired end read without UMI - stub") {
-
-        options "-stub"
-
-        when {
-            workflow {
-                """
-                input[0] = Channel.of([
-                    [ id:'test', single_end:false ], // meta map
-                    [
-                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
-                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
-                    ]
+                input[1] = true            // skip_fastqc
+                input[2] = false           // skip_spikein_barcode_extract
+                input[3] = Channel.of([
+                    [ id:'spikein_barcodes' ],
+                    file('https://raw.githubusercontent.com/grothlab/crepas/6d7eb52e32f7e83e7e43664ae9ed955f51e68171/assets/barcodes/sc_spikein_barcodes.tsv', checkIfExists: true)
                 ])
-                input[1] = false // skip_fastqc
-                input[2] = false // with_umi
-                input[3] = false // skip_umi_extract
-                input[4] = false // skip_trimming
-                input[5] = 1     // umi_discard_read
-                input[6] = 1     // min_trimmed_reads
+                input[4] = false           // skip_trimming
+                input[5] = 0               // umi_discard_read
+                input[6] = 1               // min_trimmed_reads
+                input[7] = 0               // hardtrim3_length
+                input[8] = 10              // hardtrim5_length
                 """
             }
         }
 
         then {
             assertAll(
-                { assert workflow.success},
+                { assert workflow.success },
                 { assert snapshot(workflow.out).match() }
-            )
-        }
-    }
-
-    test("test skip all steps - stub") {
-
-        options "-stub"
-
-        when {
-            workflow {
-                """
-                input[0] = Channel.of([
-                    [ id:'test', single_end:false ], // meta map
-                    [
-                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
-                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true)
-                    ]
-                ])
-                input[1] = true // skip_fastqc
-                input[2] = true // with_umi
-                input[3] = true // skip_umi_extract
-                input[4] = true // skip_trimming
-                input[5] = 0    // umi_discard_read
-                input[6] = 1    // min_trimmed_reads
-                """
-            }
-        }
-
-        then {
-            assertAll(
-                { assert workflow.success}
-                // No snapshot when skipping all as output is input
             )
         }
     }

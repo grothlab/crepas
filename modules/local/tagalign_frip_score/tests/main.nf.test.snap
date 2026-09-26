@@ -1,0 +1,120 @@
+{
+    "sarscov2 - tagalign - frip score": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.FRiP.bed:md5,c12dccfd1d1e04cfbf8a46ba7dcabf87"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.FRiP.txt:md5,897316929176464ebc9ad085f31e7284"
+                ]
+            ],
+            {
+                "versions_bedtools": [
+                    [
+                        "TAGALIGN_FRIP_SCORE",
+                        "bedtools",
+                        "2.31.1"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "TAGALIGN_FRIP_SCORE",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T12:48:27.039210518",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - tagalign - frip score - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.FRiP.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.FRiP.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "TAGALIGN_FRIP_SCORE",
+                        "bedtools",
+                        "2.31.1"
+                    ]
+                ],
+                "3": [
+                    [
+                        "TAGALIGN_FRIP_SCORE",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ],
+                "bed": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.FRiP.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "frip": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.FRiP.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_bedtools": [
+                    [
+                        "TAGALIGN_FRIP_SCORE",
+                        "bedtools",
+                        "2.31.1"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "TAGALIGN_FRIP_SCORE",
+                        "gawk",
+                        "5.3.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T12:48:37.098695109",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

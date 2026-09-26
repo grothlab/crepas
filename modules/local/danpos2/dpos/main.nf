@@ -3,17 +3,17 @@ process DANPOS2_DPOS {
     label 'process_low_memory'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
         ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/dd/dd9856b8473bf4b2e67285cc76dda3f9184e9bfe8432c8b667cde9ce1f971ef3/data'
         : 'community.wave.seqera.io/library/danpos:2.2.2--34b9ae5a26a3f9b4'}"
 
     input:
-    tuple val(meta), 
-          path(treatment,       stageAs: "treatment/*"), 
-          path(treatment_input, stageAs: "treatment_input/*"), 
-          val(treatment_count), 
-          path(control,         stageAs: 'control/*'), 
-          path(control_input,   stageAs: 'control_input/*'), 
+    tuple val(meta),
+          path(treatment,       stageAs: "treatment/*"),
+          path(treatment_input, stageAs: "treatment_input/*"),
+          val(treatment_count),
+          path(control,         stageAs: 'control/*'),
+          path(control_input,   stageAs: 'control_input/*'),
           val(control_count)
 
     output:
@@ -24,9 +24,7 @@ process DANPOS2_DPOS {
     tuple val(meta), path("*.reference_positions.xls"), emit: reference_pos, optional: true
     tuple val(meta), path("*.positions.ref_adjust.xls"), emit: pos_ref_adjust, optional: true
     tuple val(meta), path("result/diff/*.wig"), emit: diff_wig, optional: true
-
-
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('danpos'), eval("danpos.py dpos -h 2>&1 | grep -oP 'danpos\\s+\\K[\\d.]+' | head -1"), emit: versions_danpos, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -53,29 +51,18 @@ process DANPOS2_DPOS {
 
     # replace any occurrence of 'treatment' in filenames with the prefix
     find ./ -type f -name '*treatment*' -exec bash -c 'f="{}"; mv "\$f" "\${f//treatment/${prefix}}"' \\;
-
-    # replace any occurrence of 'treatment' in subdirectory names with the prefix
-    #find ./ -mindepth 1 -maxdepth 1 -type d -name '*treatment*' -exec bash -c 'd="{}"; mv "\$d" "\${d//treatment/${prefix}}"' \\;
-    
-    # TODO: this is just to keep track of the final dir structure:
-    find .
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        DANPOS: \$(echo \$(danpos.py dpos -h 2>&1) | grep -oP 'danpos\\s+\\K[\\d.]+' | head -1)
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}.peaks.xls
-    touch ${prefix}.input.wig
-    touch ${prefix}.smooth.wig
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        DANPOS: \$(echo \$(danpos.py dpos -h 2>&1) | grep -oP 'danpos\\s+\\K[\\d.]+' | head -1)
-    END_VERSIONS
+    mkdir -p result/pooled result/diff
+    touch result/pooled/${prefix}.smooth.wig
+    touch result/pooled/${prefix}.smooth.positions.xls
+    touch result/pooled/${prefix}_input.wig
+    touch ${prefix}.positions.integrative.xls
+    touch ${prefix}.reference_positions.xls
+    touch ${prefix}.positions.ref_adjust.xls
+    touch result/diff/${prefix}.wig
     """
 }

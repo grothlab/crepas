@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "sambamba_view"
+description: Filter a BAM file by a sambamba filter expression (`task.ext.args`) and, optionally, a region whitelist, converting to BAM, SAM, JSON or msgpack
+keywords:
+  - view
+  - filter
+  - bam
+  - sambamba
+tools:
+  - "sambamba":
+      description: "Tools for working with SAM/BAM data"
+      homepage: "https://lomereiter.github.io/sambamba/docs/sambamba-view.html"
+      documentation: "https://lomereiter.github.io/sambamba/docs/sambamba-view.html"
+      tool_dev_url: "https://github.com/biod/sambamba"
+      doi: "10.1093/bioinformatics/btv098"
+      licence: ["GPL v2"]
+      identifier: "biotools:sambamba"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: BAM file to filter/convert
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - bai:
+        type: file
+        description: BAM index file
+        pattern: "*.bai"
+        ontologies:
+          - edam: "http://edamontology.org/format_3327" # BAI
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing region-whitelist information
+          e.g. [ id:'blacklist' ]
+    - bed:
+        type: file
+        description: Optional BED file of regions to keep (passed as `--regions`); skipped if empty
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+output:
+  bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.bam":
+          type: file
+          description: Filtered BAM file (default output format)
+          pattern: "*.bam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+  sam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.sam":
+          type: file
+          description: Filtered SAM file, produced when `task.ext.args` sets `--format sam`
+          pattern: "*.sam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2573" # SAM
+  json:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.json":
+          type: file
+          description: Filtered records in JSON format, produced when `task.ext.args` sets `--format json`
+          pattern: "*.json"
+          ontologies:
+            - edam: "http://edamontology.org/format_3464" # JSON
+  msgpack:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.msgpack":
+          type: file
+          description: Filtered records in MessagePack format, produced when `task.ext.args` sets `--format msgpack`
+          pattern: "*.msgpack"
+          ontologies: []
+  versions_sambamba:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "sambamba":
+          type: string
+          description: The name of the tool
+      - "sambamba --version 2>&1 | grep -m1 sambamba | awk '{print $2}'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "sambamba":
+          type: string
+          description: The name of the tool
+      - "sambamba --version 2>&1 | grep -m1 sambamba | awk '{print $2}'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

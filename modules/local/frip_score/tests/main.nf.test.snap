@@ -1,0 +1,90 @@
+{
+    "sarscov2 - bam - bed - frip score - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.FRiP.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "FRIP_SCORE",
+                        "bedtools",
+                        "2.30.0"
+                    ]
+                ],
+                "2": [
+                    [
+                        "FRIP_SCORE",
+                        "samtools",
+                        "1.15.1"
+                    ]
+                ],
+                "txt": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.FRiP.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_bedtools": [
+                    [
+                        "FRIP_SCORE",
+                        "bedtools",
+                        "2.30.0"
+                    ]
+                ],
+                "versions_samtools": [
+                    [
+                        "FRIP_SCORE",
+                        "samtools",
+                        "1.15.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:52:48.374816092",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - bed - frip score": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.FRiP.txt:md5,f613222cabb1d8282ed6795327e9d119"
+                ]
+            ],
+            {
+                "versions_bedtools": [
+                    [
+                        "FRIP_SCORE",
+                        "bedtools",
+                        "2.30.0"
+                    ]
+                ],
+                "versions_samtools": [
+                    [
+                        "FRIP_SCORE",
+                        "samtools",
+                        "1.15.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:52:39.052005385",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

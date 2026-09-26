@@ -1,0 +1,99 @@
+{
+    "sarscov2 - bam - bai - wig preprocessing": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test_Forward.wig:md5,2f63211269adee06d5574787edf9ac33"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test_Reverse.wig:md5,d48d0a4aaeb4f6d018b1e878a952531e"
+                ]
+            ],
+            {
+                "versions_mace": [
+                    [
+                        "MACE_PREPROCESSOR",
+                        "mace",
+                        "1.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T16:39:52.470481263",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - bai - wig preprocessing - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test_Forward.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test_Reverse.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "MACE_PREPROCESSOR",
+                        "mace",
+                        "1.2"
+                    ]
+                ],
+                "forward_wig": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test_Forward.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "reverse_wig": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test_Reverse.wig:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_mace": [
+                    [
+                        "MACE_PREPROCESSOR",
+                        "mace",
+                        "1.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T16:40:04.485617869",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

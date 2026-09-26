@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "hr_repliseq_make_array"
+description: Build a Gaussian-smoothed, column-scaled high-resolution Repli-seq array from per-S-phase-fraction bin counts, optionally correcting each fraction for mappability against a G1 whole-genome-sequencing control
+keywords:
+  - repli-seq
+  - replication timing
+  - high-resolution repli-seq
+  - normalisation
+  - smoothing
+tools:
+  - "HighResRepliSeq":
+      description: |
+        Implementation accompanying the high-resolution Repli-seq method: it turns
+        per-fraction coverage over 50-kb bins into a fractions-by-bins array that is Gaussian
+        smoothed and scaled column-wise so each bin's fractions sum to 100, giving the percentage
+        of that bin replicated in each of the 16 S phase fractions. The array-building functions
+        are vendored into this pipeline's `bin/` directory, since the package is not distributed
+        through conda or PyPI.
+      homepage: https://github.com/oliviacamel/High-Resolution-RepliSeq
+      documentation: https://github.com/oliviacamel/High-Resolution-RepliSeq
+      doi: "10.1186/s13059-020-01983-8"
+      licence: ["Apache-2.0"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample (condition) information
+          e.g. [ id:'test' ]
+    - counts:
+        type: file
+        description: |
+          deepTools `multiBamSummary --outRawCounts` table: a header line followed by one row per
+          genomic bin, with chrom/start/end and then one raw count column per library, in the same
+          order as `fractions`.
+        pattern: "*.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+    - fractions:
+        type: list
+        description: |
+          Cell-cycle fraction of each count column, in column order: `S1`..`S16`, optionally
+          preceded by `G1`. Repeated values are biological replicates of one fraction and are
+          pooled. A `G1` column is used to correct the S phase fractions for mappability rather
+          than becoming a row of the array.
+output:
+  array:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.hr_array.csv":
+          type: file
+          description: |
+            The Repli-seq array: one row per genomic bin, indexed by chrom/start/end, and one
+            column per S phase fraction holding the percentage of that bin replicated in it.
+          pattern: "*.hr_array.csv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3752" # CSV
+  qc:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.hr_array.qc.txt":
+          type: file
+          description: |
+            Normalization report: which normalization was applied, how many bins were dropped for
+            having no G1 coverage, and the mean, median and zero-bin count of each fraction.
+          pattern: "*.hr_array.qc.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_2330" # Textual format
+  versions_python:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "python":
+          type: string
+          description: The name of the tool
+      - "python3 --version | sed 's/Python //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_numpy:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "numpy":
+          type: string
+          description: The name of the tool
+      - "python3 -c 'import numpy; print(numpy.__version__)'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_pandas:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "pandas":
+          type: string
+          description: The name of the tool
+      - "python3 -c 'import pandas; print(pandas.__version__)'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "python":
+          type: string
+          description: The name of the tool
+      - "python3 --version | sed 's/Python //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

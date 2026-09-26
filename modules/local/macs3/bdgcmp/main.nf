@@ -1,10 +1,10 @@
 
 process MACS3_BDGCMP {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/macs3:3.0.1--py311h0152c62_3':
         'biocontainers/macs3:3.0.1--py311h0152c62_3' }"
 
@@ -12,8 +12,8 @@ process MACS3_BDGCMP {
     tuple val(meta), path(pileup_bdg), path(lambda_bdg)
 
     output:
-    tuple val(meta), path("*.bedGraph"),               emit: bdg
-    path  "versions.yml"                             , emit: versions
+    tuple val(meta), path("*.bedGraph"), emit: bdg
+    tuple val("${task.process}"), val('macs3'), eval("macs3 --version | sed -e 's/macs3 //g'"), emit: versions_macs3, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -24,25 +24,15 @@ process MACS3_BDGCMP {
     """
     macs3 \\
         bdgcmp \\
-        $args \\
-        --tfile $pileup_bdg \\
-        --cfile $lambda_bdg \\
+        ${args} \\
+        --tfile ${pileup_bdg} \\
+        --cfile ${lambda_bdg} \\
         --ofile ${prefix}.bedGraph
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        macs3: \$(macs3 --version | sed -e "s/macs3 //g")
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.bedGraph
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        macs3: \$(macs3 --version | sed -e "s/macs3 //g")
-    END_VERSIONS
     """
 }

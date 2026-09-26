@@ -1,0 +1,108 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "spikein_barcode_qc"
+description: Build long and per-target summary tables of spike-in barcode recovery, and a heatmap of on-target normalization and total-recovery ratio, across samples
+keywords:
+  - spikein
+  - barcode
+  - qc
+  - heatmap
+tools:
+  - r-base:
+      description: |
+        The R programming language, used here (via the bundled `bin/spikein_barcode_qc.R` script,
+        using the ComplexHeatmap/circlize/tidyverse packages) to combine one or more spike-in
+        barcode count tables with matched unique-read totals into a long table, a per-target
+        on-target-normalization summary table, and a heatmap (on-target recovery per barcode
+        target, plus total-barcode/unique-reads recovery ratio) across samples.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/other-docs.html
+      licence: ["GPL-2.0-or-later"]
+      identifier: "biotools:r-base"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - counts:
+        type: file
+        description: One or more spike-in barcode count tables (columns barcode_target, barcode_id, barcode_sequence, R1_count, R2_count), in the same order as `uniq_totals`
+        pattern: "*.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+    - uniq_totals:
+        type: float
+        description: One unique-read total per entry in `counts`, in the same order, used to compute the total-recovery ratio
+output:
+  long:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.long.tsv":
+          type: file
+          description: Long-format table with one row per barcode per sample
+          pattern: "*.long.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  summary:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.summary.tsv":
+          type: file
+          description: Per-target, per-sample summed barcode count and on-target normalization table
+          pattern: "*.summary.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  plot_pdf:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.pdf":
+          type: file
+          description: Heatmap of on-target normalization per barcode target, plus total-barcode/unique-reads recovery ratio, per sample
+          pattern: "*.heatmap.pdf"
+          ontologies:
+            - edam: "http://edamontology.org/format_3508" # PDF
+  plot_png:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.png":
+          type: file
+          description: Same heatmap as `plot_pdf`, rendered as PNG
+          pattern: "*.heatmap.png"
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

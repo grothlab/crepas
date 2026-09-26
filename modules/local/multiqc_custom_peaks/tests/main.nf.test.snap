@@ -1,0 +1,114 @@
+{
+    "sarscov2 - peak - frip - multiqc custom content - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.peak_count_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.FRiP_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "MULTIQC_CUSTOM_PEAKS",
+                        "gawk",
+                        "5.4.0"
+                    ]
+                ],
+                "3": [
+                    [
+                        "MULTIQC_CUSTOM_PEAKS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "count": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.peak_count_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "frip": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.FRiP_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "MULTIQC_CUSTOM_PEAKS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "MULTIQC_CUSTOM_PEAKS",
+                        "gawk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T16:40:28.594463451",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - peak - frip - multiqc custom content": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.peak_count_mqc.tsv:md5,96533ec3c1fb7184a54082df93cc8639"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.FRiP_mqc.tsv:md5,a35cd2788c8e5622979c21944d2c2348"
+                ]
+            ],
+            {
+                "versions_coreutils": [
+                    [
+                        "MULTIQC_CUSTOM_PEAKS",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_gawk": [
+                    [
+                        "MULTIQC_CUSTOM_PEAKS",
+                        "gawk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:08:14.247818851",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

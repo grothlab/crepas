@@ -1,0 +1,11 @@
+---
+import PipelineLayout from "../layouts/PipelineLayout.astro";
+import { getLatestVersion } from "../lib/repo";
+---
+
+<PipelineLayout title="Page not found" version={getLatestVersion()} page="">
+    <div class="text-center py-5">
+        <h2 class="mb-3">Page not found</h2>
+        <p><a href="/">Back to the introduction</a></p>
+    </div>
+</PipelineLayout>

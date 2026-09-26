@@ -1,0 +1,146 @@
+nextflow_process {
+
+    name "Test Process CONSENRICH"
+    script "../main.nf"
+    process "CONSENRICH"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "consenrich"
+    tag "samtools/faidx"
+    tag "samtools/reheader"
+    tag "samtools/index"
+
+    setup {
+
+        // consenrich's chromosome-name filter only accepts UCSC-style "chr*" names, and the
+        // sarscov2 test genome uses NCBI-style "MT192765.1". Reheader the real sarscov2 test
+        // BAM (and, in the tests below, the real sizes value derived from it) to "chr1" so
+        // consenrich actually processes the (real) reads instead of silently seeing zero
+        // chromosomes -- sarscov2's small genome also keeps read density high enough relative
+        // to chromosome length for consenrich's random-interval sampling to find reads, unlike
+        // homo_sapiens chr21/22 subsets.
+        run("SAMTOOLS_FAIDX") {
+            script "../../../nf-core/samtools/faidx/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'sarscov2' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true),
+                    []
+                ]
+                input[1] = true
+                """
+            }
+        }
+
+        run("SAMTOOLS_REHEADER") {
+            script "../../../nf-core/samtools/reheader/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    []
+                ]
+                """
+            }
+        }
+
+        run("SAMTOOLS_INDEX") {
+            script "../../../nf-core/samtools/index/main.nf"
+            process {
+                """
+                input[0] = SAMTOOLS_REHEADER.out.bam
+                """
+            }
+        }
+
+        run("FIND_CONCATENATE") {
+            script "../../../nf-core/find/concatenate/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'sparsebed' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                """
+            }
+        }
+
+    }
+
+    test("sarscov2 - bam (reheadered to chr1) - consensus signal extraction") {
+
+        when {
+            process {
+                """
+                input[0] = SAMTOOLS_REHEADER.out.bam
+                    .join(SAMTOOLS_INDEX.out.index, by: 0)
+                    .map { meta, bam, bai -> [ meta, [ bam ], [ bai ], [], [] ] }
+                input[1] = SAMTOOLS_FAIDX.out.sizes.map { meta, sizesFile ->
+                    def renamed = sizesFile.resolveSibling(sizesFile.baseName + '.chr1.sizes')
+                    renamed.text = sizesFile.text.replaceAll('MT192765.1', 'chr1')
+                    return [ meta, renamed ]
+                }
+                input[2] = [ [:], [] ]
+                input[3] = FIND_CONCATENATE.out.file_out.map { meta, bedFile ->
+                    def renamed = bedFile.resolveSibling(bedFile.baseName + '.chr1.bed')
+                    renamed.text = bedFile.text.replaceAll('MT192765.1', 'chr1')
+                    return [ meta, renamed ]
+                }
+                input[4] = [ [:], [] ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.results,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam (reheadered to chr1) - consensus signal extraction - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = SAMTOOLS_REHEADER.out.bam
+                    .join(SAMTOOLS_INDEX.out.index, by: 0)
+                    .map { meta, bam, bai -> [ meta, [ bam ], [ bai ], [], [] ] }
+                input[1] = SAMTOOLS_FAIDX.out.sizes.map { meta, sizesFile ->
+                    def renamed = sizesFile.resolveSibling(sizesFile.baseName + '.chr1.sizes')
+                    renamed.text = sizesFile.text.replaceAll('MT192765.1', 'chr1')
+                    return [ meta, renamed ]
+                }
+                input[2] = [ [:], [] ]
+                input[3] = [ [:], [] ]
+                input[4] = [ [:], [] ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.results.collect { meta, f -> file(f).name },
+                    process.out.signal_track.collect { meta, f -> file(f).name },
+                    process.out.residuals_track.collect { meta, f -> file(f).name },
+                    process.out.eratio_track.collect { meta, f -> file(f).name },
+                    process.out.args_json.collect { meta, f -> file(f).name },
+                    process.out.matrix.collect { meta, f -> file(f).name },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+}

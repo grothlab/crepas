@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: fastq_align_strobealign
+description: Align reads to a reference genome using strobealign, then sort, index and run samtools stats, flagstat and idxstats
+keywords:
+  - align
+  - fasta
+  - genome
+  - reference
+  - strobealign
+components:
+  - strobealign
+  - samtools/sort
+  - samtools/index
+  - samtools/stats
+  - samtools/idxstats
+  - samtools/flagstat
+  - bam_sort_stats_samtools
+input:
+  - ch_reads:
+      description: |
+        List of input FastQ files of size 1 and 2 for single-end and paired-end data,
+        respectively.
+        Structure: [ val(meta), [ path(reads) ] ]
+  - ch_strobealign_index:
+      description: |
+        Optional pre-built strobealign index. Pass [ [:], [] ] to have strobealign build the
+        index on the fly from the reference fasta.
+        Structure: [ val(meta3), path(index) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta2), path(fasta), path(fai) ]
+  - sort_bam:
+      type: boolean
+      description: |
+        If true, strobealign sorts the resulting BAM file itself. This pipeline always passes false
+        so that strobealign emits an unsorted BAM and sorting is handled by bam_sort_stats_samtools.
+      pattern: "true|false"
+output:
+  - bam_orig:
+      description: |
+        Unsorted BAM file produced by strobealign
+        Structure: [ val(meta), path(bam) ]
+  - bam:
+      description: |
+        BAM file sorted by samtools
+        Structure: [ val(meta), path(bam) ]
+  - index:
+      description: |
+        Index of the sorted BAM file
+        Structure: [ val(meta), path(index) ]
+  - stats:
+      description: |
+        File containing samtools stats output
+        Structure: [ val(meta), path(stats) ]
+  - flagstat:
+      description: |
+        File containing samtools flagstat output
+        Structure: [ val(meta), path(flagstat) ]
+  - idxstats:
+      description: |
+        File containing samtools idxstats output
+        Structure: [ val(meta), path(idxstats) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

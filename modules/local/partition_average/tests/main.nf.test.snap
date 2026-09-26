@@ -1,0 +1,138 @@
+{
+    "sarscov2 - partitions - average across replicates - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.average.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.average.flT_by_counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.average.flT_by_counts.bdg:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        "PARTITION_AVERAGE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "4": [
+                    [
+                        "PARTITION_AVERAGE",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "filtered_bdg": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.average.flT_by_counts.bdg:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "filtered_tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.average.flT_by_counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.average.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "PARTITION_AVERAGE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "PARTITION_AVERAGE",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T14:21:29.404727008",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - partitions - average across replicates": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.average.tsv:md5,a65d954e7757c0822b798ae242469c71"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.average.flT_by_counts.tsv:md5,a65d954e7757c0822b798ae242469c71"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.average.flT_by_counts.bdg:md5,d3bb65a53f23076825b1455341103c8c"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "PARTITION_AVERAGE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "PARTITION_AVERAGE",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T14:21:19.826526215",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

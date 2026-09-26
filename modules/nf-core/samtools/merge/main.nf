@@ -4,21 +4,17 @@ process SAMTOOLS_MERGE {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/8c/8c5d2818c8b9f58e1fba77ce219fdaf32087ae53e857c4a496402978af26e78c/data'
-        : 'community.wave.seqera.io/library/htslib_samtools:1.23.1--5b6bb4ede7e612e5'}"
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/e9/e994bf4eb3731150511a14f5706b7bdfd64df1b6d40898fff334286c027e0859/data'
+        : 'community.wave.seqera.io/library/htslib_samtools:1.24--d697cfb9dce007cd'}"
 
     input:
     tuple val(meta), path(input_files, stageAs: "?/*"), path(index_files, stageAs: "?/*")
     tuple val(meta2), path(fasta), path(fai), path(gzi)
-    val index_format
 
     output:
-    tuple val(meta), path("${prefix}.bam"),                 emit: bam,  optional: true
-    tuple val(meta), path("${prefix}.cram"),                emit: cram, optional: true
-    tuple val(meta), path("${prefix}.sam"),                 emit: sam,  optional: true
-    tuple val(meta), path("${prefix}.${extension}.crai"),   emit: crai, optional: true
-    tuple val(meta), path("${prefix}.${extension}.csi"),    emit: csi,  optional: true
-    tuple val(meta), path("${prefix}.${extension}.bai"),    emit: bai,  optional: true
+    tuple val(meta), path("${prefix}.bam"), optional: true, emit: bam
+    tuple val(meta), path("${prefix}.cram"), optional: true, emit: cram
+    tuple val(meta), path("*.{bai,crai,csi}"), optional: true, emit: index
     tuple val("${task.process}"), val('samtools'), eval("samtools version | sed '1!d;s/.* //'"), topic: versions, emit: versions_samtools
 
     when:
@@ -27,18 +23,8 @@ process SAMTOOLS_MERGE {
     script:
     def args = task.ext.args ?: ''
     prefix = task.ext.prefix ?: "${meta.id}"
-    extension = args.contains("--output-fmt sam") ? "sam" :
-                args.contains("--output-fmt cram") ? "cram" :
-                "bam"
+    def file_type = input_files instanceof List ? input_files[0].getExtension() : input_files.getExtension()
     def reference = fasta ? "--reference ${fasta}" : ""
-    output_file = index_format ? "${prefix}.${extension}##idx##${prefix}.${extension}.${index_format} --write-index" : "${prefix}.${extension}"
-    if (index_format) {
-        if (!index_format.matches('bai|csi|crai')) {
-            error "Index format not one of bai, csi, crai."
-        } else if (extension == "sam") {
-            error "Indexing not compatible with SAM output"
-        }
-    }
     """
     # Note: --threads value represents *additional* CPUs to allocate (total CPUs = 1 + --threads).
     samtools \\
@@ -46,27 +32,18 @@ process SAMTOOLS_MERGE {
         --threads ${task.cpus - 1} \\
         ${args} \\
         ${reference} \\
-        -o ${output_file} \\
+        ${prefix}.${file_type} \\
         ${input_files}
     """
 
     stub:
     def args = task.ext.args ?: ''
     prefix = task.ext.prefix ?: "${meta.id}"
-    extension = args.contains("--output-fmt sam") ? "sam" :
-                args.contains("--output-fmt cram") ? "cram" :
-                "bam"
-    output_file = index_format ? "${prefix}.${extension}##idx##${prefix}.${extension}.${index_format} --write-index" : "${prefix}.${extension}"
-    if (index_format) {
-        if (!index_format.matches('bai|csi|crai')) {
-            error "Index format not one of bai, csi, crai."
-        } else if (extension == "sam") {
-            error "Indexing not compatible with SAM output"
-        }
-    }
-    index = index_format ? "touch ${prefix}.${extension}.${index_format}" : ""
+    def file_type = input_files instanceof List ? input_files[0].getExtension() : input_files.getExtension()
+    def index_type = file_type == "bam" ? "csi" : "crai"
+    def index = args.contains("--write-index") ? "touch ${prefix}.${index_type}" : ""
     """
-    touch ${prefix}.${extension}
+    touch ${prefix}.${file_type}
     ${index}
     """
 }

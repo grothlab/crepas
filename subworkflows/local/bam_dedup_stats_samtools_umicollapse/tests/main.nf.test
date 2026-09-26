@@ -1,4 +1,3 @@
-// nf-core subworkflows test bam_dedup_stats_samtools_umicollapse
 nextflow_workflow {
 
     name "Test Subworkflow BAM_DEDUP_STATS_SAMTOOLS_UMICOLLAPSE"
@@ -9,18 +8,17 @@ nextflow_workflow {
     tag "subworkflows_nfcore"
     tag "subworkflows/bam_dedup_stats_samtools_umicollapse"
     tag "subworkflows/bam_stats_samtools"
+    tag "bam_split_by_chromosome"
     tag "bam_stats_samtools"
-    tag "bwa/index"
-    tag "bwa/mem"
     tag "samtools"
+    tag "samtools/merge"
     tag "samtools/index"
     tag "samtools/stats"
     tag "samtools/idxstats"
     tag "samtools/flagstat"
     tag "umicollapse"
-    tag "umitools/extract"
 
-    test("sarscov2_bam_bai") {
+    test("skip_split_by_chrom") {
 
         when {
             config "./paired-end-umis.config"
@@ -34,6 +32,8 @@ nextflow_workflow {
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam', checkIfExists: true),
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam.bai', checkIfExists: true)
                 ])
+                input[1] = Channel.of([[:], []]) // ch_chrom_sizes, unused when skip_split_by_chrom is true
+                input[2] = true // skip_split_by_chrom
                 """
             }
         }
@@ -41,15 +41,116 @@ nextflow_workflow {
         then {
             assertAll(
                 { assert workflow.success},
-                { assert snapshot(bam(workflow.out.bam[0][1]).getSamLinesMD5()).match("test_bam_dedup_stats_samtools_umicollapse_bam")},  // separate, because of linting error otherwise
                 { assert workflow.out.bam.get(0).get(1) ==~ ".*.bam"},
-                { assert workflow.out.bai.get(0).get(1) ==~ ".*.bai"},
+                { assert workflow.out.index.get(0).get(1) ==~ ".*.bai"},
                 { assert workflow.out.dedup_stats.get(0).get(1) ==~ ".*_UMICollapse.log"},
-                { assert snapshot(workflow.out.stats).match("test_bam_dedup_stats_samtools_umicollapse_stats") },
-                { assert snapshot(workflow.out.flagstat).match("test_bam_dedup_stats_samtools_umicollapse_flagstats") },
-                { assert snapshot(workflow.out.idxstats).match("test_bam_dedup_stats_samtools_umicollapse_idxstats") }
+                { assert snapshot(
+                    workflow.out.stats,
+                    workflow.out.flagstat,
+                    workflow.out.idxstats
+                ).match() }
             )
         }
+    }
 
-}
+    test("split_by_chrom") {
+
+        when {
+            config "./paired-end-umis.config"
+            params {
+                outdir   = "$outputDir"
+            }
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id:'test'], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam.bai', checkIfExists: true)
+                ])
+                input[1] = Channel.of([
+                    [ id:'genome' ],
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true)
+                ])
+                input[2] = false // skip_split_by_chrom
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success},
+                { assert workflow.out.bam.get(0).get(1) ==~ ".*.bam"},
+                // SAMTOOLS_MERGE --write-index defaults to .csi (unlike SAMTOOLS_INDEX's .bai)
+                { assert workflow.out.index.get(0).get(1) ==~ ".*.csi"},
+                { assert snapshot(
+                    workflow.out.stats,
+                    workflow.out.flagstat,
+                    workflow.out.idxstats
+                ).match() }
+            )
+        }
+    }
+
+    test("skip_split_by_chrom - stub") {
+
+        options "-stub"
+
+        when {
+            config "./paired-end-umis.config"
+            params {
+                outdir   = "$outputDir"
+            }
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id:'test'], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam.bai', checkIfExists: true)
+                ])
+                input[1] = Channel.of([[:], []])
+                input[2] = true // skip_split_by_chrom
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success},
+                { assert snapshot(workflow.out).match() }
+            )
+        }
+    }
+
+    test("split_by_chrom - stub") {
+
+        options "-stub"
+
+        when {
+            config "./paired-end-umis.config"
+            params {
+                outdir   = "$outputDir"
+            }
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id:'test'], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam.bai', checkIfExists: true)
+                ])
+                input[1] = Channel.of([
+                    [ id:'genome' ],
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true)
+                ])
+                input[2] = false // skip_split_by_chrom
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success},
+                { assert snapshot(workflow.out).match() }
+            )
+        }
+    }
 }

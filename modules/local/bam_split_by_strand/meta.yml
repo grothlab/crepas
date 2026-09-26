@@ -1,0 +1,101 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bam_split_by_strand"
+description: Split a BAM file into forward- and reverse-strand alignments, using the SAM FLAG bits describing read orientation together with the experiment type and the sample's library strandedness
+keywords:
+  - bam
+  - strand
+  - samtools
+  - split
+tools:
+  - samtools:
+      description: |
+        SAMtools is a suite of programs for interacting with high-throughput sequencing data in
+        SAM/BAM/CRAM format. Used here (via two `samtools view --expr` calls, one per output) to
+        separate mapped alignments into forward- and reverse-strand BAM files. For SCAR-seq and
+        OK-seq the split is on SAM FLAG 16 (read reverse strand), interpreted according to the
+        library `strandedness`; for eSPAN, which has no strandedness, the nascent strand is derived
+        from the orientation of READ2 (paired-end) or from the inverted orientation of the read
+        (single-end). Unmapped records (SAM FLAG 4) are excluded from every output.
+      homepage: http://www.htslib.org/
+      documentation: http://www.htslib.org/doc/samtools.html
+      tool_dev_url: https://github.com/samtools/samtools
+      doi: "10.1093/bioinformatics/btp352"
+      licence: ["MIT"]
+      identifier: "biotools:samtools"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information. `single_end` selects between the paired-end and
+          single-end eSPAN filters, and is ignored for SCAR-seq and OK-seq
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: BAM file to split by strand
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - exp_type:
+        type: string
+        description: |
+          Experiment type of the sample. Determines how the strand is assigned:
+          `SCAR-seq` and `OK-seq` are split by read orientation according to `strandedness`,
+          while `eSPAN` is split by the orientation of READ2 (paired-end) or by the inverted
+          orientation of the read (single-end)
+        enum: ["SCAR-seq", "OK-seq", "eSPAN"]
+    - strandedness:
+        type: string
+        description: |
+          Library strandedness of the sample, required for SCAR-seq and OK-seq and empty for eSPAN
+        enum: ["forward", "reverse"]
+output:
+  f_bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.forward.bam":
+          type: file
+          description: BAM file containing forward-strand alignments
+          pattern: "*.forward.bam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+  r_bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.reverse.bam":
+          type: file
+          description: BAM file containing reverse-strand alignments
+          pattern: "*.reverse.bam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+  versions_samtools:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "samtools":
+          type: string
+          description: The name of the tool
+      - "samtools version | sed '1!d;s/.* //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "samtools":
+          type: string
+          description: The name of the tool
+      - "samtools version | sed '1!d;s/.* //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

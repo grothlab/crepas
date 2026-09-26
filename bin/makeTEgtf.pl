@@ -84,7 +84,7 @@ while(my $line = <$ifh>){
   }
 
 # This portion generates the name for the particular instance/insertion of the TE in the genome.
-# It will check the TE hash to determine if the element/subfamily has been previously observed. If so, it will add the suffix "_dupX" to the particular instance, where X is the number of additional TE instances beyond the first. 
+# It will check the TE hash to determine if the element/subfamily has been previously observed. If so, it will add the suffix "_dupX" to the particular instance, where X is the number of additional TE instances beyond the first.
   my $te_instance;
   if(exists $TE{$tmp[$te_name]}){
     $te_instance = $tmp[$te_name] . "_dup$TE{$tmp[$te_name]}";
@@ -96,7 +96,7 @@ while(my $line = <$ifh>){
   }
 
 # This step processes the TE family name to remove all "?" (common in UCSC rmsk annotations), and converts "Other" and "Unknown" to the TE subfamily name.
-# However, it will retain the "Other" and "Unknown" TE class information in the output.    
+# However, it will retain the "Other" and "Unknown" TE class information in the output.
   my $te_familyID = $tmp[$te_fam];
   my $te_classID = $tmp[$te_class];
   if($isRepMask){
@@ -108,7 +108,7 @@ while(my $line = <$ifh>){
     $te_classID = $te_familyID if $te_class == $te_fam;
     $te_familyID = $tmp[$te_name];
   }
-  
+
 # This generates the output following the defined GTF format (chrom, source, feature (exons in all cases), start position (1-based), end position, score ("." in all cases), strand, frame ("." in all cases) and attributes).
 # TEtranscripts requires the following attributes in the TE GTF file: gene_id (TE subfamily/element name), transcript_id (TE instance name, e.g. L1HS_dup56), family_id (TE family name) and class_id (TE class name).
   print "$tmp[$chr]\t$name\texon\t$tmp[$start]\t$tmp[$end]";
@@ -149,7 +149,7 @@ sub parse_cmd_line{
     $opts{'n'} = "RepeatMasker";
     $repMaskOut = 1;
   }
-  
+
 # This portion checks for the presence of the essential parameters, and throws an error if they are absent.
   my $warnings;
   $warnings .= "No chromosome column provided\n" if !defined $opts{'c'};
@@ -163,7 +163,7 @@ sub parse_cmd_line{
     usage();
   }
 
-# This portion checks that the columns provided are valid (i.e. numeric and greater than zero), and ensure that the columns for the start and end positions are not the same.  
+# This portion checks that the columns provided are valid (i.e. numeric and greater than zero), and ensure that the columns for the start and end positions are not the same.
   my $error = validate_column($opts{'c'}, "chromosome");
   $error .= validate_column($opts{'s'}, "start position");
   $error .= validate_column($opts{'e'}, "end position");
@@ -210,14 +210,14 @@ sub validate_column{
   else{
     return 0;
   }
-}  
+}
 
 
 sub usage{
   print <<EOF
 
- Usage: makeTEgtf.pl -c [chrom column] -s [start column] -e [stop/end column] 
-                     -o [strand column] -n [source] -t [TE name column] 
+ Usage: makeTEgtf.pl -c [chrom column] -s [start column] -e [stop/end column]
+                     -o [strand column] -n [source] -t [TE name column]
                      (-f [TE family column] -C [TE class column] -1)
                      [INFILE]
         makeTEgtf.pl -U [UCSC rmsk table output]
@@ -238,13 +238,13 @@ sub usage{
   [INFILE]              -    File name to be processed into GTF
 
  Optional parameters:
-  -n [source]           -    Source of the TE information 
+  -n [source]           -    Source of the TE information
                              (e.g. mm9_rmsk for RepeatMasker track from
                               mm9 mouse genome)
                              Defaults to "user-provided" if not specified
-  -f [TE family column] -    Column containing TE family name. 
+  -f [TE family column] -    Column containing TE family name.
                              Defaults to TE name if not specified
-  -C [TE class column]  -    Column containing TE class name. 
+  -C [TE class column]  -    Column containing TE class name.
                              Defaults to TE family name if not specified
   -S [score column]     -    Column containing the score of the TE prediction
                              (e.g. score from RepeatMasker)

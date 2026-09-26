@@ -1,0 +1,364 @@
+{
+    "sarscov2 - bam - scarseq - reverse strandedness": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.forward.bam:readsMD5,ac10e241b96e72c51fd0f0c1f7128b5"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.reverse.bam:readsMD5,75de1a7dae116e83f0aed5ac7a40ce80"
+                    ]
+                ]
+            ],
+            {
+                "versions_samtools": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:03:41.784589877",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - espan - paired end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.forward.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.reverse.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ],
+                "f_bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.forward.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "r_bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.reverse.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_samtools": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-09T12:51:25.444180649",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - espan - paired end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.forward.bam:readsMD5,75de1a7dae116e83f0aed5ac7a40ce80"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.reverse.bam:readsMD5,ac10e241b96e72c51fd0f0c1f7128b5"
+                    ]
+                ]
+            ],
+            {
+                "versions_samtools": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:04:15.22483381",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - espan - single end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    [
+                        "test.forward.bam:readsMD5,6d4daff75ae58d106b49043e74956f16"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    [
+                        "test.reverse.bam:readsMD5,d6e95975745381163d5de3172d4959f3"
+                    ]
+                ]
+            ],
+            {
+                "versions_samtools": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:04:26.249821698",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - scarseq - forward strandedness": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.forward.bam:readsMD5,75de1a7dae116e83f0aed5ac7a40ce80"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.reverse.bam:readsMD5,ac10e241b96e72c51fd0f0c1f7128b5"
+                    ]
+                ]
+            ],
+            {
+                "versions_samtools": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:03:30.533862799",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - scarseq - single end - forward strandedness": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    [
+                        "test.forward.bam:readsMD5,6d4daff75ae58d106b49043e74956f16"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    [
+                        "test.reverse.bam:readsMD5,d6e95975745381163d5de3172d4959f3"
+                    ]
+                ]
+            ],
+            {
+                "versions_samtools": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:03:53.305711986",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - okseq - forward strandedness": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.forward.bam:readsMD5,75de1a7dae116e83f0aed5ac7a40ce80"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.reverse.bam:readsMD5,ac10e241b96e72c51fd0f0c1f7128b5"
+                    ]
+                ]
+            ],
+            {
+                "versions_samtools": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:04:04.13769827",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - scarseq - forward strandedness - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.forward.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.reverse.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ],
+                "f_bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.forward.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "r_bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.reverse.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_samtools": [
+                    [
+                        "BAM_SPLIT_BY_STRAND",
+                        "samtools",
+                        "1.21"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-09T12:51:17.074648962",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

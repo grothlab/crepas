@@ -1,0 +1,170 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "hr_repliseq_plot"
+description: Draw the high-resolution Repli-seq heatmap per chromosome and summarize the replication features called from it
+keywords:
+  - repli-seq
+  - replication timing
+  - heatmap
+  - plot
+tools:
+  - "matplotlib":
+      description: |
+        Plotting library for Python. Used here to draw the Repli-seq heatmap, in which each column
+        is a genomic bin and each row an S phase fraction, with the feature partition as a track
+        underneath, plus summary panels of how many features were called, how much of the genome
+        they cover, how large they are and when in S phase they replicate.
+      homepage: https://matplotlib.org/
+      documentation: https://matplotlib.org/stable/index.html
+      doi: "10.1109/MCSE.2007.55"
+      licence: ["PSF-2.0"]
+      identifier: "biotools:matplotlib"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample (condition) information
+          e.g. [ id:'test' ]
+    - array:
+        type: file
+        description: |
+          Repli-seq array from `hr_repliseq_make_array`: one row per genomic bin, one column per
+          S phase fraction.
+        pattern: "*.csv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3752" # CSV
+    - partition:
+        type: file
+        description: |
+          The feature partition from `hr_repliseq_call_features` in which a breakage may sit
+          inside a timing transition region, the widest of the three readings.
+          Drawn as a coverage panel and as a track under the heatmap.
+        pattern: "*.hr_partition.overlap.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+    - partition_disjoint:
+        type: file
+        description: |
+          The partition built from the breakage set that is kept out of bins a timing transition
+          region already claims. Drawn as its own coverage panel and its own track.
+        pattern: "*.hr_partition.disjoint.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+    - partition_flanked:
+        type: file
+        description: |
+          The partition built from the breakage set that is the seam between two timing transition
+          regions, which is the paper's own wording. Drawn as its own coverage panel and track.
+        pattern: "*.hr_partition.flanked.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+    - speeds:
+        type: file
+        description: |
+          Fork speed within each timing transition region, from `hr_repliseq_call_features`. Drawn
+          as a violin with the median, quartiles and range marked.
+        pattern: "*.hr_TTR.speed.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+    - cluster_rank:
+        type: file
+        description: |
+          The per-bin cluster-centroid rank from `hr_repliseq_call_features`. Drives the pages of
+          example features, which show one instance of each feature shape.
+        pattern: "*.hr_cluster_rank.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+    - calls:
+        type: file
+        description: |
+          The per-feature BEDs from `hr_repliseq_call_features` (`hr_IZ.bed`, `hr_TTR.bed`,
+          `hr_breakage.bed`, `hr_termination.bed`, `hr_CTR.bed`), read for the S phase fraction
+          each feature replicates in. The feature name is taken from the filename.
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+output:
+  plots:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.hr_repliseq.plots.pdf":
+          type: file
+          description: |
+            A summary page followed by one Repli-seq heatmap page per chromosome.
+          pattern: "*.hr_repliseq.plots.pdf"
+          ontologies:
+            - edam: "http://edamontology.org/format_3508" # PDF
+  mqc_heatmap:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*_mqc.png":
+          type: file
+          description: |
+            The heatmap of one representative chromosome, for the MultiQC report.
+          pattern: "*_mqc.png"
+          ontologies:
+            - edam: "http://edamontology.org/format_3603" # Image format
+  mqc_sizes:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*_mqc.json":
+          type: file
+          description: |
+            MultiQC custom content: an interactive box plot of feature sizes.
+          pattern: "*_mqc.json"
+          ontologies:
+            - edam: "http://edamontology.org/format_3464" # JSON
+  versions_python:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "python":
+          type: string
+          description: The name of the tool
+      - "python3 --version | sed 's/Python //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_matplotlib:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "matplotlib":
+          type: string
+          description: The name of the tool
+      - "python3 -c 'import matplotlib; print(matplotlib.__version__)'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_pandas:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "pandas":
+          type: string
+          description: The name of the tool
+      - "python3 -c 'import pandas; print(pandas.__version__)'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "python":
+          type: string
+          description: The name of the tool
+      - "python3 --version | sed 's/Python //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

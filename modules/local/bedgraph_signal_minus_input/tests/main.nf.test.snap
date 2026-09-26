@@ -1,0 +1,69 @@
+{
+    "homo_sapiens - bedgraph - K27me3 minus IgG": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.bedgraph:md5,8aee30fd6b4fec26a11a4079ce81b74b"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "BEDGRAPH_SIGNAL_MINUS_INPUT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:23:16.440633927",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - bedgraph - K27me3 minus IgG - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bedgraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BEDGRAPH_SIGNAL_MINUS_INPUT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "bedgraph": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bedgraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "BEDGRAPH_SIGNAL_MINUS_INPUT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:23:27.395944229",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

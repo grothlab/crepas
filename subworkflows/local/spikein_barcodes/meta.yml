@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "spikein_barcodes"
+description: |
+  Merge spike-in barcode counts of resequenced (technical replicate) samples and compute
+  spike-in barcode QC metrics
+keywords:
+  - spikein
+  - barcode
+  - qc
+components:
+  - spikein_barcode_merge
+  - spikein_barcode_qc
+input:
+  - ch_barcode_count:
+      description: |
+        Spike-in barcode counts per technical replicate
+        Structure: [ val(meta), path(barcode_counts.tsv) ]
+  - ch_uniq_total:
+      description: |
+        Total number of uniquely mapped/aligned reads per sample, used to normalise barcode counts
+        Structure: [ val(meta), val(uniq_total) ]
+output:
+  - spikein_barcode_summary:
+      description: |
+        Spike-in barcode QC summary table
+        Structure: [ val(meta), path(tsv) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

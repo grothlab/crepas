@@ -1,0 +1,199 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "consenrich"
+description: Extract genome-wide consensus signal estimates (and optional residual/enrichment-ratio tracks) from multi-replicate ChIP-/ATAC-seq BAM files
+keywords:
+  - consenrich
+  - chipseq
+  - atacseq
+  - signal-extraction
+  - kalman-filter
+tools:
+  - consenrich:
+      description: |
+        Consenrich estimates regulatory signals from multi-sample functional genomics datasets
+        by extracting consensus, uncertainty-moderated signal estimates from noisy sequencing
+        data (e.g. replicate ChIP-seq/ATAC-seq BAM files), optionally against matched input
+        controls.
+      homepage: https://github.com/nolan-h-hamilton/Consenrich
+      documentation: https://github.com/nolan-h-hamilton/Consenrich
+      tool_dev_url: https://github.com/nolan-h-hamilton/Consenrich
+      doi: "10.1101/2025.02.05.636702"
+      licence: ["MIT"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - treatment_bam:
+        type: file
+        description: One or more coordinate-sorted, indexed BAM files for the treatment/IP replicates
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - treatment_bai:
+        type: file
+        description: BAM index file(s) matching treatment_bam
+        pattern: "*.bai"
+    - control_bam:
+        type: file
+        description: One or more coordinate-sorted, indexed BAM files for matched input control replicates, optional
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - control_bai:
+        type: file
+        description: BAM index file(s) matching control_bam, optional
+        pattern: "*.bai"
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - chrom_sizes:
+        type: file
+        description: Two-column chromosome sizes file (name, length) for the genome
+        pattern: "*.sizes"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+  - - meta3:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'blacklist' ]
+    - blacklist:
+        type: file
+        description: BED file of blacklisted genomic regions to exclude, optional
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+  - - meta4:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'sparsebed' ]
+    - sparsebed:
+        type: file
+        description: BED file of regions expected to have sparse/background signal, used to fit the sparsity model, optional
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+  - - meta5:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'active_regions' ]
+    - active_regions:
+        type: file
+        description: BED file of regions expected to be enriched/active, used as an alternative to sparsebed, optional
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+output:
+  results:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*consenrich_output.tsv":
+          type: file
+          description: Tab-delimited table of consensus signal estimates per genomic bin
+          pattern: "*consenrich_output.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  signal_track:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*consenrich_signal_track*.bw":
+          type: file
+          description: BigWig track of the consensus signal estimate, optional
+          pattern: "*.bw"
+          ontologies:
+            - edam: "http://edamontology.org/format_3006" # bigWig
+  residuals_track:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*consenrich_residuals_track*.bw":
+          type: file
+          description: BigWig track of model residuals, optional
+          pattern: "*.bw"
+          ontologies:
+            - edam: "http://edamontology.org/format_3006" # bigWig
+  eratio_track:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*consenrich_eratio_track*.bw":
+          type: file
+          description: BigWig track of the enrichment ratio, optional
+          pattern: "*.bw"
+          ontologies:
+            - edam: "http://edamontology.org/format_3006" # bigWig
+  gain_log:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "${prefix}_*.tsv.gz":
+          type: file
+          description: Gzipped log of Kalman gain values over the run, optional
+          pattern: "*.tsv.gz"
+  args_json:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "consenrich_${prefix}_args.json":
+          type: file
+          description: JSON dump of the arguments used for the run, optional
+          pattern: "*.json"
+          ontologies:
+            - edam: "http://edamontology.org/format_3464" # JSON
+  matrix:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.npz":
+          type: file
+          description: NumPy archive of the saved model matrices, optional
+          pattern: "*.npz"
+  versions_consenrich:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "consenrich":
+          type: string
+          description: The name of the tool
+      - "pip show consenrich 2>/dev/null | awk '/^Version:/{print $2}'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "consenrich":
+          type: string
+          description: The name of the tool
+      - "pip show consenrich 2>/dev/null | awk '/^Version:/{print $2}'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "te_counting"
+description: |
+  Count reads overlapping transposable elements (TEs) at both the subfamily level (TEcount) and
+  the instance/locus level (TElocal), optionally name-sorting the BAM first and splitting
+  strand-specific (SCAR-seq/OK-seq) samples into forward/reverse counting passes
+keywords:
+  - transposable-elements
+  - te
+  - tecount
+  - telocal
+components:
+  - samtools/sort
+  - tecount
+  - telocal
+input:
+  - ch_bam:
+      description: |
+        Input BAM file
+        Structure: [ val(meta), path(bam) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index, used for name-sorting when skip_name_sort is false
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - skip_name_sort:
+      type: boolean
+      description: Skip name-sorting the input BAM file before counting
+      pattern: "true|false"
+  - ch_tecount_gene_index:
+      description: |
+        TEcount gene GTF/index
+        Structure: [ val(meta), path(index) ]
+  - ch_tecount_te_index:
+      description: |
+        TEcount TE GTF/index
+        Structure: [ val(meta), path(index) ]
+  - ch_telocal_gene_index:
+      description: |
+        TElocal gene GTF/index
+        Structure: [ val(meta), path(index) ]
+  - ch_telocal_te_index:
+      description: |
+        TElocal TE GTF/index
+        Structure: [ val(meta), path(index) ]
+  - skip_telocal:
+      type: boolean
+      description: Skip instance/locus-level TE counting with TElocal
+      pattern: "true|false"
+  - skip_tecount_gz:
+      type: boolean
+      description: Skip gzip-compressing the TEcount output
+      pattern: "true|false"
+  - skip_telocal_gz:
+      type: boolean
+      description: Skip gzip-compressing the TElocal output
+      pattern: "true|false"
+output:
+  - tecount_counts:
+      description: |
+        Subfamily-level TE counts table
+        Structure: [ val(meta), path(tsv) ]
+  - telocal_counts:
+      description: |
+        Instance/locus-level TE counts table, when skip_telocal is false
+        Structure: [ val(meta), path(tsv) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

@@ -3,7 +3,7 @@ process PEAKS_NAIVE_OVERLAP {
     label 'process_low'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/4e/4e1dbf5b874984146cb2b5ec7a90f3dd418a7b6015b5be1f172a1fb767b04002/data' :
         'community.wave.seqera.io/library/bedtools_gawk:996a038ce58c4d54' }"
 

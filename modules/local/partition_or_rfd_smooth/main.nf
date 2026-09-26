@@ -3,7 +3,7 @@ process PARTITION_OR_RFD_SMOOTH {
     label 'process_low_memory'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
         ? 'https://depot.galaxyproject.org/singularity/perl:5.26.2'
         : 'quay.io/biocontainers/perl:5.26.2'}"
 
@@ -15,7 +15,7 @@ process PARTITION_OR_RFD_SMOOTH {
 
     output:
     tuple val(meta), path("*.tsv"), emit: rfd
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('perl'), eval("perl --version 2>&1 | sed -n 's/.*(v\\([0-9.]*\\)).*/\\1/p' | head -1"), topic: versions, emit: versions_perl
 
     when:
     task.ext.when == null || task.ext.when
@@ -33,21 +33,11 @@ process PARTITION_OR_RFD_SMOOTH {
         ${dradius} \\
         ${zradius} \\
         > ${prefix}.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        perl: \$(echo \$(perl --version 2>&1) | sed 's/.*v\\(.*\\)) built.*/\\1/')
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch  ${prefix}.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        perl: \$(echo \$(perl --version 2>&1) | sed 's/.*v\\(.*\\)) built.*/\\1/')
-    END_VERSIONS
     """
 }

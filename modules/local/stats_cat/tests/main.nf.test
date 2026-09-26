@@ -1,0 +1,88 @@
+nextflow_process {
+
+    name "Test Process STATS_CAT"
+    script "../main.nf"
+    process "STATS_CAT"
+
+    tag "modules"
+    tag "modules_local"
+    tag "stats_cat"
+    tag "stats_transpose"
+    tag "samtools/stats"
+
+    setup {
+        run("SAMTOOLS_STATS") {
+            script "../../../nf-core/samtools/stats/main.nf"
+            process {
+                """
+                input[0] = channel.of(
+                    [
+                        [ id:'test1.mLb.mkD.sorted', single_end:false ],
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                        []
+                    ],
+                    [
+                        [ id:'test2.mLb.mkD.sorted', single_end:false ],
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam', checkIfExists: true),
+                        []
+                    ]
+                )
+                input[1] = [ [], [], [] ]
+                """
+            }
+        }
+
+        run("STATS_TRANSPOSE") {
+            script "../../stats_transpose/main.nf"
+            process {
+                """
+                input[0] = SAMTOOLS_STATS.out.stats
+                """
+            }
+        }
+    }
+
+    test("sarscov2 - transposed stats - concatenate") {
+
+        when {
+            process {
+                """
+                input[0] = STATS_TRANSPOSE.out.t_stats.collect { it -> it[1] }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.cat,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - transposed stats - concatenate - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = STATS_TRANSPOSE.out.t_stats.collect { it -> it[1] }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

@@ -1,0 +1,134 @@
+{
+    "sarscov2 - bam - no downsampling, symlink through": {
+        "content": [
+            "test.bam",
+            "test.bai",
+            {
+                "versions_picard": [
+                    [
+                        "PICARD_DOWNSAMPLESAM",
+                        "picard",
+                        "3.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:25:12.50339112",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - downsample - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "downsampling_prob": 0.5
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "downsampling_prob": 0.5
+                        },
+                        "test.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "downsampling_prob": 0.5
+                        },
+                        "test.DownsampleSam.metrics.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        "PICARD_DOWNSAMPLESAM",
+                        "picard",
+                        "3.4.0"
+                    ]
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "downsampling_prob": 0.5
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "cram": [
+                    
+                ],
+                "index": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "downsampling_prob": 0.5
+                        },
+                        "test.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "metrics": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "downsampling_prob": 0.5
+                        },
+                        "test.DownsampleSam.metrics.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_picard": [
+                    [
+                        "PICARD_DOWNSAMPLESAM",
+                        "picard",
+                        "3.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:25:22.679381421",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - downsample": {
+        "content": [
+            "test.bam",
+            "test.bai",
+            "test.DownsampleSam.metrics.txt",
+            {
+                "versions_picard": [
+                    [
+                        "PICARD_DOWNSAMPLESAM",
+                        "picard",
+                        "3.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-20T11:25:02.096358561",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

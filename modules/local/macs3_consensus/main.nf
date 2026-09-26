@@ -6,8 +6,8 @@ process MACS3_CONSENSUS {
     label 'process_long'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/bedtools_biopython_r-optparse_r-upsetr:eb93fd19a8e7d9ea':
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/6a/6a6c6159c8410c98244fbe18fcd7d46e71cd67ddf5675b6d548eb839c36a3c11/data':
         'community.wave.seqera.io/library/bedtools_biopython_r-optparse_r-upsetr:71c4f71726f54101' }"
 
     input:
@@ -21,7 +21,9 @@ process MACS3_CONSENSUS {
     tuple val(meta), path("*.antibody.txt") , emit: txt
     tuple val(meta), path("*.boolean.txt")  , emit: boolean_txt
     tuple val(meta), path("*.intersect.txt"), emit: intersect_txt
-    path "versions.yml"                     , emit: versions
+    tuple val("${task.process}"), val('bedtools'), eval("bedtools --version | sed -e 's/bedtools v//g'"), topic: versions, emit: versions_bedtools
+    tuple val("${task.process}"), val('python'), eval("python --version 2>&1 | sed 's/^Python //'"), topic: versions, emit: versions_python
+    tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*\$//'"), topic: versions, emit: versions_rbase
 
     when:
     task.ext.when == null || task.ext.when
@@ -53,12 +55,17 @@ process MACS3_CONSENSUS {
     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
 
     echo "${prefix}.bed\t${meta.id}/${prefix}.bed" > ${prefix}.antibody.txt
+    """
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version | sed 's/Python //g')
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-    END_VERSIONS
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    touch ${prefix}.bed
+    touch ${prefix}.saf
+    touch ${prefix}.boolean.intersect.plot.pdf
+    touch ${prefix}.antibody.txt
+    touch ${prefix}.boolean.txt
+    touch ${prefix}.boolean.intersect.txt
     """
 
 }

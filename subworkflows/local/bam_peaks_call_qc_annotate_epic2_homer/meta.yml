@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_qc_annotate_epic2_homer"
+description: |
+  Call broad peaks with epic2, compute FRiP scores, and (optionally) annotate peaks with HOMER
+  and generate peak-annotation QC plots
+keywords:
+  - epic2
+  - peak-calling
+  - frip
+  - homer
+  - annotation
+components:
+  - epic2
+  - homer/annotatepeaks
+  - frip_score
+  - multiqc_custom_peaks
+  - plot_macs3_qc
+  - plot_homer_annotatepeaks
+input:
+  - ch_bam_bai:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s), with indices
+        Structure: [ val(meta), path(bam), path(bai) ]
+  - ch_fasta:
+      type: file
+      description: |
+        Reference fasta file
+        Structure: [ val(meta), path(fasta) ]
+  - ch_gtf:
+      type: file
+      description: |
+        Reference GTF annotation file
+        Structure: [ val(meta), path(gtf) ]
+  - ch_chrom_sizes:
+      type: file
+      description: |
+        Chromosome sizes file
+        Structure: [ val(meta), path(bed) ]
+  - efective_gfraction:
+      type: float
+      description: Effective genome fraction, passed to epic2
+  - annotate_peaks_suffix:
+      type: string
+      description: Suffix trimmed off input HOMER annotatePeaks filenames when grouping for QC plots
+  - ch_peak_count_header_multiqc:
+      type: file
+      description: MultiQC custom-content header for the peak count table
+  - ch_frip_score_multiqc:
+      type: file
+      description: MultiQC custom-content header for the FRiP score table
+  - ch_peak_annotation_header_multiqc:
+      type: file
+      description: MultiQC custom-content header for the peak annotation plot
+  - skip_peak_annotation:
+      type: boolean
+      description: Skip HOMER peak annotation (and downstream peak-annotation QC)
+      pattern: "true|false"
+  - skip_peak_qc:
+      type: boolean
+      description: Skip peak-annotation QC plots (only used when skip_peak_annotation is false)
+      pattern: "true|false"
+output:
+  - peaks:
+      description: |
+        epic2 peaks, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(peaks) ]
+  - frip_txt:
+      description: |
+        FRiP score text file
+        Structure: [ val(meta), path(txt) ]
+  - frip_multiqc:
+      description: |
+        FRiP score MultiQC custom-content file
+        Structure: [ val(meta), path(tsv) ]
+  - peak_count_multiqc:
+      description: |
+        Peak count MultiQC custom-content file
+        Structure: [ val(meta), path(tsv) ]
+  - homer_annotatepeaks:
+      description: |
+        HOMER peak annotation output, when skip_peak_annotation is false
+        Structure: [ val(meta), path(txt) ]
+  - plot_homer_annotatepeaks_txt:
+      description: |
+        Peak annotation QC plot data, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(txt) ]
+  - plot_homer_annotatepeaks_pdf:
+      description: |
+        Peak annotation QC plot, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(pdf) ]
+  - plot_homer_annotatepeaks_tsv:
+      description: |
+        Peak annotation QC plot MultiQC custom-content file, when skip_peak_annotation and
+        skip_peak_qc are false
+        Structure: [ val(meta), path(tsv) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

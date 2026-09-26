@@ -10,11 +10,11 @@
                 ]
             ]
         ],
+        "timestamp": "2026-02-03T09:58:09.220141052",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.3"
-        },
-        "timestamp": "2026-02-03T09:58:09.220141052"
+        }
     },
     "test_bam_dedup_stats_samtools_umicollapse_flagstats": {
         "content": [
@@ -27,11 +27,138 @@
                 ]
             ]
         ],
+        "timestamp": "2026-02-03T09:58:09.226353172",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.3"
-        },
-        "timestamp": "2026-02-03T09:58:09.226353172"
+        }
+    },
+    "split_by_chrom - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.csi:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "split_id": "exo_and_scaff",
+                            "chrom_list": [
+                                "MT192765.1"
+                            ],
+                            "split_count": 1
+                        },
+                        "test.dedup_UMICollapse.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "dedup_stats": [
+                    [
+                        {
+                            "id": "test",
+                            "split_id": "exo_and_scaff",
+                            "chrom_list": [
+                                "MT192765.1"
+                            ],
+                            "split_count": 1
+                        },
+                        "test.dedup_UMICollapse.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "flagstat": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ]
+                ],
+                "idxstats": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "index": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.csi:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "stats": [
+                    [
+                        {
+                            "id": "test",
+                            "split_count": 1
+                        },
+                        "test.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-21T14:44:54.578877201",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
     },
     "test_bam_dedup_stats_samtools_umicollapse_idxstats": {
         "content": [
@@ -44,20 +171,196 @@
                 ]
             ]
         ],
+        "timestamp": "2026-02-03T09:58:09.233354058",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.3"
-        },
-        "timestamp": "2026-02-03T09:58:09.233354058"
+        }
+    },
+    "skip_split_by_chrom": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.stats:md5,9f76f4cee1510c17f946ba783e599528"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.flagstat:md5,18d602435a02a4d721b78d1812622159"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.idxstats:md5,85d20a901eef23ca50c323638a2eb602"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:29:22.117223444",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
     },
     "test_bam_dedup_stats_samtools_umicollapse_bam": {
         "content": [
             "b7be15ac7aae194b04bdbb56f3534495"
         ],
+        "timestamp": "2026-02-03T09:58:09.209299524",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.3"
-        },
-        "timestamp": "2026-02-03T09:58:09.209299524"
+        }
+    },
+    "skip_split_by_chrom - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.dedup.dedup.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.dedup.dedup.bam.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.dedup_UMICollapse.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.dedup.dedup.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "dedup_stats": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.dedup_UMICollapse.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "flagstat": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.flagstat:md5,67394650dbae96d1a4fcc70484822159"
+                    ]
+                ],
+                "idxstats": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.idxstats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "index": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.dedup.dedup.bam.bai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "stats": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.stats:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-21T14:29:52.268068057",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "split_by_chrom": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "split_count": 1
+                    },
+                    "test.stats:md5,3f0d6a79a103acaa746d0a9be747898e"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "split_count": 1
+                    },
+                    "test.flagstat:md5,18d602435a02a4d721b78d1812622159"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "split_count": 1
+                    },
+                    "test.idxstats:md5,85d20a901eef23ca50c323638a2eb602"
+                ]
+            ]
+        ],
+        "timestamp": "2026-07-21T14:44:29.335344521",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
     }
 }

@@ -3,7 +3,7 @@ process CONSENRICH {
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
         ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/5f/5f4dd21bd3f68dfe71b6d6a8624340b8735b43ef0c63b3a95031b4eb93403790/data'
         : 'community.wave.seqera.io/library/bedtools_deeptools_pybedtools_pybigwig_pruned:01282f183573fac0'}"
 
@@ -22,7 +22,7 @@ process CONSENRICH {
     tuple val(meta), path("${prefix}_*.tsv.gz"), optional: true, emit: gain_log
     tuple val(meta), path("consenrich_${prefix}_args.json"), optional: true, emit: args_json
     tuple val(meta), path("*.npz"), optional: true, emit: matrix
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('consenrich'), eval("pip show consenrich 2>/dev/null | awk '/^Version:/{print \$2}'"), topic: versions, emit: versions_consenrich
 
     when:
     task.ext.when == null || task.ext.when
@@ -53,11 +53,6 @@ process CONSENRICH {
         ${no_sparsebed_arg} \\
         ${single_end_arg}  \\
         --output_file ${prefix}.consenrich_output.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        Consenrich: \$(echo \$(Consenrich -h 2>&1) | sed 's/^Consenrich, version //; s/ .*\$//')
-    END_VERSIONS
     """
 
     stub:
@@ -67,13 +62,8 @@ process CONSENRICH {
     touch ${prefix}.consenrich_signal_track.bw
     touch ${prefix}.consenrich_residuals_track.bw
     touch ${prefix}.consenrich_eratio_track.bw
-    touch ${prefix}_consenrich_args.json
     touch ${prefix}_consenrich_gain_log.tsv.gz
+    touch consenrich_${prefix}_args.json
     touch ${prefix}_consenrich_matrix.npz
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        Consenrich: \$(echo \$(Consenrich -h 2>&1) | sed 's/^Consenrich, version //; s/ .*\$//')
-    END_VERSIONS
     """
 }

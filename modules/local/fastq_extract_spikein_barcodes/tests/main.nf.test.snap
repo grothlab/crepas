@@ -1,0 +1,114 @@
+{
+    "sarscov2 - fastq - paired_end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.spikein_barcode_extract.tsv:md5,951d4370643b74014ceda1435fc1f07a"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_pigz": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "pigz",
+                        "2.8"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T14:32:04.08720503",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "sarscov2 - fastq - paired_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.spikein_barcode_extract.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "2": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "pigz",
+                        "2.8"
+                    ]
+                ],
+                "3": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "counts": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.spikein_barcode_extract.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_pigz": [
+                    [
+                        "FASTQ_EXTRACT_SPIKEIN_BARCODES",
+                        "pigz",
+                        "2.8"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T14:32:16.300767894",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    }
+}

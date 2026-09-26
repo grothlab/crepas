@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "stats_summary"
+description: Reshape the concatenated samtools stats summary table (from STATS_CAT) with an R/tidyverse script into a per-sample, per-processing-step wide table, deriving the read counts removed between filtering steps where the relevant columns are present
+keywords:
+  - r
+  - samtools
+  - stats
+  - summary
+  - qc
+tools:
+  - r-base:
+      description: |
+        R is a free software environment for statistical computing and graphics. Here the
+        bundled script `process_stats_summary.R` (dplyr/tidyr/forcats/readr) cleans the
+        concatenated stats table: it normalises sample IDs, drops pre-merge rows, pivots the
+        table into one row per sample with columns keyed by processing step, and — when the
+        expected columns are present — derives the read counts removed between filtering
+        steps. Endogenous and
+        exogenous (spike-in) genomes are handled separately when a spike-in genome is given.
+      homepage: https://www.r-project.org/
+      documentation: https://www.r-project.org/other-docs.html
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - table:
+        type: file
+        description: Concatenated samtools stats summary table (as produced by STATS_CAT), one ID column plus per-metric columns
+        pattern: "*.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+  - - endogenous_genome_name:
+        type: string
+        description: Name of the endogenous genome (used to tag/disambiguate endogenous rows and columns), e.g. "GRCh38"
+  - - exogenous_genome_name:
+        type: string
+        description: Name of the exogenous (spike-in) genome; when empty the table is processed without spike-in-specific handling
+output:
+  tsv:
+    - - "*.all.tsv":
+          type: file
+          description: Reshaped per-sample summary table (one row per sample, columns keyed by processing step and metric)
+          pattern: "*.all.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  totals_tsv:
+    - - "*.totals.tsv":
+          type: file
+          description: Reduced summary table with only the read-count columns, i.e. the raw_total_sequences of every processing step plus the reads removed between filtering steps (`<step>_minus_<step>`)
+          pattern: "*.totals.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_r:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

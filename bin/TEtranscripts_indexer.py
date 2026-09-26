@@ -39,7 +39,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-    
+
 import argparse
 import os.path
 
@@ -83,7 +83,7 @@ class IntervalTree(object):
 
         this provides an extreme and satisfying performance improvement
         over searching manually over all 3 elements in the list (like
-        a sucker). 
+        a sucker).
 
         the IntervalTree class now also supports the iterator protocol
         so it's easy to loop over all elements in the tree:
@@ -95,13 +95,13 @@ class IntervalTree(object):
 
         NOTE: any object with start and stop attributes can be used
         in the incoming intervals list.
-        """ 
-        
+        """
+
         depth -= 1
         if (depth == 0 or len(intervals) < minbucket) and len(intervals) < maxbucket:
             self.intervals = intervals
             self.left = self.right = None
-            return 
+            return
 
         if _extent is None:
             # sorting the first time through allows it to get
@@ -114,7 +114,7 @@ class IntervalTree(object):
 
         self.intervals = []
         lefts, rights = [], []
-        
+
         for interval in intervals:
             if interval.stop < center:
                 lefts.append(interval)
@@ -122,7 +122,7 @@ class IntervalTree(object):
                 rights.append(interval)
             else:  # overlapping.
                 self.intervals.append(interval)
-                
+
         self.left = lefts and IntervalTree(lefts, depth, minbucket, (intervals[0].start, center)) or None
         self.right = rights and IntervalTree(rights, depth, minbucket, (center, right)) or None
         self.center = center
@@ -300,7 +300,7 @@ def read_opts4(parser):
     if args.itype.lower() not in ['gene', 'te']:
         logging.error("indexing mode %s not supported \n" % args.itype)
         sys.exit(1)
-                
+
     # Level of logging for tool
     logging.basicConfig(
         level=(4 - args.verbose) * 10,
@@ -308,16 +308,16 @@ def read_opts4(parser):
         datefmt='%a, %d %b %Y %H:%M:%S',
         stream=sys.stderr,
         filemode="w")
-    
+
     args.error = logging.critical        # function alias
     args.warn = logging.warning
     args.debug = logging.debug
     args.info = logging.info
-    
+
 #    args.argtxt = "# ARGUMENTS LIST: \n# prefix = %s \n# file to index = \
 #    %s \n# index type = %s" % (args.prefix, args.afile, args.itype)
     args.argtxt = "# ARGUMENTS LIST: \n# file to index = %s \n# index type = %s" % (args.afile, args.itype)
-    return args 
+    return args
 
 def prepare_parser():
     desc = "Building an index for gene or transposable element annotations file for TEtranscripts/TEcount."
@@ -345,7 +345,7 @@ def main():
     args = read_opts4(prepare_parser())
 
     info = args.info
-    
+
     # Output arguments used for program
     info("\n" + args.argtxt + "\n")
 
@@ -365,11 +365,11 @@ def main():
             info("Done saving gene index\n")
             info("Gene index can be used by TEtranscripts and TElocal\n")
             info("Gene index saved to %s\n" % filename)
-        
+
         except:
             sys.stderr.write("Error in building gene index \n")
             sys.exit(1)
-            
+
     elif args.itype.lower() == 'te':
         try:
             teIdx = TEfeatures()
@@ -386,7 +386,7 @@ def main():
             info("Done saving TE index\n")
             info("TE index can be only used by TEtranscripts/TEcount\n")
             info("TE index saved to %s\n" % filename)
-                        
+
         except:
             sys.stderr.write("Error in building TE index \n")
             sys.exit(1)

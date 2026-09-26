@@ -1,0 +1,114 @@
+{
+    "sarscov2 - stats - transpose - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test.mLb.mkD.sorted",
+                            "single_end": false
+                        },
+                        "test.paired_end.sorted.transposed.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "2": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "sed",
+                        "4.10"
+                    ]
+                ],
+                "3": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "t_stats": [
+                    [
+                        {
+                            "id": "test.mLb.mkD.sorted",
+                            "single_end": false
+                        },
+                        "test.paired_end.sorted.transposed.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_sed": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "sed",
+                        "4.10"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-03T14:52:32.291430664",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - stats - transpose": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test.mLb.mkD.sorted",
+                        "single_end": false
+                    },
+                    "test.mLb.mkD.sorted.transposed.tsv:md5,429b61f05c7aaca649e72a5ba2ed1570"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "versions_coreutils": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "coreutils",
+                        "9.5"
+                    ]
+                ],
+                "versions_sed": [
+                    [
+                        "STATS_TRANSPOSE",
+                        "sed",
+                        "4.10"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-17T10:03:03.388753006",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

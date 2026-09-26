@@ -1,0 +1,69 @@
+{
+    "homo_sapiens - bedgraph - K27me3 over IgG": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.bedgraph:md5,13aef65a10ef8c4576f109124d9f5342"
+                ]
+            ],
+            {
+                "versions_awk": [
+                    [
+                        "BEDGRAPH_SIGNAL_OVER_INPUT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:23:38.147689341",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - bedgraph - K27me3 over IgG - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bedgraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BEDGRAPH_SIGNAL_OVER_INPUT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "bedgraph": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.bedgraph:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "BEDGRAPH_SIGNAL_OVER_INPUT",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-09T13:23:49.432283582",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

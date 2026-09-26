@@ -1,0 +1,342 @@
+{
+    "homo_sapiens - 2 fractions with replicates - replicates pooled": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.csv:md5,7f6fadb07365bddc48606be66d3d722b"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.qc.txt:md5,e78d01f497af7bbdeefe1df32ebf2078"
+                    ]
+                ],
+                "2": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "python",
+                        "3.12.14"
+                    ]
+                ],
+                "3": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "numpy",
+                        "2.1.3"
+                    ]
+                ],
+                "4": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "array": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.csv:md5,7f6fadb07365bddc48606be66d3d722b"
+                    ]
+                ],
+                "qc": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.qc.txt:md5,e78d01f497af7bbdeefe1df32ebf2078"
+                    ]
+                ],
+                "versions_numpy": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "numpy",
+                        "2.1.3"
+                    ]
+                ],
+                "versions_pandas": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "python",
+                        "3.12.14"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-23T14:42:38.034590918",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "homo_sapiens - 4 fractions - depth normalized": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.csv:md5,13a8be77b86372cb72cf28c4d1e0d130"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.qc.txt:md5,cb260db8cd9252cac88815b22ad1ca33"
+                    ]
+                ],
+                "2": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "python",
+                        "3.12.14"
+                    ]
+                ],
+                "3": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "numpy",
+                        "2.1.3"
+                    ]
+                ],
+                "4": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "array": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.csv:md5,13a8be77b86372cb72cf28c4d1e0d130"
+                    ]
+                ],
+                "qc": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.qc.txt:md5,cb260db8cd9252cac88815b22ad1ca33"
+                    ]
+                ],
+                "versions_numpy": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "numpy",
+                        "2.1.3"
+                    ]
+                ],
+                "versions_pandas": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "python",
+                        "3.12.14"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-23T14:41:49.713627868",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "homo_sapiens - 4 fractions - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.qc.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "python",
+                        "3.12.14"
+                    ]
+                ],
+                "3": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "numpy",
+                        "2.1.3"
+                    ]
+                ],
+                "4": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "array": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "qc": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.qc.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_numpy": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "numpy",
+                        "2.1.3"
+                    ]
+                ],
+                "versions_pandas": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "python",
+                        "3.12.14"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-23T14:42:51.384594016",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "homo_sapiens - 3 fractions and a G1 control - mappability corrected": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.csv:md5,a8034d5ccf66c81430d5f80d34ab1c29"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.qc.txt:md5,17f7b8c94fcbd4dc83e7d4d89137f497"
+                    ]
+                ],
+                "2": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "python",
+                        "3.12.14"
+                    ]
+                ],
+                "3": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "numpy",
+                        "2.1.3"
+                    ]
+                ],
+                "4": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "array": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.csv:md5,a8034d5ccf66c81430d5f80d34ab1c29"
+                    ]
+                ],
+                "qc": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.hr_array.qc.txt:md5,17f7b8c94fcbd4dc83e7d4d89137f497"
+                    ]
+                ],
+                "versions_numpy": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "numpy",
+                        "2.1.3"
+                    ]
+                ],
+                "versions_pandas": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "pandas",
+                        "2.2.3"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "HR_REPLISEQ_MAKE_ARRAY",
+                        "python",
+                        "3.12.14"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-23T20:32:21.892268462",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

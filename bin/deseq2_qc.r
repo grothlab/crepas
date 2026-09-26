@@ -53,7 +53,8 @@ option_list <- list(
     make_option(c("-o", "--outdir"        ), type="character", default='./'    , metavar="path"   , help="Output directory."                                                                      ),
     make_option(c("-p", "--outprefix"     ), type="character", default='deseq2', metavar="string" , help="Output prefix."                                                                         ),
     make_option(c("-v", "--vst"           ), type="logical"  , default=FALSE   , metavar="boolean", help="Run vst transform instead of rlog."                                                     ),
-    make_option(c("-c", "--cores"         ), type="integer"  , default=1       , metavar="integer", help="Number of cores."                                                                       )
+    make_option(c("-c", "--cores"         ), type="integer"  , default=1       , metavar="integer", help="Number of cores."                                                                       ),
+    make_option(c("-t", "--fit_type"      ), type="character", default='parametric', metavar="string", help="DESeq2 dispersion fitType passed to rlog/vst: 'parametric', 'local', or 'mean'. Small counts files (few genes/low depth) may need 'local' or 'mean' -- see DESeq2's estimateDispersions() docs."                                                     )
 )
 
 opt_parser <- OptionParser(option_list=option_list)
@@ -117,10 +118,10 @@ if (min(dim(count.table))<=1)  { # No point if only one sample, or one gene
 }
 if (!opt$vst) {
     vst_name <- "rlog"
-    rld      <- rlog(dds)
+    rld      <- rlog(dds, fitType=opt$fit_type)
 } else {
     vst_name <- "vst"
-    rld      <- varianceStabilizingTransformation(dds)
+    rld      <- varianceStabilizingTransformation(dds, fitType=opt$fit_type)
 }
 
 assay(dds, vst_name) <- assay(rld)

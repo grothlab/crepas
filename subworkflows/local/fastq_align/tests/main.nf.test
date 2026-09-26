@@ -1,0 +1,435 @@
+nextflow_workflow {
+
+    name "Test Subworkflow FASTQ_ALIGN"
+    script "../main.nf"
+    config "./nextflow.config"
+    workflow "FASTQ_ALIGN"
+
+    tag "subworkflows"
+    tag "subworkflows_nfcore"
+    tag "subworkflows/fastq_align"
+    tag "subworkflows/fastq_align_bwa"
+    tag "subworkflows/fastq_align_bwamem2"
+    tag "subworkflows/fastq_align_minibwa"
+    tag "subworkflows/fastq_align_bowtie"
+    tag "subworkflows/fastq_align_bowtie2"
+    tag "subworkflows/fastq_align_strobealign"
+    tag "subworkflows/fastq_align_chromap"
+    tag "subworkflows/fastq_align_star"
+    tag "subworkflows/fastq_align_hisat2"
+    tag "subworkflows/fastq_align_minimap2"
+
+    setup {
+        run("BWA_INDEX") {
+            script "../../../../modules/nf-core/bwa/index/main.nf"
+            process {
+                """
+                input[0] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ])
+                """
+            }
+        }
+        run("BWAMEM2_INDEX") {
+            script "../../../../modules/nf-core/bwamem2/index/main.nf"
+            process {
+                """
+                input[0] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ])
+                """
+            }
+        }
+        run("MINIBWA_INDEX") {
+            script "../../../../modules/nf-core/minibwa/index/main.nf"
+            process {
+                """
+                input[0] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ])
+                """
+            }
+        }
+        run("BOWTIE_BUILD") {
+            script "../../../../modules/nf-core/bowtie/build/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ]
+                """
+            }
+        }
+        run("BOWTIE2_BUILD") {
+            script "../../../../modules/nf-core/bowtie2/build/main.nf"
+            process {
+                """
+                input[0] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ])
+                """
+            }
+        }
+        run("CHROMAP_INDEX") {
+            script "../../../../modules/nf-core/chromap/index/main.nf"
+            process {
+                """
+                input[0] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ])
+                """
+            }
+        }
+        run("STAR_GENOMEGENERATE") {
+            script "../../../../modules/nf-core/star/genomegenerate/main.nf"
+            process {
+                """
+                input[0] = Channel.of([ [ id:'genome' ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.gtf', checkIfExists: true) ] ])
+                """
+            }
+        }
+        run("HISAT2_EXTRACTSPLICESITES") {
+            script "../../../../modules/nf-core/hisat2/extractsplicesites/main.nf"
+            process {
+                """
+                input[0] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.gtf', checkIfExists: true) ])
+                """
+            }
+        }
+        run("HISAT2_BUILD") {
+            script "../../../../modules/nf-core/hisat2/build/main.nf"
+            process {
+                """
+                input[0] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.gtf', checkIfExists: true) ])
+                input[2] = HISAT2_EXTRACTSPLICESITES.out.txt
+                """
+            }
+        }
+    }
+
+    test("fastq_align_bwa") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:true ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'bwa'
+                input[3] = BWA_INDEX.out.index
+                input[4] = Channel.empty()
+                input[5] = Channel.empty()
+                input[6] = Channel.empty()
+                input[7] = Channel.empty()
+                input[8] = Channel.empty()
+                input[9] = Channel.empty()
+                input[10] = Channel.empty()
+                input[11] = Channel.empty()
+                input[12] = Channel.empty()
+                input[13] = Channel.empty()
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_bwamem2") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:true ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'bwamem2'
+                input[3] = Channel.empty()
+                input[4] = BWAMEM2_INDEX.out.index
+                input[5] = Channel.empty()
+                input[6] = Channel.empty()
+                input[7] = Channel.empty()
+                input[8] = Channel.empty()
+                input[9] = Channel.empty()
+                input[10] = Channel.empty()
+                input[11] = Channel.empty()
+                input[12] = Channel.empty()
+                input[13] = Channel.empty()
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_minibwa") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:true ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'minibwa'
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = MINIBWA_INDEX.out.index
+                input[6] = Channel.empty()
+                input[7] = Channel.empty()
+                input[8] = Channel.empty()
+                input[9] = Channel.empty()
+                input[10] = Channel.empty()
+                input[11] = Channel.empty()
+                input[12] = Channel.empty()
+                input[13] = Channel.empty()
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_bowtie") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:true ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'bowtie'
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = Channel.empty()
+                input[6] = BOWTIE_BUILD.out.index
+                input[7] = Channel.empty()
+                input[8] = Channel.empty()
+                input[9] = Channel.empty()
+                input[10] = Channel.empty()
+                input[11] = Channel.empty()
+                input[12] = Channel.empty()
+                input[13] = Channel.empty()
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_bowtie2") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:true ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'bowtie2'
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = Channel.empty()
+                input[6] = Channel.empty()
+                input[7] = BOWTIE2_BUILD.out.index
+                input[8] = Channel.empty()
+                input[9] = Channel.empty()
+                input[10] = Channel.empty()
+                input[11] = Channel.empty()
+                input[12] = Channel.empty()
+                input[13] = Channel.empty()
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_strobealign") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:false ], [
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test2_1.fastq.gz', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test2_2.fastq.gz', checkIfExists: true)
+                ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'strobealign'
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = Channel.empty()
+                input[6] = Channel.empty()
+                input[7] = Channel.empty()
+                input[8] = Channel.empty()
+                input[9] = Channel.empty()
+                input[10] = Channel.empty()
+                input[11] = Channel.empty()
+                input[12] = Channel.of([[:], []])
+                input[13] = Channel.empty()
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_chromap") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:false ], [
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test2_1.fastq.gz', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test2_2.fastq.gz', checkIfExists: true)
+                ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'chromap'
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = Channel.empty()
+                input[6] = Channel.empty()
+                input[7] = Channel.empty()
+                input[8] = CHROMAP_INDEX.out.index
+                input[9] = Channel.empty()
+                input[10] = Channel.empty()
+                input[11] = Channel.empty()
+                input[12] = Channel.empty()
+                input[13] = Channel.empty()
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_star") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:true ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'star'
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = Channel.empty()
+                input[6] = Channel.empty()
+                input[7] = Channel.empty()
+                input[8] = Channel.empty()
+                input[9] = STAR_GENOMEGENERATE.out.index
+                input[10] = Channel.empty()
+                input[11] = Channel.empty()
+                input[12] = Channel.empty()
+                input[13] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.gtf', checkIfExists: true) ])
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_hisat2") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:true ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'hisat2'
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = Channel.empty()
+                input[6] = Channel.empty()
+                input[7] = Channel.empty()
+                input[8] = Channel.empty()
+                input[9] = Channel.empty()
+                input[10] = HISAT2_BUILD.out.index
+                input[11] = Channel.empty()
+                input[12] = Channel.empty()
+                input[13] = Channel.empty()
+                input[14] = HISAT2_EXTRACTSPLICESITES.out.txt
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+
+    test("fastq_align_minimap2") {
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([ [ id:'test', single_end:true ], [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ] ])
+                input[1] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true), file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta.fai', checkIfExists: true) ])
+                input[2] = 'minimap2'
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = Channel.empty()
+                input[6] = Channel.empty()
+                input[7] = Channel.empty()
+                input[8] = Channel.empty()
+                input[9] = Channel.empty()
+                input[10] = Channel.empty()
+                input[11] = Channel.of([ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true) ])
+                input[12] = Channel.empty()
+                input[13] = Channel.empty()
+                input[14] = Channel.empty()
+                input[15] = false
+                input[16] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.bam[0][1] ==~ ".*\\.bam" },
+                { assert snapshot(workflow.out.samtools_stats_summary).match() }
+            )
+        }
+    }
+}

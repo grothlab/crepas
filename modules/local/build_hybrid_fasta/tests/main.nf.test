@@ -1,0 +1,72 @@
+nextflow_process {
+
+    name "Test Process BUILD_HYBRID_FASTA"
+    script "../main.nf"
+    process "BUILD_HYBRID_FASTA"
+
+    tag "modules"
+    tag "modules_local"
+    tag "build_hybrid_fasta"
+
+    test("sarscov2 + homo_sapiens - hybrid fasta") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'sarscov2' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true),
+                    'sarscov2'
+                ]
+                input[1] = [
+                    [ id:'homo_sapiens' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.fasta', checkIfExists: true),
+                    'homo_sapiens'
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.fasta,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 + homo_sapiens - hybrid fasta - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'sarscov2' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true),
+                    'sarscov2'
+                ]
+                input[1] = [
+                    [ id:'homo_sapiens' ], // meta2 map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.fasta', checkIfExists: true),
+                    'homo_sapiens'
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

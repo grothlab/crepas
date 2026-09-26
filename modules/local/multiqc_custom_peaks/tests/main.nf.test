@@ -1,0 +1,86 @@
+nextflow_process {
+
+    name "Test Process MULTIQC_CUSTOM_PEAKS"
+    script "../main.nf"
+    process "MULTIQC_CUSTOM_PEAKS"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "multiqc_custom_peaks"
+    tag "frip_score"
+
+    setup {
+        run("FRIP_SCORE") {
+            script "../../frip_score/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true)
+                ]
+                """
+            }
+        }
+    }
+
+    test("sarscov2 - peak - frip - multiqc custom content") {
+
+        when {
+            process {
+                """
+                input[0] = FRIP_SCORE.out.txt
+                    .map { meta, txt -> [
+                        meta,
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true),
+                        txt
+                    ] }
+                input[1] = file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true)
+                input[2] = file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.count,
+                    process.out.frip,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - peak - frip - multiqc custom content - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = FRIP_SCORE.out.txt
+                    .map { meta, txt -> [
+                        meta,
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true),
+                        txt
+                    ] }
+                input[1] = file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true)
+                input[2] = file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

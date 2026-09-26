@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_filter_sambamba_rmo_stats"
+description: |
+  Filter a BAM file with sambamba view against a BED region list, optionally remove orphan
+  paired-end reads (after name-sorting), coordinate-sort/index and run samtools stats, flagstat
+  and idxstats
+keywords:
+  - filter
+  - sambamba
+  - orphan-removal
+  - bam
+components:
+  - sambamba/view
+  - samtools/sort
+  - bam_remove_orphans
+  - bam_flagstat_mapped
+  - bam_sort_stats_samtools
+  - bam_sort_stats_samtools
+  - bam_flagstat_mapped
+input:
+  - ch_bam_index:
+      description: |
+        Input BAM file and its index
+        Structure: [ val(meta), path(bam), path(index) ]
+  - ch_bed:
+      description: |
+        BED file of regions to filter the BAM against
+        Structure: [ val(meta), path(bed) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - skip_orphan_removal:
+      type: boolean
+      description: Skip removal of orphaned paired-end reads after filtering
+      pattern: "true|false"
+  - total_mapped_reads_key:
+      type: string
+      description: |
+        Name of the meta field to store each sample's total mapped read count under
+output:
+  - bam:
+      description: |
+        Filtered (and, unless skipped, orphan-removed) BAM file
+        Structure: [ val(meta), path(bam) ]
+  - index:
+      description: |
+        Index of the filtered BAM file
+        Structure: [ val(meta), path(index) ]
+  - stats:
+      description: |
+        File containing samtools stats output
+        Structure: [ val(meta), path(stats) ]
+  - flagstat:
+      description: |
+        File containing samtools flagstat output
+        Structure: [ val(meta), path(flagstat) ]
+  - idxstats:
+      description: |
+        File containing samtools idxstats output
+        Structure: [ val(meta), path(idxstats) ]
+  - multiqc_files:
+      description: |
+        Files collected for MultiQC
+        Structure: [ val(meta), path(file) ]
+  - total_reads:
+      description: |
+        Total mapped read count per sample
+        Structure: [ val(meta), val(total_mapped_reads) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

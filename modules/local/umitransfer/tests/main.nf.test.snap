@@ -1,0 +1,195 @@
+{
+    "pair end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test.umitransfer_1.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test.umitransfer_2.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.umitransfer.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "UMITRANSFER",
+                        "umitransfer",
+                        "1.5.0"
+                    ]
+                ],
+                "log": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.umitransfer.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "reads": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test.umitransfer_1.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test.umitransfer_2.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
+                ],
+                "versions_umitransfer": [
+                    [
+                        "UMITRANSFER",
+                        "umitransfer",
+                        "1.5.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T13:36:06.182056029",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "single end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.umitransfer.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.umitransfer.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "UMITRANSFER",
+                        "umitransfer",
+                        "1.5.0"
+                    ]
+                ],
+                "log": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.umitransfer.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "reads": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.umitransfer.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "versions_umitransfer": [
+                    [
+                        "UMITRANSFER",
+                        "umitransfer",
+                        "1.5.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T13:35:41.133380895",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "pair end": {
+        "content": [
+            "test.umitransfer_1.fastq.gz",
+            "test.umitransfer_2.fastq.gz",
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.umitransfer.log"
+                ]
+            ],
+            {
+                "versions_umitransfer": [
+                    [
+                        "UMITRANSFER",
+                        "umitransfer",
+                        "1.5.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T13:35:53.736905553",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "single end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.umitransfer.fastq.gz"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.umi_extract.log"
+                ]
+            ],
+            {
+                "versions_umitransfer": [
+                    [
+                        "UMITRANSFER",
+                        "umitransfer",
+                        "1.5.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-06T13:35:28.602967783",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    }
+}

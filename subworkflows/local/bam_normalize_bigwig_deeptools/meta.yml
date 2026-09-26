@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_normalize_bigwig_deeptools"
+description: |
+  Generate normalised bigWig signal tracks from a BAM file with deepTools bamCoverage (compute
+  RPM, SRPM or CISRPM normalisation), optionally comparing signal vs. input and averaging
+  bigWigs across replicates, and run deepTools multiBigwigSummary/plotCorrelation/plotPCA QC
+keywords:
+  - bigwig
+  - normalization
+  - deeptools
+  - coverage
+components:
+  - deeptools/bamcoverage
+  - bedtools/makewindows
+  - bedtools/map
+  - bedgraph_normalize
+  - file_sort
+  - bedgraph_signal_over_input
+  - ucsc/bedgraphtobigwig
+  - deeptools/bigwigcompare
+  - deeptools/bigwigaverage
+  - deeptools/multibigwigsummary
+  - deeptools/plotcorrelation
+  - deeptools/plotpca
+input:
+  - ch_bam_bai:
+      description: |
+        Input BAM file and its index
+        Structure: [ val(meta), path(bam), path(bai) ]
+  - ch_chrom_sizes_endo:
+      type: file
+      description: Endogenous genome chromosome sizes file
+  - ch_chrom_sizes_exo:
+      type: file
+      description: Spike-in genome chromosome sizes file
+  - genome:
+      type: string
+      description: Endogenous genome identifier, e.g. 'hg38'
+  - spikein_genome:
+      type: string
+      description: Spike-in genome identifier, e.g. 'mm10'
+  - min_reads_for_norm:
+      type: integer
+      description: Minimum number of reads required to compute normalisation factors
+  - skip_srpm:
+      type: boolean
+      description: Skip the signal-reads-per-million (SRPM) normalisation step
+      pattern: "true|false"
+  - skip_cisrpm:
+      type: boolean
+      description: Skip the CIS-RPM normalisation step
+      pattern: "true|false"
+  - skip_signal_vs_input:
+      type: boolean
+      description: Skip the CIS-RPM signal-over-input normalisation step
+      pattern: "true|false"
+  - signal_vs_input_operation:
+      type: string
+      description: deepTools bigwigCompare operation used for signal-vs-input, e.g. 'log2' or 'ratio'
+  - skip_bw_average:
+      type: boolean
+      description: Skip averaging bigWigs across biological replicates
+      pattern: "true|false"
+  - skip_exo_bw:
+      type: boolean
+      description: Skip generating bigWigs for the spike-in (exogenous) genome
+      pattern: "true|false"
+  - skip_multibigwigsummary:
+      type: boolean
+      description: Skip deepTools multiBigwigSummary QC
+      pattern: "true|false"
+  - skip_plotcorrelation:
+      type: boolean
+      description: Skip deepTools plotCorrelation QC
+      pattern: "true|false"
+  - skip_plotpca:
+      type: boolean
+      description: Skip deepTools plotPCA QC
+      pattern: "true|false"
+output:
+  - bedgraph_endo:
+      description: |
+        Normalised bedGraph signal for the endogenous genome
+        Structure: [ val(meta), path(bedgraph) ]
+  - bigwig_endo:
+      description: |
+        Normalised bigWig signal for the endogenous genome
+        Structure: [ val(meta), path(bigwig) ]
+  - bigwig_exo:
+      description: |
+        Normalised bigWig signal for the spike-in genome, when skip_exo_bw is false
+        Structure: [ val(meta), path(bigwig) ]
+  - bigwig_cmp_endo:
+      description: |
+        Signal-vs-input bigWig comparison for the endogenous genome, when skip_signal_vs_input
+        is false
+        Structure: [ val(meta), path(bigwig) ]
+  - bigwig_cmp_exo:
+      description: |
+        Signal-vs-input bigWig comparison for the spike-in genome, when skip_signal_vs_input is
+        false
+        Structure: [ val(meta), path(bigwig) ]
+  - bigwig_avg_endo:
+      description: |
+        Replicate-averaged bigWig for the endogenous genome, when skip_bw_average is false
+        Structure: [ val(meta), path(bigwig) ]
+  - bigwig_avg_exo:
+      description: |
+        Replicate-averaged bigWig for the spike-in genome, when skip_bw_average is false
+        Structure: [ val(meta), path(bigwig) ]
+  - bigwig_all_endo:
+      description: |
+        All endogenous bigWigs (per-replicate and, when generated, averaged)
+        Structure: [ val(meta), path(bigwig) ]
+  - bigwig_all_exo:
+      description: |
+        All spike-in bigWigs (per-replicate and, when generated, averaged)
+        Structure: [ val(meta), path(bigwig) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

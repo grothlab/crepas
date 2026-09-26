@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bam_remove_orphans"
+description: Remove orphan (singleton) reads left over in a paired-end BAM file after upstream filtering/splitting; single-end BAM files are passed through unchanged
+keywords:
+  - bam
+  - orphan reads
+  - singleton reads
+  - paired-end
+  - pysam
+tools:
+  - pysam:
+      description: |
+        pysam is a Python module for reading, manipulating and writing SAM/BAM/VCF/BCF files.
+        Used here via the bundled `bampe_rm_orphan.py` script to drop paired-end reads
+        whose mate is missing (e.g. after upstream filtering removed the mate), keeping only
+        intact read pairs.
+      homepage: https://github.com/pysam-developers/pysam
+      documentation: http://pysam.readthedocs.io/en/latest/
+      tool_dev_url: https://github.com/pysam-developers/pysam
+      licence: ["MIT"]
+      identifier: "biotools:pysam"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        type: file
+        description: |
+          BAM file to remove orphan reads from. For paired-end data, must be name-sorted unless
+          `skip_name_sort` is `true`. Single-end BAM files are passed through unchanged.
+        pattern: "*.bam"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+  - - skip_name_sort:
+        type: boolean
+        description: |
+          If `true`, assumes the input paired-end BAM is already name-sorted and skips the
+          internal `samtools sort -n` step. Ignored for single-end data.
+        pattern: "true or false"
+output:
+  bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "${prefix}.bam":
+          type: file
+          description: BAM file with orphan (singleton) reads removed; unchanged for single-end input
+          pattern: "*.bam"
+          ontologies:
+            - edam: "http://edamontology.org/format_2572" # BAM
+  versions_pysam:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "pysam":
+          type: string
+          description: The name of the tool
+      - "python3 -c 'import pysam; print(pysam.__version__)'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_samtools:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "samtools":
+          type: string
+          description: The name of the tool
+      - "samtools version | sed '1!d;s/.* //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "pysam":
+          type: string
+          description: The name of the tool
+      - "python3 -c 'import pysam; print(pysam.__version__)'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "samtools":
+          type: string
+          description: The name of the tool
+      - "samtools version | sed '1!d;s/.* //'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@JoseEspinosa"
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

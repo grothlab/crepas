@@ -3,7 +3,7 @@ process CHROMAP_INDEX {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/80/809e5a0166357804ca10097100e96844100019a11a3aaebf14e2cceb2ee98c0a/data' :
         'community.wave.seqera.io/library/chromap:0.3.2--4ec4bca51cd82195' }"
 
@@ -12,7 +12,7 @@ process CHROMAP_INDEX {
 
     output:
     tuple val(meta), path ("*.index"), emit: index
-    path "versions.yml"              , emit: versions
+    tuple val("${task.process}"), val('chromap'), eval("chromap --version 2>&1"), topic: versions, emit: versions_chromap
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,21 +27,11 @@ process CHROMAP_INDEX {
         -t $task.cpus \\
         -r $fasta \\
         -o ${prefix}.index
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        chromap: \$(echo \$(chromap --version 2>&1))
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${fasta.baseName}"
     """
     touch ${prefix}.index
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        chromap: \$(echo \$(chromap --version 2>&1))
-    END_VERSIONS
     """
 }

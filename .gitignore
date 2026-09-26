@@ -6,4 +6,11 @@ results/
 testing/
 testing*
 *.pyc
-/null
+null/
+.lineage/
+.nf-test*
+
+# Pipeline website build output
+website/node_modules/
+website/dist/
+website/.astro/

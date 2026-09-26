@@ -13,7 +13,7 @@ include { PLOT_HOMER_ANNOTATEPEAKS         } from '../../../modules/local/plot_h
 workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     take:
     ch_bam                            // channel: [ val(meta), [ ip_bam ], [ ipcontrol_bam ] ]
-    ch_fasta                          // channel: [ fasta  ]
+    ch_fasta_fai                      // channel: [ val(meta), path(fasta), path(fai) ]
     ch_gtf                            // channel: [ gtf ]
     ch_blacklist                      // channel: [ bed ]
     annotate_peaks_suffix             //  string: suffix for input HOMER annotate peaks files to be trimmed off
@@ -26,9 +26,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
 
     main:
 
-    ch_versions = channel.empty()
-
-    SAMTOOLS_SORT ( ch_bam, ch_fasta, '' )
+    SAMTOOLS_SORT ( ch_bam, ch_fasta_fai, '' )
 
     SAMTOOLS_SORT
         .out
@@ -78,7 +76,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         ch_ip_ipcontrol_bam_merged_reps,
         ch_blacklist.map { it -> it[1] }
     )
-    ch_versions = ch_versions.mix(GENRICH.out.versions.first())
 
     //
     // Filter out samples with 0 Genrich peaks called
@@ -107,7 +104,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     FRIP_SCORE(
         ch_bam_peak
     )
-    ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
     // Create channels: [ meta, peaks, frip ]
     ch_bam_peak
@@ -125,7 +121,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         ch_peak_count_header_multiqc,
         ch_frip_score_multiqc
     )
-    ch_versions = ch_versions.mix(MULTIQC_CUSTOM_PEAKS.out.versions.first())
 
     ch_homer_annotatepeaks = channel.empty()
     ch_plot_gr_qc_txt = channel.empty()
@@ -139,11 +134,10 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         //
         HOMER_ANNOTATEPEAKS(
             ch_gr_peaks,
-            ch_fasta.map { it -> it[1] },
+            ch_fasta_fai.map { it -> it[1] },
             ch_gtf.map { it -> it[1] }
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
         if (!skip_peak_qc) {
 
@@ -172,7 +166,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
             )
             ch_plot_gr_qc_txt = PLOT_GENRICH_QC.out.txt
             ch_plot_gr_qc_pdf = PLOT_GENRICH_QC.out.pdf
-            ch_versions = ch_versions.mix(PLOT_GENRICH_QC.out.versions)
 
             // Create channels: [ meta, [ anns ] ]
             // Where meta = [ id:exp_type, exp_type:exp_type ]
@@ -200,7 +193,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
             ch_plot_homer_annotatepeaks_txt = PLOT_HOMER_ANNOTATEPEAKS.out.txt
             ch_plot_homer_annotatepeaks_pdf = PLOT_HOMER_ANNOTATEPEAKS.out.pdf
             ch_plot_homer_annotatepeaks_tsv = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
-            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
         }
     }
 
@@ -219,5 +211,4 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     plot_homer_annotatepeaks_txt = ch_plot_homer_annotatepeaks_txt // channel: [ txt ]
     plot_homer_annotatepeaks_pdf = ch_plot_homer_annotatepeaks_pdf // channel: [ pdf ]
     plot_homer_annotatepeaks_tsv = ch_plot_homer_annotatepeaks_tsv // channel: [ tsv ]
-    versions                     = ch_versions // channel: [ versions.yml ]
 }

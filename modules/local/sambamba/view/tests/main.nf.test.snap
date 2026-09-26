@@ -1,0 +1,121 @@
+{
+    "sarscov2 - bam - view - no whitelist": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.bam:readsMD5,364abfd8679a69d9d6617473594ddf2d"
+                    ]
+                ]
+            ],
+            {
+                "versions_sambamba": [
+                    [
+                        "SAMBAMBA_VIEW",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:14:05.615084367",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - view - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    
+                ],
+                "2": [
+                    
+                ],
+                "3": [
+                    
+                ],
+                "4": [
+                    [
+                        "SAMBAMBA_VIEW",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "json": [
+                    
+                ],
+                "msgpack": [
+                    
+                ],
+                "sam": [
+                    
+                ],
+                "versions_sambamba": [
+                    [
+                        "SAMBAMBA_VIEW",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T11:50:19.87618898",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - view - bed whitelist": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.bam:readsMD5,b194021b699cc5cf4b2b1f715e0b7b4c"
+                    ]
+                ]
+            ],
+            {
+                "versions_sambamba": [
+                    [
+                        "SAMBAMBA_VIEW",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-09-24T10:14:17.036138427",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

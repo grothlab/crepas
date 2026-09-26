@@ -1,0 +1,95 @@
+{
+    "sarscov2 - gtf - sort": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "genome.sorted.gtf:md5,cbac6693458db5c8aece5106e4325449"
+                ]
+            ],
+            {
+                "versions_perl": [
+                    [
+                        "GFF3SORT",
+                        "perl",
+                        "5.32.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:53:00.545579891",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - gtf - sort - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "genome.sorted.gtf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "GFF3SORT",
+                        "perl",
+                        "5.32.1"
+                    ]
+                ],
+                "sorted": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "genome.sorted.gtf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_perl": [
+                    [
+                        "GFF3SORT",
+                        "perl",
+                        "5.32.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:53:17.276675144",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - gff3 - sort": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "genome.sorted.gff3:md5,357435a81a9981a0128e840ebe11051e"
+                ]
+            ],
+            {
+                "versions_perl": [
+                    [
+                        "GFF3SORT",
+                        "perl",
+                        "5.32.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T11:53:09.155115423",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

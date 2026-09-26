@@ -1,0 +1,72 @@
+{
+    "sarscov2 - bam - sort - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "SAMBAMBA_SORT",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ],
+                "bam": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_sambamba": [
+                    [
+                        "SAMBAMBA_SORT",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T11:49:45.809883821",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "sarscov2 - bam - sort": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.bam:md5,23e5290412afbc4f74abefc98d8c8b71"
+                ]
+            ],
+            {
+                "versions_sambamba": [
+                    [
+                        "SAMBAMBA_SORT",
+                        "sambamba",
+                        "1.0.1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-08T11:49:34.185192759",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

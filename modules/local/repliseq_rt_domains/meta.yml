@@ -1,0 +1,140 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "repliseq_rt_domains"
+description: Segment a Repli-seq log2(early/late) replication-timing track into domains of constant timing with circular binary segmentation, and call each domain early or late from its segment mean
+keywords:
+  - repli-seq
+  - replication timing
+  - segmentation
+  - circular binary segmentation
+  - bed
+tools:
+  - "DNAcopy":
+      description: |
+        Implements the circular binary segmentation (CBS) algorithm, which locates change points in
+        a genome-ordered signal and reports the segments between them with their mean value. Used
+        here to turn a per-bin replication-timing ratio into contiguous domains of constant timing.
+      homepage: https://bioconductor.org/packages/release/bioc/html/DNAcopy.html
+      documentation: https://bioconductor.org/packages/release/bioc/manuals/DNAcopy/man/DNAcopy.pdf
+      doi: "10.1371/journal.pbio.0060245"
+      licence: ["GPL-2.0-or-later"]
+      identifier: "biotools:dnacopy"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample (condition) information
+          e.g. [ id:'test' ]
+    - bedgraph:
+        type: file
+        description: |
+          Replication-timing log2(early/late) ratio track as a 4-column bedGraph. Bins with no
+          coverage in either fraction should already have been dropped, since their ratio is
+          exactly log2(1/1) = 0 and segmentation would otherwise call them as genuine
+          mid-replicating domains.
+        pattern: "*.bedGraph"
+        ontologies:
+          - edam: "http://edamontology.org/format_3583" # bedGraph
+output:
+  domains:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT_domains.bed":
+          type: file
+          description: |
+            Every domain, as BED6 plus two extra columns: name is the call (`early`, `late` or
+            `mid`), score is the absolute segment mean scaled to BED's 0..1000, and the trailing
+            columns hold the segment mean at full precision and the number of bins it spans
+          pattern: "*.RT_domains.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  early:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT_domains.early.bed":
+          type: file
+          description: Domains called early replicating, as BED4
+          pattern: "*.RT_domains.early.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  late:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT_domains.late.bed":
+          type: file
+          description: Domains called late replicating, as BED4
+          pattern: "*.RT_domains.late.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  mid:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT_domains.mid.bed":
+          type: file
+          description: |
+            Domains whose segment mean sits within the threshold of zero, i.e. replicating
+            throughout S phase. Only emitted under `--classification three_way`
+          pattern: "*.RT_domains.mid.bed"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  qc:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample (condition) information
+            e.g. [ id:'test' ]
+      - "*.RT_domains.qc.txt":
+          type: file
+          description: |
+            Segmentation settings, the number of segments, and the count, total base pairs and
+            base-pair fraction of the genome falling in each class
+          pattern: "*.RT_domains.qc.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_2330" # textual format
+  versions_r:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version | head -1 | sed 's/R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_dnacopy:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bioconductor-dnacopy":
+          type: string
+          description: The name of the tool
+      - 'Rscript -e ''cat(as.character(packageVersion("DNAcopy")))''':
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version | head -1 | sed 's/R version //; s/ .*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

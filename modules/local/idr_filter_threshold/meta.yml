@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "idr_filter_threshold"
+description: Filter an IDR (Irreproducible Discovery Rate) output file to peaks passing a given IDR threshold, keeping only the original peak columns
+keywords:
+  - awk
+  - idr
+  - peaks
+  - reproducibility
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to convert an IDR-threshold p-value into a -log10 scaled cutoff, keep only rows
+        of the IDR output file whose local IDR score (column 12) meets that cutoff, and trim
+        the row back down to the original 10 peak columns.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - peak_file:
+        type: file
+        description: IDR output file (`*.idrValues.txt` from the IDR module), whose column 12 holds the local IDR score
+        pattern: "*.txt"
+  - peak_type:
+      type: string
+      description: File extension/type of the filtered output; one of `narrowPeak`, `broadPeak` or `bed`
+      pattern: "narrowPeak|broadPeak|bed"
+  - idr_threshold:
+      type: float
+      description: IDR threshold (p-value); rows are kept when their local IDR score is >= -log10(idr_threshold). Defaults to 0.05 if not set.
+output:
+  peaks:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.${peak_type}":
+          type: file
+          description: Peaks from `peak_file` passing the IDR threshold, trimmed back to the original 10 peak columns
+          pattern: "*.{narrowPeak,broadPeak,bed}"
+          ontologies:
+            - edam: "http://edamontology.org/format_3003" # BED
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

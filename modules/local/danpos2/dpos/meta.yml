@@ -1,0 +1,173 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "danpos2_dpos"
+description: Call individual nucleosome/protein-binding positions (location, fuzziness and occupancy) from occupancy data with DANPOS2's `dpos` command
+keywords:
+  - danpos
+  - danpos2
+  - nucleosome
+  - occupancy
+  - positioning
+tools:
+  - "danpos":
+      description: |
+        DANPOS (Dynamic Analysis of Nucleosome and Protein Occupancy by Sequencing) is a
+        toolkit for identifying and comparing nucleosome/protein-binding positions, peaks and
+        regions from sequencing-derived occupancy data. The `dpos` command analyzes changes in
+        the location, fuzziness and occupancy of individual binding positions, and was
+        originally designed for nucleosome positioning but is applicable to similar binding
+        patterns.
+      homepage: https://sites.google.com/site/danposdoc/
+      documentation: https://sites.google.com/site/danposdoc/
+      tool_dev_url: https://sites.google.com/site/danposdoc/
+      doi: "10.1101/gr.142067.112"
+      licence: ["Unknown"]
+      identifier: "biotools:danpos"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - treatment:
+        type: file
+        description: One or more BAM (or wiggle) files for the treatment track
+        pattern: "*.{bam,wig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - treatment_input:
+        type: file
+        description: Optional background/input BAM (or wiggle) file(s) for the treatment track, subtracted via `--bg`
+        pattern: "*.{bam,wig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - treatment_count:
+        type: file
+        description: Optional read-count normalization file(s) for the treatment track, passed via `--count`
+        ontologies: []
+    - control:
+        type: file
+        description: Optional second-group BAM (or wiggle) file(s), compared against `treatment` for differential position calling
+        pattern: "*.{bam,wig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - control_input:
+        type: file
+        description: Optional background/input BAM (or wiggle) file(s) for the `control` track, subtracted via `--bg`
+        pattern: "*.{bam,wig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - control_count:
+        type: file
+        description: Optional read-count normalization file(s) for the `control` track, passed via `--count`
+        ontologies: []
+output:
+  pooled_treat_wig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/pooled/*.smooth.wig":
+          type: file
+          description: Pooled, smoothed treatment signal track
+          pattern: "*.smooth.wig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3005" # WIG
+  pooled_smooth_positions:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/pooled/*.smooth.positions.xls":
+          type: file
+          description: Tab-delimited table of called binding positions on the pooled, smoothed treatment track
+          pattern: "*.smooth.positions.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  pooled_input_wig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/pooled/*_input.wig":
+          type: file
+          description: Pooled background/input signal track; only produced when `treatment_input` or `control_input` is supplied
+          pattern: "*_input.wig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3005" # WIG
+  integrative_pos:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.positions.integrative.xls":
+          type: file
+          description: Tab-delimited table of positions from the differential (treatment vs. control) integrative analysis; only produced when `control` is supplied
+          pattern: "*.positions.integrative.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  reference_pos:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.reference_positions.xls":
+          type: file
+          description: Tab-delimited table of reference positions used for the differential analysis; only produced when `control` is supplied
+          pattern: "*.reference_positions.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  pos_ref_adjust:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.positions.ref_adjust.xls":
+          type: file
+          description: Tab-delimited table of positions adjusted to the reference set; only produced when `control` is supplied
+          pattern: "*.positions.ref_adjust.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  diff_wig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/diff/*.wig":
+          type: file
+          description: Differential (treatment vs. control) signal track; only produced when `control` is supplied
+          pattern: "*.wig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3005" # WIG
+  versions_danpos:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "danpos":
+          type: string
+          description: The name of the tool
+      - "danpos.py dpos -h 2>&1 | grep -oP 'danpos\\s+\\K[\\d.]+' | head -1":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "danpos":
+          type: string
+          description: The name of the tool
+      - "danpos.py dpos -h 2>&1 | grep -oP 'danpos\\s+\\K[\\d.]+' | head -1":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

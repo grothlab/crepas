@@ -1,5 +1,4 @@
 Changes in component 'nf-core/macs3/callpeak'
-'modules/nf-core/macs3/callpeak/meta.yml' is unchanged
 Changes in 'macs3/callpeak/main.nf':
 --- modules/nf-core/macs3/callpeak/main.nf
 +++ modules/nf-core/macs3/callpeak/main.nf
@@ -14,9 +13,10 @@ Changes in 'macs3/callpeak/main.nf':
      when:
      task.ext.when == null || task.ext.when
 
+'modules/nf-core/macs3/callpeak/meta.yml' is unchanged
 'modules/nf-core/macs3/callpeak/environment.yml' is unchanged
-'modules/nf-core/macs3/callpeak/tests/bed.config' is unchanged
 'modules/nf-core/macs3/callpeak/tests/bam.config' is unchanged
-'modules/nf-core/macs3/callpeak/tests/main.nf.test' is unchanged
 'modules/nf-core/macs3/callpeak/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/macs3/callpeak/tests/main.nf.test' is unchanged
+'modules/nf-core/macs3/callpeak/tests/bed.config' is unchanged
 ************************************************************

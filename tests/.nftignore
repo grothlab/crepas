@@ -1,0 +1,28 @@
+.DS_Store
+# Files listed here are excluded from the content (md5) snapshot of the pipeline-level test,
+# because their content changes between identical runs; their paths are still checked.
+
+# Run metadata, reports and channel dumps with timestamps or absolute work paths
+pipeline_info/**
+.debug/**
+multiqc/**
+igv/**
+**/R_sessionInfo.log
+
+# Formats that embed timestamps, random identifiers or compression headers
+**/*.{pdf,png,svg,html,zip,RData,Rdata,rds,npz}
+**/*.mat.gz
+genome/*.gz
+
+# Tool outputs whose headers record dates, command lines or input paths
+**/picard_markduplicates/*.metrics.txt
+**/picard_metrics/*
+**/*.featureCounts.tsv
+**/*.featureCounts.tsv.summary
+**/*.annotatePeaks.txt
+
+# Values from random sampling or floating-point differences between runs
+**/plotFingerprint/*.raw.txt
+**/coverage/**/summary/*.tsv
+**/*.plotHeatmap.mat.tab
+**/deseq2/*.{txt,tsv}

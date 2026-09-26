@@ -1,0 +1,291 @@
+{
+    "saccharomyces_cerevisiae - bam - atac-seq nucleosome calling - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_ARERs.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_NFR.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_nucleosomes.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    
+                ],
+                "4": [
+                    
+                ],
+                "5": [
+                    
+                ],
+                "6": [
+                    
+                ],
+                "7": [
+                    [
+                        "DENOPA",
+                        "denopa",
+                        "1.0.3"
+                    ]
+                ],
+                "arers": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_ARERs.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "candidates": [
+                    
+                ],
+                "frag_len": [
+                    
+                ],
+                "nfrs": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_NFR.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "nucleosomes": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_nucleosomes.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pileup": [
+                    
+                ],
+                "smooth": [
+                    
+                ],
+                "versions_denopa": [
+                    [
+                        "DENOPA",
+                        "denopa",
+                        "1.0.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T10:36:03.90730615",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - atac-seq": {
+        "content": [
+            [
+                
+            ],
+            [
+                
+            ],
+            [
+                
+            ],
+            {
+                "versions_denopa": [
+                    
+                ]
+            }
+        ],
+        "timestamp": "2026-07-13T16:10:20.355286623",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - bam - atac-seq - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_ARERs.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_NFR.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_nucleosomes.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    
+                ],
+                "4": [
+                    
+                ],
+                "5": [
+                    
+                ],
+                "6": [
+                    
+                ],
+                "7": [
+                    [
+                        "DENOPA",
+                        "denopa",
+                        "1.0.3"
+                    ]
+                ],
+                "arers": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_ARERs.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "candidates": [
+                    
+                ],
+                "frag_len": [
+                    
+                ],
+                "nfrs": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_NFR.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "nucleosomes": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false,
+                            "exp_type": "ATAC-seq"
+                        },
+                        "test.mLb.mkD.flT1.shifted.flT3_nucleosomes.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pileup": [
+                    
+                ],
+                "smooth": [
+                    
+                ],
+                "versions_denopa": [
+                    [
+                        "DENOPA",
+                        "denopa",
+                        "1.0.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-13T16:29:37.915008185",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "saccharomyces_cerevisiae - bam - atac-seq nucleosome calling": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false,
+                        "exp_type": "ATAC-seq"
+                    },
+                    "test.mLb.mkD.flT1.shifted.flT3_ARERs.txt:md5,416cb9d6c479dea71205439ab36e1ed4"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false,
+                        "exp_type": "ATAC-seq"
+                    },
+                    "test.mLb.mkD.flT1.shifted.flT3_NFR.txt:md5,e745155eae050ae57686531190cec70d"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false,
+                        "exp_type": "ATAC-seq"
+                    },
+                    "test.mLb.mkD.flT1.shifted.flT3_nucleosomes.txt:md5,5b2b6677a03ebcede5c31fce61b2600b"
+                ]
+            ],
+            {
+                "versions_denopa": [
+                    [
+                        "DENOPA",
+                        "denopa",
+                        "1.0.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-15T10:35:47.624191877",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

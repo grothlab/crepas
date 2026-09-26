@@ -1,0 +1,125 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_qc_annotate_genrich_homer"
+description: |
+  Name-sort BAM files, call peaks with Genrich, compute FRiP scores, and (optionally) annotate
+  peaks with HOMER and generate peak-annotation and Genrich QC plots
+keywords:
+  - genrich
+  - peak-calling
+  - frip
+  - homer
+  - annotation
+components:
+  - samtools/sort
+  - genrich
+  - homer/annotatepeaks
+  - frip_score
+  - multiqc_custom_peaks
+  - plot_macs3_qc
+  - plot_homer_annotatepeaks
+input:
+  - ch_bam:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s)
+        Structure: [ val(meta), [ path(ip_bam) ], [ path(control_bam) ] ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - ch_gtf:
+      type: file
+      description: |
+        Reference GTF annotation file
+        Structure: [ val(meta), path(gtf) ]
+  - ch_blacklist:
+      type: file
+      description: |
+        Blacklist regions to exclude
+        Structure: [ val(meta), path(blacklist) ]
+  - annotate_peaks_suffix:
+      type: string
+      description: Suffix trimmed off input HOMER annotatePeaks filenames when grouping for QC plots
+  - ch_peak_count_header_multiqc:
+      type: file
+      description: MultiQC custom-content header for the peak count table
+  - ch_frip_score_multiqc:
+      type: file
+      description: MultiQC custom-content header for the FRiP score table
+  - ch_peak_annotation_header_multiqc:
+      type: file
+      description: MultiQC custom-content header for the peak annotation plot
+  - is_narrow_peak:
+      type: boolean
+      description: Whether peaks are narrow (true) or broad (false), passed to the QC plot script
+      pattern: "true|false"
+  - skip_peak_annotation:
+      type: boolean
+      description: Skip HOMER peak annotation (and downstream peak-annotation QC)
+      pattern: "true|false"
+  - skip_peak_qc:
+      type: boolean
+      description: Skip Genrich and peak-annotation QC plots (only used when skip_peak_annotation is false)
+      pattern: "true|false"
+output:
+  - peaks:
+      description: |
+        Genrich peaks, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(peaks) ]
+  - bed_intervals:
+      description: |
+        Genrich BED intervals output
+        Structure: [ val(meta), path(bed) ]
+  - bedgraph_pileup:
+      description: |
+        Genrich pileup bedGraph
+        Structure: [ val(meta), path(bedgraph) ]
+  - bedgraph_pvalues:
+      description: |
+        Genrich p-value bedGraph
+        Structure: [ val(meta), path(bedgraph) ]
+  - duplicates:
+      description: |
+        Genrich duplicate reads BED file
+        Structure: [ val(meta), path(bed) ]
+  - frip_txt:
+      description: |
+        FRiP score text file
+        Structure: [ val(meta), path(txt) ]
+  - frip_multiqc:
+      description: |
+        FRiP score MultiQC custom-content file
+        Structure: [ val(meta), path(tsv) ]
+  - peak_count_multiqc:
+      description: |
+        Peak count MultiQC custom-content file
+        Structure: [ val(meta), path(tsv) ]
+  - homer_annotatepeaks:
+      description: |
+        HOMER peak annotation output, when skip_peak_annotation is false
+        Structure: [ val(meta), path(txt) ]
+  - plot_gr_qc_txt:
+      description: |
+        Genrich QC plot data, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(txt) ]
+  - plot_gr_qc_pdf:
+      description: |
+        Genrich QC plot, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(pdf) ]
+  - plot_homer_annotatepeaks_txt:
+      description: |
+        Peak annotation QC plot data, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(txt) ]
+  - plot_homer_annotatepeaks_pdf:
+      description: |
+        Peak annotation QC plot, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(pdf) ]
+  - plot_homer_annotatepeaks_tsv:
+      description: |
+        Peak annotation QC plot MultiQC custom-content file, when skip_peak_annotation and
+        skip_peak_qc are false
+        Structure: [ val(meta), path(tsv) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

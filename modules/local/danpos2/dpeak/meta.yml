@@ -1,0 +1,186 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "danpos2_dpeak"
+description: Call enriched peaks (width, height and total signal) from ChIP-seq/ATAC-seq-style occupancy data with DANPOS2's `dpeak` command
+keywords:
+  - danpos
+  - danpos2
+  - nucleosome
+  - peak-calling
+  - chip-seq
+  - occupancy
+tools:
+  - "danpos":
+      description: |
+        DANPOS (Dynamic Analysis of Nucleosome and Protein Occupancy by Sequencing) is a
+        toolkit for identifying and comparing nucleosome/protein-binding positions, peaks and
+        regions from sequencing-derived occupancy data. The `dpeak` command analyzes changes
+        in the width, height and total signal of enriched peaks (which may contain multiple
+        individual binding positions), and is aimed at transcription-factor and histone-mark
+        ChIP-seq/ATAC-seq peaks.
+      homepage: https://sites.google.com/site/danposdoc/
+      documentation: https://sites.google.com/site/danposdoc/
+      tool_dev_url: https://sites.google.com/site/danposdoc/
+      doi: "10.1101/gr.142067.112"
+      licence: ["Unknown"]
+      identifier: "biotools:danpos"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - treatment:
+        type: file
+        description: One or more BAM (or wiggle) files for the treatment/IP track
+        pattern: "*.{bam,wig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - treatment_input:
+        type: file
+        description: Optional background/input BAM (or wiggle) file(s) for the treatment track, subtracted via `--bg`
+        pattern: "*.{bam,wig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - treatment_count:
+        type: file
+        description: Optional read-count normalization file(s) for the treatment track, passed via `--count`
+        ontologies: []
+    - control:
+        type: file
+        description: Optional second-group BAM (or wiggle) file(s), compared against `treatment` for differential peak calling
+        pattern: "*.{bam,wig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - control_input:
+        type: file
+        description: Optional background/input BAM (or wiggle) file(s) for the `control` track, subtracted via `--bg`
+        pattern: "*.{bam,wig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_2572" # BAM
+    - control_count:
+        type: file
+        description: Optional read-count normalization file(s) for the `control` track, passed via `--count`
+        ontologies: []
+output:
+  pooled_xls:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/pooled/*.peaks.xls":
+          type: file
+          description: Tab-delimited table of pooled peaks called on the treatment track
+          pattern: "*.peaks.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  integrative_peaks:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.peaks.integrative.xls":
+          type: file
+          description: Tab-delimited table of peaks from the differential (treatment vs. control) integrative analysis; only produced when `control` is supplied
+          pattern: "*.peaks.integrative.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  pooled_input_wig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/pooled/*input.wig":
+          type: file
+          description: Pooled background/input signal track; only produced when `treatment_input` or `control_input` is supplied
+          pattern: "*input.wig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3005" # WIG
+  pooled_treat_wig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/pooled/*smooth.wig":
+          type: file
+          description: Pooled, smoothed treatment signal track
+          pattern: "*smooth.wig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3005" # WIG
+  pooled_bed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/pooled/*refregions.xls":
+          type: file
+          description: Tab-delimited table of reference regions used for the differential analysis; only produced when `control` is supplied
+          pattern: "*refregions.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  diff_wig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/diff/*.wig":
+          type: file
+          description: Differential (treatment vs. control) signal track; only produced when `control` is supplied
+          pattern: "*.wig"
+          ontologies:
+            - edam: "http://edamontology.org/format_3005" # WIG
+  local_gain:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/diff/*local_gain.refpeaks.xls":
+          type: file
+          description: Tab-delimited table of peaks with a significant local signal gain in the differential analysis; only produced when `control` is supplied
+          pattern: "*local_gain.refpeaks.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  local_loss:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "result/diff/*local_loss.refpeaks.xls":
+          type: file
+          description: Tab-delimited table of peaks with a significant local signal loss in the differential analysis; only produced when `control` is supplied
+          pattern: "*local_loss.refpeaks.xls"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_danpos:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "danpos":
+          type: string
+          description: The name of the tool
+      - "danpos.py dpeak -h 2>&1 | grep -oP 'danpos\\s+\\K[\\d.]+' | head -1":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "danpos":
+          type: string
+          description: The name of the tool
+      - "danpos.py dpeak -h 2>&1 | grep -oP 'danpos\\s+\\K[\\d.]+' | head -1":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

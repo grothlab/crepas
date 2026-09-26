@@ -3,9 +3,9 @@ process MACE_MACE {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
         ? 'https://depot.galaxyproject.org/singularity/mace:1.2--py27he7e273a_2'
-        : 'biocontainers/mace:1.2_cv1'}"
+        : 'biocontainers/mace:1.2--py27he7e273a_2'}"
 
     input:
     tuple val(meta), path(forward_bw), path(reverse_bw)
@@ -17,7 +17,7 @@ process MACE_MACE {
     tuple val(meta), path("*.border_pair_elite.bed"), emit: border_pair_elite
     tuple val(meta), path("*.border_pair.bed"), emit: border_pair
     tuple val(meta), path("*.border_pair.peak"), emit: border_pair_peak
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('mace'), eval("mace.py --version 2>&1 | sed 's/^mace\\.py //'"), topic: versions, emit: versions_mace
 
     when:
     task.ext.when == null || task.ext.when
@@ -39,12 +39,7 @@ process MACE_MACE {
         -F'\t' \\
         '{ printf "%s\\t%s\\t%s\\tpeak_%d\\t%s\\t%s\\t%s\\n", \$1, \$2, \$3, NR, \$5, ".", \$4 }' \\
         ${prefix}.border_pair.bed \\
-        > ${prefix}.border_pair.peak   
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        mace: \$(mace.py --version | sed -e "s/mace //g")
-    END_VERSIONS
+        > ${prefix}.border_pair.peak
     """
 
     stub:
@@ -54,10 +49,6 @@ process MACE_MACE {
     touch ${prefix}.border_cluster.bed
     touch ${prefix}.border_pair_elite.bed
     touch ${prefix}.border_pair.bed
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        mace: \$(mace.py --version | sed -e "s/mace //g")
-    END_VERSIONS
+    touch ${prefix}.border_pair.peak
     """
 }
