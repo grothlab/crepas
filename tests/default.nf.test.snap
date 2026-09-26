@@ -1220,7 +1220,6 @@
                 "ChIP-seq_SPT5.mLb.mkD.flT1.flT3.consensus_peaks.boolean.intersect.txt:md5,12e693b88b468dc7c1c77e017800aa67",
                 "ChIP-seq_SPT5.mLb.mkD.flT1.flT3.consensus_peaks.boolean.txt:md5,cf5397b40b7e4f5fc438785fd4dee90e",
                 "ChIP-seq_SPT5.mLb.mkD.flT1.flT3.consensus_peaks.saf:md5,2784c9312666ac14c05cde4f746d1b48",
-                "R_sessionInfo.log:md5,d9fa3455298decbef4ac5028c6820603",
                 "ChIP-seq_SPT5_T0_bRep_1.mLb.mkD.flT1.flT3.sorted.bam.txt:md5,e541f7ee374ce208a9ef3cd357b92788",
                 "ChIP-seq_SPT5_T0_bRep_2.mLb.mkD.flT1.flT3.sorted.bam.txt:md5,cd8e6a2a9aaf23dc3bd1eecd69c363f9",
                 "ChIP-seq_SPT5_T15_bRep_1.mLb.mkD.flT1.flT3.sorted.bam.txt:md5,17b4816a8a1371350819a82b26b27361",
