@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Development version of grothlab/crepas.
 
+### `Fixed`
+
+- Institutional profiles from `--custom_config_base` (e.g. `grothlab/configs`) not being found with Nextflow 25.10, because lineage tracking was enabled; lineage is now disabled by default (enable it with `lineage.enabled = true` in a custom config).
+- `Unrecognized config option` warnings for `prov.formats.wrroc.agent` and `prov.formats.wrroc.organization` with Nextflow 26.04; the pipeline no longer sets a fixed agent and organization in the run RO-Crate.
+
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
 
 ### `Added`
