@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Development version of grothlab/crepas.
 
+### `Fixed`
+
+- `PICARD_ADDORREPLACEREADGROUPS` failing with `CIGAR_MAPS_OFF_REFERENCE` after chromap, which can report primary and secondary alignments that run past the end of a contig; it now runs with `--VALIDATION_STRINGENCY LENIENT`, like the other Picard steps.
+
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
 
 ### `Added`
