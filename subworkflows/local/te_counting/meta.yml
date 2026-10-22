@@ -3,16 +3,19 @@ name: "te_counting"
 description: |
   Count reads overlapping transposable elements (TEs) at both the subfamily level (TEcount) and
   the instance/locus level (TElocal), optionally name-sorting the BAM first and splitting
-  strand-specific (SCAR-seq/OK-seq) samples into forward/reverse counting passes
+  strand-specific (SCAR-seq/OK-seq) samples into forward/reverse counting passes, then
+  normalising the count tables with DESeq2 for a PCA and a sample distance heatmap
 keywords:
   - transposable-elements
   - te
   - tecount
   - telocal
+  - deseq2
 components:
   - samtools/sort
   - tecount
   - telocal
+  - te_counts_qc
 input:
   - ch_bam:
       description: |
@@ -55,6 +58,23 @@ input:
       type: boolean
       description: Skip gzip-compressing the TElocal output
       pattern: "true|false"
+  - ch_te_counts_pca_header:
+      type: file
+      description: |
+        MultiQC custom-content header for the TE counts PCA tables
+        Structure: [ path(header) ]
+  - ch_te_counts_clustering_header:
+      type: file
+      description: |
+        MultiQC custom-content header for the TE counts sample-distance tables
+        Structure: [ path(header) ]
+  - skip_te_counting_qc:
+      type: boolean
+      description: |
+        Skip the DESeq2-normalised PCA and sample distance heatmap of the count tables. When run,
+        samples are grouped by experiment type, filtering stage (meta.te_counting_stage),
+        downsampling method and strand, and groups with a single sample are skipped
+      pattern: "true|false"
 output:
   - tecount_counts:
       description: |
@@ -64,6 +84,10 @@ output:
       description: |
         Instance/locus-level TE counts table, when skip_telocal is false
         Structure: [ val(meta), path(tsv) ]
+  - multiqc_files:
+      description: |
+        MultiQC custom-content tables of the TE counts PCA and sample distances
+        Structure: [ path(tsv) ]
 authors:
   - "@samuelruizperez"
 maintainers:

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Development version of grothlab/crepas.
 
+### `Added`
+
+- QC of the TEcount and TElocal count tables (`TE_COUNTS_QC`): the per-sample tables are merged, normalised with DESeq2 size factors and variance-stabilised, and plotted as a PCA and a sample distance heatmap (genes and TEs), also added to the MultiQC report. The merged raw count matrix, an unfiltered DESeqDataSet and the variance-stabilised object are saved for downstream analysis. Samples are compared per experiment type, filtering stage, downsampling method and strand. Disable with `skip_te_counting_qc`.
+
 ### `Fixed`
 
 - `PICARD_ADDORREPLACEREADGROUPS` failing with `CIGAR_MAPS_OFF_REFERENCE` after chromap, which can report primary and secondary alignments that run past the end of a contig; it now runs with `--VALIDATION_STRINGENCY LENIENT`, like the other Picard steps.

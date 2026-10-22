@@ -1,0 +1,11 @@
+#id: 'te_counts_clustering'
+#section_name: 'TE COUNTING: TE counts sample similarity'
+#description: "Euclidean distances between samples on variance-stabilised TEcount/TElocal counts, normalised with
+#              <a href='https://bioconductor.org/packages/release/bioc/html/DESeq2.html' target='_blank'>DESeq2</a>
+#              in the <a href='https://github.com/grothlab/crepas/blob/master/bin/te_counts_qc.r'><code>te_counts_qc.r</code></a> script."
+#plot_type: 'heatmap'
+#anchor: 'te_counts_clustering'
+#pconfig:
+#    title: 'TE counts: Heatmap of the sample-to-sample distances'
+#    xlab: True
+#    reverseColors: True
