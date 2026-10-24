@@ -1,0 +1,337 @@
+{
+    "homo_sapiens - chr21 - 4 TEcount tables - genes and TEs": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.counts.tsv.gz:md5,c5271b0b33ade01e687f98b281f43bd8"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.normalized_counts.tsv.gz:md5,fe98384582d4ac3f2a7ad59fbf79e29a"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.size_factors.tsv:md5,691f3d6ebec1e377e0669779be3601a5"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.pca.vals.txt:md5,f9fe8eabb6e15d00f230ef1a7ccfdb5f"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.pca.vals_mqc.tsv:md5,dce2eea8eb4a7539215099dd06560120"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.sample.dists.txt:md5,9d674cecd76f30c16137784e3cbbc7da"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.sample.dists_mqc.tsv:md5,98b1a50361032fb0c7d3e5dd18a31113"
+                ]
+            ],
+            "test.plots.pdf",
+            "test.dds.rds",
+            "test.vst.rds",
+            "test.R_sessionInfo.log",
+            {
+                "versions_deseq2": [
+                    [
+                        "TE_COUNTS_QC",
+                        "bioconductor-deseq2",
+                        "1.46.0"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "TE_COUNTS_QC",
+                        "r-base",
+                        "4.4.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-10-24T16:38:04.204358034",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - chr21 - 4 TEcount tables - genes - rlog": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.size_factors.tsv:md5,691f3d6ebec1e377e0669779be3601a5"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.pca.vals.txt:md5,791893136652100ea2bf298b29fe6134"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.sample.dists.txt:md5,03e12c8cfcd8d7933818809e67c0c56e"
+                ]
+            ],
+            "test.plots.pdf",
+            "test.rlog.rds"
+        ],
+        "timestamp": "2026-10-24T16:38:33.639698144",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - chr21 - 4 TEcount tables - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.plots.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.counts.tsv.gz:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "10": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.R_sessionInfo.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "11": [
+                    [
+                        "TE_COUNTS_QC",
+                        "r-base",
+                        "4.4.2"
+                    ]
+                ],
+                "12": [
+                    [
+                        "TE_COUNTS_QC",
+                        "bioconductor-deseq2",
+                        "1.46.0"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.normalized_counts.tsv.gz:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.size_factors.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.pca.vals.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.pca.vals_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.sample.dists.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "7": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.sample.dists_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "8": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.dds.rds:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "9": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.vst.rds:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "counts": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.counts.tsv.gz:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "dds": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.dds.rds:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "dists_multiqc": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.sample.dists_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "dists_txt": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.sample.dists.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "log": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.R_sessionInfo.log:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "normalized_counts": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.normalized_counts.tsv.gz:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pca_multiqc": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.pca.vals_mqc.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pca_txt": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.pca.vals.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "pdf": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.plots.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "size_factors": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.size_factors.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "transformed": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.vst.rds:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_deseq2": [
+                    [
+                        "TE_COUNTS_QC",
+                        "bioconductor-deseq2",
+                        "1.46.0"
+                    ]
+                ],
+                "versions_rbase": [
+                    [
+                        "TE_COUNTS_QC",
+                        "r-base",
+                        "4.4.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-10-24T16:38:57.925313381",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

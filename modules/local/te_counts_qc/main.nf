@@ -54,8 +54,7 @@ process TE_COUNTS_QC {
     def transform = args.contains('--rlog') ? 'rlog' : 'vst'
     """
     touch ${prefix}.plots.pdf
-    echo -n | gzip > ${prefix}.counts.tsv.gz
-    echo -n | gzip > ${prefix}.normalized_counts.tsv.gz
+    python3 -c "import gzip; [gzip.open(f, 'wb').close() for f in ('${prefix}.counts.tsv.gz', '${prefix}.normalized_counts.tsv.gz')]"
     touch ${prefix}.size_factors.tsv
     touch ${prefix}.pca.vals.txt
     touch ${prefix}.pca.vals_mqc.tsv
