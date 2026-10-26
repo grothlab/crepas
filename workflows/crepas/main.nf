@@ -140,6 +140,8 @@ workflow CREPAS {
     ch_repliseq_gene_class_header = channel.value(file("${projectDir}/assets/multiqc/repliseq_gene_class_header.txt", checkIfExists: true))
     ch_hr_repliseq_features_header = channel.value(file("${projectDir}/assets/multiqc/hr_repliseq_features_header.txt", checkIfExists: true))
     ch_deseq2_clustering_header = channel.value(file("${projectDir}/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true))
+    ch_te_counts_pca_header = channel.value(file("${projectDir}/assets/multiqc/te_counts_pca_header.txt", checkIfExists: true))
+    ch_te_counts_clustering_header = channel.value(file("${projectDir}/assets/multiqc/te_counts_clustering_header.txt", checkIfExists: true))
 
     //
     // Create channel from input file provided through params.input
@@ -801,8 +803,11 @@ workflow CREPAS {
     if (!params.skip_te_counting) {
 
         TE_COUNTING (
-            // Here we run TE counting on both pre- and post flTbl and flT3 BAM files
-            ch_filtered_bam.mix(ch_pre_flTbl_endo_bam).mix(ch_pre_flT3_endo_bam),
+            // Here we run TE counting on both pre- and post flTbl and flT3 BAM files,
+            // tagged by stage so that the QC only compares samples from the same stage
+            ch_filtered_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'final' ], bam ] }
+                .mix(ch_pre_flTbl_endo_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'pre_flTbl' ], bam ] })
+                .mix(ch_pre_flT3_endo_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'pre_flT3' ], bam ] }),
             ch_fasta_fai,
             false,
             ch_tecount_gene_index,
@@ -811,8 +816,12 @@ workflow CREPAS {
             ch_telocal_te_index,
             params.skip_telocal,
             params.skip_tecount_gz,
-            params.skip_telocal_gz
+            params.skip_telocal_gz,
+            ch_te_counts_pca_header,
+            ch_te_counts_clustering_header,
+            params.skip_te_counting_qc
         )
+        ch_multiqc_files = ch_multiqc_files.mix(TE_COUNTING.out.multiqc_files)
     }
 
     BAM_NORMALIZE_BIGWIG_DEEPTOOLS

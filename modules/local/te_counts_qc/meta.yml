@@ -1,0 +1,224 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "te_counts_qc"
+description: Merge per-sample TEcount/TElocal count tables, normalise them with DESeq2, and plot a PCA and a sample-to-sample distance heatmap
+keywords:
+  - deseq2
+  - transposable-elements
+  - qc
+  - pca
+  - normalisation
+tools:
+  - deseq2:
+      description: |
+        R/Bioconductor package for differential gene expression analysis based on the negative
+        binomial distribution. Used here (via the bundled `bin/te_counts_qc.r` script) for its
+        median-of-ratios size factors and variance stabilising transformation, which feed a PCA
+        and a sample-to-sample distance heatmap of the TE counts.
+      homepage: https://bioconductor.org/packages/release/bioc/html/DESeq2.html
+      documentation: https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
+      tool_dev_url: https://github.com/thelovelab/DESeq2
+      doi: "10.1186/s13059-014-0550-8"
+      licence: ["LGPL-3.0-only"]
+      identifier: "biotools:deseq2"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing the group information
+          e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+    - counts:
+        type: file
+        description: |
+          Two or more per-sample TEcount or TElocal count tables (a header line, then one feature
+          ID and one count per line). TE IDs contain ':', gene IDs do not. Sample names are the
+          file names without `.cntTable(.gz)` and without the dot-separated suffix they all share.
+        pattern: "*.{cntTable,cntTable.gz}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+  - pca_header:
+      type: file
+      description: MultiQC custom-content header file prepended to the PCA values table
+      pattern: "*.txt"
+  - clustering_header:
+      type: file
+      description: MultiQC custom-content header file prepended to the sample-distance table
+      pattern: "*.txt"
+output:
+  pdf:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.plots.pdf":
+          type: file
+          description: PDF with PCA plots (most variable and all selected features) and the sample-distance heatmap
+          pattern: "*.plots.pdf"
+          ontologies:
+            - edam: "http://edamontology.org/format_3508" # PDF
+  counts:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.counts.tsv.gz":
+          type: file
+          description: |
+            Unfiltered raw count matrix of all features (genes and TEs) by sample, ready for
+            DESeq2::DESeqDataSetFromMatrix()
+          pattern: "*.counts.tsv.gz"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  normalized_counts:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.normalized_counts.tsv.gz":
+          type: file
+          description: DESeq2 size-factor-normalised counts of all features that passed the minimum count filter
+          pattern: "*.normalized_counts.tsv.gz"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  size_factors:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.size_factors.tsv":
+          type: file
+          description: DESeq2 size factor of each sample
+          pattern: "*.size_factors.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  pca_txt:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.pca.vals.txt":
+          type: file
+          description: PC1 and PC2 coordinates of each sample, computed on all selected features
+          pattern: "*.pca.vals.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  pca_multiqc:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.pca.vals_mqc.tsv":
+          type: file
+          description: PCA coordinates table prefixed with a MultiQC custom-content header
+          pattern: "*.pca.vals_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  dists_txt:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.sample.dists.txt":
+          type: file
+          description: Sample-to-sample Euclidean distance matrix on the transformed counts
+          pattern: "*.sample.dists.txt"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  dists_multiqc:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.sample.dists_mqc.tsv":
+          type: file
+          description: Sample-distance matrix prefixed with a MultiQC custom-content header
+          pattern: "*.sample.dists_mqc.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  dds:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.dds.rds":
+          type: file
+          description: |
+            RDS file with the unfiltered DESeqDataSet (raw counts of all features and
+            samples, design ~ 1, no size factors), the same data as the counts table
+          pattern: "*.dds.rds"
+  transformed:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.{vst,rlog}.rds":
+          type: file
+          description: |
+            RDS file with the DESeqTransform (vst, or rlog with --rlog) of the selected features
+            that passed the minimum count filter, normalised with size factors from all of them;
+            the values used for the PCA and the sample distances
+          pattern: "*.{vst,rlog}.rds"
+  log:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing the group information
+            e.g. [ id:'CUTandRUN', exp_type:'CUTandRUN', te_counting_stage:'final' ]
+      - "*.R_sessionInfo.log":
+          type: file
+          description: R sessionInfo() output
+          pattern: "*.R_sessionInfo.log"
+  versions_rbase:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+  versions_deseq2:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bioconductor-deseq2":
+          type: string
+          description: The name of the tool
+      - 'Rscript -e ''library(DESeq2); cat(as.character(packageVersion("DESeq2")))''':
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "r-base":
+          type: string
+          description: The name of the tool
+      - "R --version 2>&1 | head -1 | sed 's/^.*R version //; s/ .*$//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "bioconductor-deseq2":
+          type: string
+          description: The name of the tool
+      - 'Rscript -e ''library(DESeq2); cat(as.character(packageVersion("DESeq2")))''':
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

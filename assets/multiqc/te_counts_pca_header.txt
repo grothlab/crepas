@@ -1,0 +1,11 @@
+#id: 'te_counts_pca'
+#section_name: 'TE COUNTING: TE counts PCA'
+#description: "PCA of the samples on variance-stabilised TEcount/TElocal counts, normalised with
+#              <a href='https://bioconductor.org/packages/release/bioc/html/DESeq2.html'>DESeq2</a>
+#              in the <a href='https://github.com/grothlab/crepas/blob/master/bin/te_counts_qc.r'><code>te_counts_qc.r</code></a> script."
+#plot_type: 'scatter'
+#anchor: 'te_counts_pca'
+#pconfig:
+#    title: 'TE counts: Principal component plot'
+#    xlab: PC1
+#    ylab: PC2

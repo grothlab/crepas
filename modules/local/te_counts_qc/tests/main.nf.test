@@ -1,0 +1,161 @@
+nextflow_process {
+
+    name "Test Process TE_COUNTS_QC"
+    script "../main.nf"
+    process "TE_COUNTS_QC"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "te_counts_qc"
+    tag "tecount"
+    tag "bam_remove_orphans"
+
+    // Real TEcount tables: chr21 WGS reads of two individuals, each at full and 1X depth (so the
+    // size factors have something to correct), counted against the chr21 GENCODE genes and
+    // RepeatMasker TEs. Sample IDs follow the pipeline's '<group>_bRep_<n>' convention.
+    // These reads (chr21:16-17Mb) miss the only TE-dense part of the test TE GTF (chr21:5-11Mb), so
+    // all TE counts are 0 and the tests effectively run on genes; no test data covers TEs better.
+    setup {
+
+        // TEcount aborts on proper pairs without their mate, which these chr21/chr22 BAMs have;
+        // remove the orphans (the output is name-sorted, as TEcount expects without --sortByPos)
+        run("BAM_REMOVE_ORPHANS") {
+            script "../../bam_remove_orphans/main.nf"
+            process {
+                """
+                input[0] = channel.of(
+                    [ [ id:'NA12878_bRep_1', single_end:false ], file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/NA12878.chr21_22.bam', checkIfExists: true) ],
+                    [ [ id:'NA12878_bRep_2', single_end:false ], file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/NA12878.chr21_22.1X.bam', checkIfExists: true) ],
+                    [ [ id:'NA19401_bRep_1', single_end:false ], file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/NA19401.chr21_22.bam', checkIfExists: true) ],
+                    [ [ id:'NA19401_bRep_2', single_end:false ], file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/NA19401.chr21_22.1X.bam', checkIfExists: true) ]
+                )
+                input[1] = false // skip_name_sort
+                """
+            }
+        }
+
+        run("TECOUNT") {
+            script "../../tecount/main.nf"
+            process {
+                """
+                input[0] = BAM_REMOVE_ORPHANS.out.bam
+                input[1] = [
+                    [ id:'genes' ],
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr21/sequence/chr21_gencode.gtf', checkIfExists: true)
+                ]
+                input[2] = [
+                    [ id:'te' ],
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr21/sequence/GRCh38_GENCODE_rmsk_TE_chr21.gtf', checkIfExists: true)
+                ]
+                input[3] = false // skip_gz
+                """
+            }
+        }
+
+    }
+
+    test("homo_sapiens - chr21 - 4 TEcount tables - genes and TEs") {
+
+        when {
+            params {
+                te_counts_qc_args = "--group_regex '_bRep_.*\$'"
+            }
+            process {
+                """
+                input[0] = TECOUNT.out.counts
+                    .map { meta, counts -> counts }
+                    .collect()
+                    .map { counts -> [ [ id:'test' ], counts ] }
+                input[1] = file("${projectDir}/assets/multiqc/te_counts_pca_header.txt", checkIfExists: true)
+                input[2] = file("${projectDir}/assets/multiqc/te_counts_clustering_header.txt", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                // The PDF, RDS files and session log embed run-specific metadata, so only their names are checked
+                { assert snapshot(
+                    process.out.counts,
+                    process.out.normalized_counts,
+                    process.out.size_factors,
+                    process.out.pca_txt,
+                    process.out.pca_multiqc,
+                    process.out.dists_txt,
+                    process.out.dists_multiqc,
+                    file(process.out.pdf[0][1]).name,
+                    file(process.out.dds[0][1]).name,
+                    file(process.out.transformed[0][1]).name,
+                    file(process.out.log[0][1]).name,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - chr21 - 4 TEcount tables - genes - rlog") {
+
+        when {
+            params {
+                te_counts_qc_args = "--features gene --rlog"
+            }
+            process {
+                """
+                input[0] = TECOUNT.out.counts
+                    .map { meta, counts -> counts }
+                    .collect()
+                    .map { counts -> [ [ id:'test' ], counts ] }
+                input[1] = file("${projectDir}/assets/multiqc/te_counts_pca_header.txt", checkIfExists: true)
+                input[2] = file("${projectDir}/assets/multiqc/te_counts_clustering_header.txt", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.size_factors,
+                    process.out.pca_txt,
+                    process.out.dists_txt,
+                    file(process.out.pdf[0][1]).name,
+                    file(process.out.transformed[0][1]).name
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - chr21 - 4 TEcount tables - stub") {
+
+        options "-stub"
+
+        when {
+            params {
+                te_counts_qc_args = ''
+            }
+            process {
+                """
+                input[0] = TECOUNT.out.counts
+                    .map { meta, counts -> counts }
+                    .collect()
+                    .map { counts -> [ [ id:'test' ], counts ] }
+                input[1] = file("${projectDir}/assets/multiqc/te_counts_pca_header.txt", checkIfExists: true)
+                input[2] = file("${projectDir}/assets/multiqc/te_counts_clustering_header.txt", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

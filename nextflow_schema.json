@@ -834,6 +834,12 @@
                     "description": "Skip local TE counting.",
                     "fa_icon": "fas fa-fast-forward"
                 },
+                "skip_te_counting_qc": {
+                    "type": "boolean",
+                    "description": "Skip the DESeq2-normalised PCA and sample distance heatmap of the TEcount and TElocal count tables.",
+                    "help_text": "Samples are compared per experiment type, filtering stage, downsampling method and strand. The variance stabilising transformation is used unless `--deseq2_vst false`.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
                 "skip_tecount_gz": {
                     "type": "boolean",
                     "description": "Skip gzip compression of TEcount output files.",
