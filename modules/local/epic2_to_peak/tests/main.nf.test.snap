@@ -1,0 +1,124 @@
+{
+    "homo_sapiens - epic2 bed - peaks": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.diffusePeak:md5,aab20eb4a957cafdf4db781b461399a6"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.broadPeak:md5,6b4a93789b1b35acb0cdabd657e27133"
+                    ]
+                ],
+                "2": [
+                    [
+                        "EPIC2_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "broadpeak": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.broadPeak:md5,6b4a93789b1b35acb0cdabd657e27133"
+                    ]
+                ],
+                "diffusepeak": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.diffusePeak:md5,aab20eb4a957cafdf4db781b461399a6"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "EPIC2_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-02T09:53:31.067853786",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - epic2 bed - peaks - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.diffusePeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.broadPeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        "EPIC2_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "broadpeak": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.broadPeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "diffusepeak": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.diffusePeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "EPIC2_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-02T09:53:42.390878805",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

@@ -57,6 +57,36 @@ nextflow_process {
             }
         }
 
+        // A second treatment and a control for the shared-control test
+        run("SAMTOOLS_REHEADER", alias: "SAMTOOLS_REHEADER_SHARED") {
+            script "../../../nf-core/samtools/reheader/main.nf"
+            process {
+                """
+                input[0] = channel.of(
+                    [
+                        [ id:'test2', single_end:false ], // meta map
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.umi.sorted.bam', checkIfExists: true),
+                        []
+                    ],
+                    [
+                        [ id:'ctrl', single_end:false ], // meta map
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.methylated.sorted.bam', checkIfExists: true),
+                        []
+                    ]
+                )
+                """
+            }
+        }
+
+        run("SAMTOOLS_INDEX", alias: "SAMTOOLS_INDEX_SHARED") {
+            script "../../../nf-core/samtools/index/main.nf"
+            process {
+                """
+                input[0] = SAMTOOLS_REHEADER_SHARED.out.bam
+                """
+            }
+        }
+
         run("FIND_CONCATENATE") {
             script "../../../nf-core/find/concatenate/main.nf"
             process {
@@ -76,6 +106,55 @@ nextflow_process {
                 input[0] = SAMTOOLS_REHEADER.out.bam
                     .join(SAMTOOLS_INDEX.out.index, by: 0)
                     .map { meta, bam, bai -> [ meta, [ bam ], [ bai ], [], [] ] }
+                input[1] = SAMTOOLS_FAIDX.out.sizes.map { meta, sizesFile ->
+                    def renamed = sizesFile.resolveSibling(sizesFile.baseName + '.chr1.sizes')
+                    renamed.text = sizesFile.text.replaceAll('MT192765.1', 'chr1')
+                    return [ meta, renamed ]
+                }
+                input[2] = [ [:], [] ]
+                input[3] = FIND_CONCATENATE.out.file_out.map { meta, bedFile ->
+                    def renamed = bedFile.resolveSibling(bedFile.baseName + '.chr1.bed')
+                    renamed.text = bedFile.text.replaceAll('MT192765.1', 'chr1')
+                    return [ meta, renamed ]
+                }
+                input[4] = [ [:], [] ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.results,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam (reheadered to chr1) - 2 replicates sharing one control") {
+
+        when {
+            process {
+                """
+                // Controls are matched to treatments by position, so a shared control is repeated
+                input[0] = SAMTOOLS_REHEADER.out.bam
+                    .mix(SAMTOOLS_REHEADER_SHARED.out.bam)
+                    .join(SAMTOOLS_INDEX.out.index.mix(SAMTOOLS_INDEX_SHARED.out.index), by: 0)
+                    .toSortedList { a, b -> a[0].id <=> b[0].id }
+                    .map { samples ->
+                        def ctrl = samples.find { it -> it[0].id == 'ctrl' }
+                        def treatments = samples.findAll { it -> it[0].id != 'ctrl' }
+                        [
+                            [ id:'test', single_end:false ],
+                            treatments.collect { it -> it[1] },
+                            treatments.collect { it -> it[2] },
+                            [ ctrl[1], ctrl[1] ],
+                            [ ctrl[2], ctrl[2] ]
+                        ]
+                    }
                 input[1] = SAMTOOLS_FAIDX.out.sizes.map { meta, sizesFile ->
                     def renamed = sizesFile.resolveSibling(sizesFile.baseName + '.chr1.sizes')
                     renamed.text = sizesFile.text.replaceAll('MT192765.1', 'chr1')

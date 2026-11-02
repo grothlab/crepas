@@ -13,25 +13,9 @@
                 ],
                 "1": [
                     [
-                        {
-                            "id": "test",
-                            "single_end": false
-                        },
-                        "test.diffusePeak:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "2": [
-                    [
                         "EPIC2",
                         "epic2",
                         "0.0.52"
-                    ]
-                ],
-                "3": [
-                    [
-                        "EPIC2",
-                        "gawk",
-                        "5.3.1"
                     ]
                 ],
                 "bed": [
@@ -43,32 +27,16 @@
                         "test.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
-                "peak": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": false
-                        },
-                        "test.diffusePeak:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
                 "versions_epic2": [
                     [
                         "EPIC2",
                         "epic2",
                         "0.0.52"
                     ]
-                ],
-                "versions_gawk": [
-                    [
-                        "EPIC2",
-                        "gawk",
-                        "5.3.1"
-                    ]
                 ]
             }
         ],
-        "timestamp": "2026-11-02T09:32:01.511388371",
+        "timestamp": "2026-11-02T09:52:09.140597474",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
@@ -85,15 +53,6 @@
                     "test.bed:md5,58a9971d4caa7f4489753f512453b6e8"
                 ]
             ],
-            [
-                [
-                    {
-                        "id": "test",
-                        "single_end": false
-                    },
-                    "test.diffusePeak:md5,d41d8cd98f00b204e9800998ecf8427e"
-                ]
-            ],
             {
                 "versions_epic2": [
                     [
@@ -101,17 +60,10 @@
                         "epic2",
                         "0.0.52"
                     ]
-                ],
-                "versions_gawk": [
-                    [
-                        "EPIC2",
-                        "gawk",
-                        "5.3.1"
-                    ]
                 ]
             }
         ],
-        "timestamp": "2026-11-02T09:31:51.224674057",
+        "timestamp": "2026-11-02T09:51:52.043420017",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"

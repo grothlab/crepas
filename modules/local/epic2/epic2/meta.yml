@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "epic2"
-description: Call diffuse ChIP-seq domains (an ultrafast SICER reimplementation) from treatment and control BAM files, and reformat the output as a HOMER-compatible peak file
+description: Call diffuse ChIP-seq domains (an ultrafast SICER reimplementation) from treatment and control BAM files
 keywords:
   - chipseq
   - peak-calling
@@ -75,16 +75,6 @@ output:
           pattern: "*.bed"
           ontologies:
             - edam: "http://edamontology.org/format_3003" # BED
-  peak:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. [ id:'test', single_end:false ]
-      - "*.diffusePeak":
-          type: file
-          description: epic2 peaks reformatted as a HOMER-compatible peak file
-          pattern: "*.diffusePeak"
   versions_epic2:
     - - "${task.process}":
           type: string
@@ -93,16 +83,6 @@ output:
           type: string
           description: The name of the tool
       - "epic2 --version | sed -e 's/epic2 //g'":
-          type: eval
-          description: The expression to obtain the version of the tool
-  versions_gawk:
-    - - "${task.process}":
-          type: string
-          description: The name of the process
-      - "gawk":
-          type: string
-          description: The name of the tool
-      - "gawk --version 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*$//'":
           type: eval
           description: The expression to obtain the version of the tool
 
@@ -115,15 +95,6 @@ topics:
           type: string
           description: The name of the tool
       - "epic2 --version | sed -e 's/epic2 //g'":
-          type: eval
-          description: The expression to obtain the version of the tool
-    - - "${task.process}":
-          type: string
-          description: The name of the process
-      - "gawk":
-          type: string
-          description: The name of the tool
-      - "gawk --version 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*$//'":
           type: eval
           description: The expression to obtain the version of the tool
 authors:

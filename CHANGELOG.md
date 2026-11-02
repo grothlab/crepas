@@ -10,6 +10,8 @@ Development version of grothlab/crepas.
 ### `Added`
 
 - QC of the TEcount and TElocal count tables (`TE_COUNTS_QC`): the per-sample tables are merged, normalised with DESeq2 size factors and variance-stabilised, and plotted as a PCA and a sample distance heatmap (genes and TEs), also added to the MultiQC report. The merged raw count matrix, an unfiltered DESeqDataSet and the variance-stabilised object are saved for downstream analysis. Samples are compared per experiment type, filtering stage, downsampling method and strand. Disable with `skip_te_counting_qc`.
+- epic2 peak QC plots (fold enrichment, p-value, q-value and peak length per sample), as for MACS3 and Genrich. epic2 peaks are now also saved in ENCODE broadPeak format (`*.epic2.broadPeak`), next to the HOMER-compatible `*.epic2.diffusePeak`; both are written by the new `EPIC2_TO_PEAK` module.
+- Output documentation for every peak caller (MACS3, epic2, Genrich, SEACR, MACE, EDD, DANPOS2, Consenrich and ROCCO), as subsections of "Peak calling" in `docs/output.md`.
 
 ### `Fixed`
 
@@ -17,6 +19,10 @@ Development version of grothlab/crepas.
 - Institutional profiles from `--custom_config_base` (e.g. `grothlab/configs`) not being found with Nextflow 25.10, because lineage tracking was enabled; lineage is now disabled by default (enable it with `lineage.enabled = true` in a custom config).
 - `Unrecognized config option` warnings for `prov.formats.wrroc.agent` and `prov.formats.wrroc.organization` with Nextflow 26.04; the pipeline no longer sets a fixed agent and organization in the run RO-Crate.
 - MultiQC failing when `epic2` is in `--peak_callers`, because the gawk version reported by `EPIC2` included gawk's whole licence text and made `grothlab_crepas_software_mqc_versions.yml` invalid YAML. The `CONSENRICH` version (reported as `Version: 0.1.7b1`, which also broke the YAML) and the `EDD` version (empty, because `edd --version` prints to stderr) are fixed too.
+- epic2 FRiP scores, peak counts and peak annotation missing from the MultiQC report.
+- epic2 and Consenrich failing with `input file name collision` when replicates of a sample share an input control (e.g. replicates 1 and 3 both using control replicate 1). epic2 pools all controls, so each control is now passed once; Consenrich matches controls to replicates by position, so each control is staged in its own directory and repeated where it is shared.
+- Genrich and Consenrich silently pairing replicates with the wrong input control when only some replicates of a sample have one; the pipeline now stops with an error naming the sample.
+- Sample labels in the Genrich (and epic2) peak QC plots including the file extension.
 
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
 

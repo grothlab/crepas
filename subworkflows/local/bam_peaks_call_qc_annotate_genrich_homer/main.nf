@@ -20,7 +20,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     ch_peak_count_header_multiqc      // channel: [ header_file ]
     ch_frip_score_multiqc             // channel: [ header_file ]
     ch_peak_annotation_header_multiqc // channel: [ header_file ]
-    is_narrow_peak                    // boolean: true/false
     skip_peak_annotation              // boolean: true/false
     skip_peak_qc                      // boolean: true/false
 
@@ -57,6 +56,10 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         }
         .groupTuple(by: [0, 1])
         .map { id, antibody, metas, ip_bams, ipcontrol_bams ->
+            // Genrich matches controls to replicates by position, so a replicate without a control would shift the rest
+            if (ipcontrol_bams.any { ctrl -> ctrl } && !ipcontrol_bams.every { ctrl -> ctrl }) {
+                error("ERROR: Sample '${id}' has an input control for some of its replicates only. Genrich matches input controls to replicates by position, so either all replicates of a sample need an input control or none. Add the missing input controls, remove them all, or leave `genrich` out of `--peak_callers`.")
+            }
             [metas[0], ip_bams.flatten(), ipcontrol_bams.flatten()]
         }
         .set { ch_ip_ipcontrol_bam_merged_reps }
@@ -161,8 +164,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
             // Genrich QC plots with R
             //
             PLOT_GENRICH_QC(
-                ch_gr_peaks_grouped,
-                is_narrow_peak
+                ch_gr_peaks_grouped
             )
             ch_plot_gr_qc_txt = PLOT_GENRICH_QC.out.txt
             ch_plot_gr_qc_pdf = PLOT_GENRICH_QC.out.pdf

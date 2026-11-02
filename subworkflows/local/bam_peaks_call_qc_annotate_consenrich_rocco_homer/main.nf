@@ -54,6 +54,10 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
         }
         .groupTuple(by: [0, 1])
         .map { id, antibody, metas, ip_bams, ip_bais, ipcontrol_bams, ipcontrol_bais ->
+            // Consenrich matches controls to replicates by position, so a replicate without a control would shift the rest
+            if (ipcontrol_bams.any { ctrl -> ctrl } && !ipcontrol_bams.every { ctrl -> ctrl }) {
+                error("ERROR: Sample '${id}' has an input control for some of its replicates only. Consenrich matches input controls to replicates by position, so either all replicates of a sample need an input control or none. Add the missing input controls, remove them all, or leave `consenrich` out of `--peak_callers`.")
+            }
             [metas[0], ip_bams.flatten(), ip_bais.flatten(), ipcontrol_bams.flatten(), ipcontrol_bais.flatten()]
         }
         .set { ch_ip_ipcontrol_bam_bai_merged_reps }

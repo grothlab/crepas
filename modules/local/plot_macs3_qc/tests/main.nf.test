@@ -50,7 +50,6 @@ nextflow_process {
                     .mix(CALLPEAK_SAMPLE2.out.peak)
                     .map { meta, peak -> [ [ id: 'test_group' ], peak ] }
                     .groupTuple()
-                input[1] = true
                 """
             }
         }
@@ -79,7 +78,6 @@ nextflow_process {
                     .mix(CALLPEAK_SAMPLE2.out.peak)
                     .map { meta, peak -> [ [ id: 'test_group' ], peak ] }
                     .groupTuple()
-                input[1] = true
                 """
             }
         }

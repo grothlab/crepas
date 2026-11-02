@@ -1,4 +1,31 @@
 {
+    "sarscov2 - bam (reheadered to chr1) - 2 replicates sharing one control": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    "test.consenrich_output.tsv:md5,15ffa58487f2e9ca981c01196684c5c3"
+                ]
+            ],
+            {
+                "versions_consenrich": [
+                    [
+                        "CONSENRICH",
+                        "consenrich",
+                        "0.1.7b1"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-02T10:33:55.200925052",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
     "sarscov2 - bam (reheadered to chr1) - consensus signal extraction": {
         "content": [
             [
