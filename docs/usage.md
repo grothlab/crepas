@@ -52,7 +52,9 @@ The `strandedness` column in the input samplesheet records which read of a pair 
 
 The diagram below illustrates the workflow from adapter ligation to read alignment for a library with `forward` strandedness:
 
-![Sequencing library with `forward` strandedness](images/samplesheet_strandedness.png)
+<p align="center">
+  <img src="images/samplesheet_strandedness.png" alt="Sequencing library with forward strandedness" width="500">
+</p>
 
 ### Example samplesheet 1: Multiple biological replicates
 
