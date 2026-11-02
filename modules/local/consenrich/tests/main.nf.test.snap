@@ -15,15 +15,15 @@
                     [
                         "CONSENRICH",
                         "consenrich",
-                        "Version: 0.1.7b1"
+                        "0.1.7b1"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-14T15:37:32.168294832",
+        "timestamp": "2026-11-02T09:32:51.086092366",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam (reheadered to chr1) - consensus signal extraction - stub": {
@@ -51,15 +51,15 @@
                     [
                         "CONSENRICH",
                         "consenrich",
-                        "Version: 0.1.7b1"
+                        "0.1.7b1"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-14T15:30:25.438832036",
+        "timestamp": "2026-11-02T09:31:18.618312345",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     }
 }

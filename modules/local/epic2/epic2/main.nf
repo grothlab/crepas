@@ -16,7 +16,7 @@ process EPIC2 {
     tuple val(meta), path("*.bed"), emit: bed
     tuple val(meta), path("*.diffusePeak"), emit: peak
     tuple val("${task.process}"), val('epic2'), eval("epic2 --version | sed -e 's/epic2 //g'"), topic: versions, emit: versions_epic2
-    tuple val("${task.process}"), val('gawk'), eval("gawk --version 2>&1 | sed 's/^.*GNU Awk //; s/, .*\$//'"), topic: versions, emit: versions_gawk
+    tuple val("${task.process}"), val('gawk'), eval("gawk --version 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*\$//'"), topic: versions, emit: versions_gawk
 
     when:
     task.ext.when == null || task.ext.when
