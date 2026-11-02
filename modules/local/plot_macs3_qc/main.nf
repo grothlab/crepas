@@ -22,7 +22,7 @@ process PLOT_MACS3_QC {
     def args      = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     // Sample labels: file names without "_peaks" (MACS3) and the peak file extension
-    def sample_ids = peaks.collect { it -> it.name.replaceAll(/(_peaks)?\.(narrowPeak|broadPeak)$/, '') }.join(',')
+    def sample_ids = peaks.collect { peak -> peak.name.replaceAll(/(_peaks)?\.(narrowPeak|broadPeak)$/, '') }.join(',')
     """
     plot_macs3_qc.r \\
         -i ${peaks.join(',')} \\
