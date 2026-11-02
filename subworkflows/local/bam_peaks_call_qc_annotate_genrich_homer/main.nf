@@ -88,10 +88,11 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     }.set { ch_gr_peaks }
 
     // Create channels: [ meta, ip_bam, peaks ]
-    ch_bam
+    // Peaks are called on the pooled replicates, so join with the channel GENRICH was given
+    ch_ip_ipcontrol_bam_merged_reps
         .join(ch_gr_peaks, by: 0)
-        .map { meta, ip_bam, ipcontrol_bam, peaks ->
-            [meta, ip_bam, peaks]
+        .map { meta, ip_bams, _ipcontrol_bams, peaks ->
+            [meta, ip_bams, peaks]
         }
         .transpose()
         .map { meta, ip_bam, peaks ->

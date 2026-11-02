@@ -22,6 +22,7 @@ Development version of grothlab/crepas.
 - epic2 FRiP scores, peak counts and peak annotation missing from the MultiQC report.
 - epic2 and Consenrich failing with `input file name collision` when replicates of a sample share an input control (e.g. replicates 1 and 3 both using control replicate 1). epic2 pools all controls, so each control is now passed once; Consenrich matches controls to replicates by position, so each control is staged in its own directory and repeated where it is shared.
 - Genrich and Consenrich silently pairing replicates with the wrong input control when only some replicates of a sample have one; the pipeline now stops with an error naming the sample.
+- epic2, Genrich and MACE FRiP scores and peak counts not being calculated, missing from the MultiQC report.
 - Sample labels in the Genrich (and epic2) peak QC plots including the file extension.
 
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
