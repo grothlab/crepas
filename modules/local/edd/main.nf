@@ -17,7 +17,7 @@ process EDD {
     tuple val(meta), path("*.log"), emit: log
     tuple val(meta), path("*_bin_score.bedgraph"), optional: true, emit: bin_score
     tuple val(meta), path("*_log_ratio*.bedgraph"), optional: true, emit: log_ratios
-    tuple val("${task.process}"), val('edd'), eval("edd --version | sed -e 's/edd //g'"), topic: versions, emit: versions_edd
+    tuple val("${task.process}"), val('edd'), eval("edd --version 2>&1 | sed -e 's/edd //g'"), topic: versions, emit: versions_edd
 
     when:
     task.ext.when == null || task.ext.when

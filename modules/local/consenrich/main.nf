@@ -22,7 +22,7 @@ process CONSENRICH {
     tuple val(meta), path("${prefix}_*.tsv.gz"), optional: true, emit: gain_log
     tuple val(meta), path("consenrich_${prefix}_args.json"), optional: true, emit: args_json
     tuple val(meta), path("*.npz"), optional: true, emit: matrix
-    tuple val("${task.process}"), val('consenrich'), eval("pip show consenrich 2>/dev/null | awk '/^Version:/{print \$2}'"), topic: versions, emit: versions_consenrich
+    tuple val("${task.process}"), val('consenrich'), eval("pip show consenrich 2>/dev/null | sed -n 's/^Version: //p'"), topic: versions, emit: versions_consenrich
 
     when:
     task.ext.when == null || task.ext.when

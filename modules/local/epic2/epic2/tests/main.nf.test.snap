@@ -31,7 +31,7 @@
                     [
                         "EPIC2",
                         "gawk",
-                        "5.3.1\nCopyright (C) 1989\n\nThis program is free software; you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation; either version 3 of the License\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not"
+                        "5.3.1"
                     ]
                 ],
                 "bed": [
@@ -63,15 +63,15 @@
                     [
                         "EPIC2",
                         "gawk",
-                        "5.3.1\nCopyright (C) 1989\n\nThis program is free software; you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation; either version 3 of the License\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not"
+                        "5.3.1"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-13T16:31:14.00017498",
+        "timestamp": "2026-11-02T09:32:01.511388371",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - bam - broad domain calling": {
@@ -106,15 +106,15 @@
                     [
                         "EPIC2",
                         "gawk",
-                        "5.3.1\nCopyright (C) 1989\n\nThis program is free software; you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation; either version 3 of the License\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not"
+                        "5.3.1"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-13T16:56:23.665544392",
+        "timestamp": "2026-11-02T09:31:51.224674057",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     }
 }
