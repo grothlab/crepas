@@ -99,9 +99,6 @@ workflow CALL_PEAKS {
     // SUBWORKFLOW: Call peaks with epic2, annotate with HOMER and perform downstream QC
     //
     ch_epic2_peaks = channel.empty()
-    ch_epic2_frip_multiqc = channel.empty()
-    ch_epic2_peak_count_multiqc = channel.empty()
-    ch_epic2_plot_homer_annotatepeaks_tsv = channel.empty()
     BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER (
         ch_bam_index.filter { it -> it[0].peak_caller == 'epic2' },
         ch_fasta,
@@ -116,9 +113,9 @@ workflow CALL_PEAKS {
         skip_peak_qc
     )
     ch_epic2_peaks = BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.peaks
-    ch_epic2_frip_multiqc = BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.frip_multiqc
-    ch_epic2_peak_count_multiqc = BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.peak_count_multiqc
-    ch_epic2_plot_homer_annotatepeaks_tsv = BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.plot_homer_annotatepeaks_tsv
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.frip_multiqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.peak_count_multiqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.plot_homer_annotatepeaks_tsv.collect { it -> it[1] })
 
     //
     // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
@@ -133,7 +130,6 @@ workflow CALL_PEAKS {
         ch_gr_peak_count_header,
         ch_gr_frip_score_header,
         ch_gr_peak_annotation_header,
-        narrow_peak,
         skip_peak_annotation,
         skip_peak_qc
     )
@@ -242,7 +238,6 @@ workflow CALL_PEAKS {
         ch_macs3_peak_count_header,
         ch_macs3_frip_score_header,
         ch_macs3_peak_annotation_header,
-        narrow_peak,
         skip_peak_annotation,
         skip_peak_qc,
         skip_bdgcmp

@@ -28,9 +28,6 @@ input:
         pattern: "*.{narrowPeak,broadPeak}"
         ontologies:
           - edam: "http://edamontology.org/format_3003" # BED
-  - - is_narrow_peak:
-        type: boolean
-        description: Whether `peaks` are narrowPeak (true) or broadPeak (false) files
 output:
   txt:
     - - meta:

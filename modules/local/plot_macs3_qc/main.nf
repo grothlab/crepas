@@ -9,7 +9,6 @@ process PLOT_MACS3_QC {
 
     input:
     tuple val(meta), path(peaks)
-    val is_narrow_peak
 
     output:
     tuple val(meta), path("*.txt")       , emit: txt
@@ -21,12 +20,13 @@ process PLOT_MACS3_QC {
 
     script:
     def args      = task.ext.args ?: ''
-    def peak_type = is_narrow_peak ? 'narrowPeak' : 'broadPeak'
     def prefix = task.ext.prefix ?: "${meta.id}"
+    // Sample labels: file names without "_peaks" (MACS3) and the peak file extension
+    def sample_ids = peaks.collect { it -> it.name.replaceAll(/(_peaks)?\.(narrowPeak|broadPeak)$/, '') }.join(',')
     """
     plot_macs3_qc.r \\
         -i ${peaks.join(',')} \\
-        -s ${peaks.join(',').replaceAll("_peaks.${peak_type}","")} \\
+        -s ${sample_ids} \\
         -p $prefix \\
         $args
     """

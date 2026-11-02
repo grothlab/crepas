@@ -14,16 +14,13 @@ process EPIC2 {
 
     output:
     tuple val(meta), path("*.bed"), emit: bed
-    tuple val(meta), path("*.diffusePeak"), emit: peak
     tuple val("${task.process}"), val('epic2'), eval("epic2 --version | sed -e 's/epic2 //g'"), topic: versions, emit: versions_epic2
-    tuple val("${task.process}"), val('gawk'), eval("gawk --version 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*\$//'"), topic: versions, emit: versions_gawk
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
-    def args2 = task.ext.args2 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def chromsizes = chrom_sizes ? "--chromsizes ${chrom_sizes}" : ""
     def egf = effective_genome_fraction ? "--effective-genome-fraction ${effective_genome_fraction}" : ""
@@ -39,23 +36,11 @@ process EPIC2 {
         ${treatment} \\
         ${control} \\
         --output ${prefix}.bed
-
-    # Convert to HOMER-compatible BED format
-    awk \\
-        ${args2} \\
-        -F'\t' \\
-        'NR==1 {next} \\
-        { printf "%s\\t%s\\t%s\\tpeak_%d\\t%s\\t%s\\t%s", \$1, \$2, \$3, NR-1, \$5, \$6, \$4; \\
-        for (i=7; i<=NF; i++) printf "\\t%s", \$i; \\
-        printf "\\n" }' \\
-        ${prefix}.bed \\
-        > ${prefix}.diffusePeak
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.bed
-    touch ${prefix}.diffusePeak
     """
 }

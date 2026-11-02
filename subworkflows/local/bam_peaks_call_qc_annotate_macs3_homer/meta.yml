@@ -58,10 +58,6 @@ input:
   - ch_peak_annotation_header_multiqc:
       type: file
       description: MultiQC custom-content header for the peak annotation plot
-  - is_narrow_peak:
-      type: boolean
-      description: Whether peaks are narrow (true) or broad (false), passed to the QC plot script
-      pattern: "true|false"
   - skip_peak_annotation:
       type: boolean
       description: Skip HOMER peak annotation (and downstream peak-annotation QC)

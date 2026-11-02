@@ -1,7 +1,7 @@
 #id: 'epic2_peak_count'
-#section_name: 'MERGED LIB: Genrich peak count'
+#section_name: 'MERGED LIB: epic2 peak count'
 #description: "is calculated from total number of peaks called by
-#	       <a href='https://github.com/jsh58/Genrich' target='_blank'>Genrich</a>"
+#	       <a href='https://github.com/biocore-ntnu/epic2' target='_blank'>epic2</a>"
 #plot_type: 'bargraph'
 #anchor: 'epic2_peak_count'
 #pconfig:
