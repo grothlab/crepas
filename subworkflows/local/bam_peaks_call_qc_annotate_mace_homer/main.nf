@@ -107,7 +107,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACE_HOMER {
     }.set { ch_mace_peaks }
 
     // Create channels: [ meta, bam, peaks ]
-    ch_bam_bai
+    // Peaks are called on the pooled replicates, so join with the channel MACE was given
+    ch_bam_merged_reps
         .join(ch_mace_peaks, by: 0)
         .map { meta, bam, bai, peaks ->
             [meta, bam, bai, peaks]

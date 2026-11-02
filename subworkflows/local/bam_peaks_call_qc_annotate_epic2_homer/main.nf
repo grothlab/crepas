@@ -100,11 +100,12 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER {
         .set { ch_epic2_peaks }
 
     // Create channels: [ meta, ip_bam, peaks ]
-    ch_bam_bai
+    // Peaks are called on the pooled replicates, so join with the channel EPIC2 was given
+    ch_ip_control_bam_bai_merged_reps
         .join(ch_epic2_peaks, by: 0)
         .map {
-            meta, ip_bam, control_bam, peaks ->
-                [ meta, ip_bam, peaks ]
+            meta, ip_bams, _ip_bais, _ipcontrol_bams, _ipcontrol_bais, peaks ->
+                [ meta, ip_bams, peaks ]
         }
         // Split channel by ip_bam
         .transpose()
