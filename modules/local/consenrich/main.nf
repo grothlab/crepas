@@ -8,7 +8,7 @@ process CONSENRICH {
         : 'community.wave.seqera.io/library/bedtools_deeptools_pybedtools_pybigwig_pruned:01282f183573fac0'}"
 
     input:
-    tuple val(meta), path(treatment_bam), path(treatment_bai), path(control_bam), path(control_bai)
+    tuple val(meta), path(treatment_bam), path(treatment_bai), path(control_bam, stageAs: "c?/*"), path(control_bai, stageAs: "c?/*")
     tuple val(meta2), path(chrom_sizes)
     tuple val(meta3), path(blacklist)
     tuple val(meta4), path(sparsebed)

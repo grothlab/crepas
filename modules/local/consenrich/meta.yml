@@ -38,7 +38,7 @@ input:
         pattern: "*.bai"
     - control_bam:
         type: file
-        description: One or more coordinate-sorted, indexed BAM files for matched input control replicates, optional
+        description: One or more coordinate-sorted, indexed BAM files for matched input control replicates, optional. Matched to treatment_bam by position, so a control shared by several replicates is repeated
         pattern: "*.bam"
         ontologies:
           - edam: "http://edamontology.org/format_2572" # BAM

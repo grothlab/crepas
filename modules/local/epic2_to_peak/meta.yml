@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "epic2_to_peak"
+description: Convert epic2 output into a HOMER-compatible diffusePeak file and an ENCODE broadPeak file
+keywords:
+  - epic2
+  - broadpeak
+  - peak-calling
+  - awk
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to reorder the columns of the epic2 output into a diffusePeak file (HOMER-compatible,
+        epic2's raw p-value and FDR) and an ENCODE broadPeak file (fold enrichment and -log10
+        p-value and FDR, as written by MACS3).
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bed:
+        type: file
+        description: |
+          epic2 output with a header line and the columns Chromosome, Start, End, PValue,
+          Score, Strand, ChIPCount, InputCount, FDR, log2FoldChange
+        pattern: "*.bed"
+        ontologies:
+          - edam: "http://edamontology.org/format_3003" # BED
+output:
+  diffusepeak:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.diffusePeak":
+          type: file
+          description: |
+            HOMER-compatible peak file with the columns chrom, start, end, name (peak_N), score,
+            strand, PValue, ChIPCount, InputCount, FDR, log2FoldChange
+          pattern: "*.diffusePeak"
+          ontologies: []
+  broadpeak:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.broadPeak":
+          type: file
+          description: |
+            ENCODE broadPeak file with the columns chrom, start, end, name (peak_N), score, strand,
+            signalValue (fold enrichment), pValue (-log10 p-value), qValue (-log10 FDR)
+          pattern: "*.broadPeak"
+          ontologies:
+            - edam: "http://edamontology.org/format_3614" # ENCODE broad peak format
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

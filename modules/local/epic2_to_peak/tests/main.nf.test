@@ -1,0 +1,74 @@
+nextflow_process {
+
+    name "Test Process EPIC2_TO_PEAK"
+    script "../main.nf"
+    process "EPIC2_TO_PEAK"
+
+    tag "modules"
+    tag "modules_local"
+    tag "epic2_to_peak"
+    tag "epic2"
+
+    setup {
+        run("EPIC2") {
+            script "../../epic2/epic2/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    [ file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.markduplicates.sorted.bam', checkIfExists: true) ],
+                    [ file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.markduplicates.sorted.bam.bai', checkIfExists: true) ],
+                    [ file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.markduplicates.sorted.bam', checkIfExists: true) ],
+                    [ file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.markduplicates.sorted.bam.bai', checkIfExists: true) ]
+                ]
+                input[1] = [
+                    [ id:'genome' ],
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr21/sequence/genome.sizes', checkIfExists: true)
+                ]
+                input[2] = 0.8
+                """
+            }
+        }
+    }
+
+    test("homo_sapiens - epic2 bed - peaks") {
+
+        when {
+            process {
+                """
+                input[0] = EPIC2.out.bed
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - epic2 bed - peaks - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = EPIC2.out.bed
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}
