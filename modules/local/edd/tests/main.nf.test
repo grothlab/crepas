@@ -34,10 +34,16 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
+                // the log holds a timestamp and the work directory, so only its name is snapshotted
                 { assert snapshot(
                     process.out.peaks,
+                    process.out.bin_score,
+                    process.out.log_ratios,
+                    process.out.log.collect { meta, log -> [ meta, file(log).name ] },
                     process.out.findAll { key, val -> key.startsWith('versions') }
-                    ).match() }
+                    ).match() },
+                // the config-file options from ext.args reach EDD
+                { assert path(process.out.log[0][1]).text.contains('ci_method:wilson') }
             )
         }
 
