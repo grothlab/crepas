@@ -24,6 +24,7 @@ Development version of grothlab/crepas.
 - Genrich and Consenrich silently pairing replicates with the wrong input control when only some replicates of a sample have one; the pipeline now stops with an error naming the sample.
 - epic2, Genrich and MACE FRiP scores and peak counts not being calculated, missing from the MultiQC report.
 - Sample labels in the Genrich (and epic2) peak QC plots including the file extension.
+- nf-test shards on GitHub Actions failing with `no space left on device` when pulling container images; the runner's unused preinstalled software is now removed before the tests.
 
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
 
