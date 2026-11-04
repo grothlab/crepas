@@ -669,10 +669,10 @@ message("\n[", Sys.time(), "] Creating smoothed partition plot(s)...")
 plot_partition <- function(mean_col, sd_col, show_sd) {
 
   p <- ggplot(partition_mean_df, aes(x = dist / 1000, y = .data[[mean_col]], color = sample)) +
-    geom_rect(xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
-              fill = "grey95", inherit.aes = FALSE) +
-    geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
-              fill = "grey95", inherit.aes = FALSE) +
+    annotate("rect", xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
+             fill = "grey95") +
+    annotate("rect", xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
+             fill = "grey95") +
     geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
     geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3)
 
@@ -768,10 +768,10 @@ ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_p
 message("\n[", Sys.time(), "] Creating GAM-fitted partition plot(s)...")
 
 smoothed_gam_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smooth_mean, color = sample)) +
-    geom_rect(xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
-              fill = "grey95", inherit.aes = FALSE) +
-    geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
-              fill = "grey95", inherit.aes = FALSE) +
+    annotate("rect", xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
+             fill = "grey95") +
+    annotate("rect", xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
+             fill = "grey95") +
     geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
     geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3) +
     geom_line(stat = "smooth", method = "gam", se = FALSE, linewidth = 0.5) +
