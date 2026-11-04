@@ -13,6 +13,10 @@ Development version of grothlab/crepas.
 - epic2 peak QC plots (fold enrichment, p-value, q-value and peak length per sample), as for MACS3 and Genrich. epic2 peaks are now also saved in ENCODE broadPeak format (`*.epic2.broadPeak`), next to the HOMER-compatible `*.epic2.diffusePeak`; both are written by the new `EPIC2_TO_PEAK` module.
 - Output documentation for every peak caller (MACS3, epic2, Genrich, SEACR, MACE, EDD, DANPOS2, Consenrich and ROCCO), as subsections of "Peak calling" in `docs/output.md`.
 
+### `Changed`
+
+- The run's RO-Crate (`ro-crate-metadata_<timestamp>.json`) and the files nf-prov copies next to it (`README.md`, `main.nf`, `nextflow.config`, `nextflow_schema.json` and the input samplesheet) are saved in `pipeline_info/provenance/` instead of `pipeline_info/`.
+
 ### `Fixed`
 
 - `PICARD_ADDORREPLACEREADGROUPS` failing with `CIGAR_MAPS_OFF_REFERENCE` after chromap, which can report primary and secondary alignments that run past the end of a contig; it now runs with `--VALIDATION_STRINGENCY LENIENT`, like the other Picard steps.
