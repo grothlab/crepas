@@ -107,6 +107,12 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
+    //
+    // Create the directory of the nf-prov RO-Crate (`prov` in nextflow.config)
+    // TODO: remove when moving to nf-prov >=1.8.0 (needs Nextflow >=26.10), using `prov.directory = 'pipeline_info/provenance'` instead
+    //
+    file("${outdir}/pipeline_info/provenance").mkdirs()
+
 }
 
 

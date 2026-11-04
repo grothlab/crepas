@@ -14,6 +14,10 @@ Development version of grothlab/crepas.
 - Output documentation for every peak caller (MACS3, epic2, Genrich, SEACR, MACE, EDD, DANPOS2, Consenrich and ROCCO), as subsections of "Peak calling" in `docs/output.md`.
 - EDD configuration file settings as parameters: `--edd_max_ci_value`, `--edd_required_fraction_of_informative_bins`, `--edd_p_hat_ci_method` and `--edd_log_ratio_bin_size` ([#32](https://github.com/grothlab/crepas/issues/32)). The `EDD` module takes them from `ext.args` (e.g. `--max_CI_value 0.3`) and sets them in a copy of EDD's default configuration file.
 
+### `Changed`
+
+- The run's RO-Crate (`ro-crate-metadata_<timestamp>.json`) and the files nf-prov copies next to it (`README.md`, `main.nf`, `nextflow.config`, `nextflow_schema.json` and the input samplesheet) are saved in `pipeline_info/provenance/` instead of `pipeline_info/`.
+
 ### `Fixed`
 
 - `PICARD_ADDORREPLACEREADGROUPS` failing with `CIGAR_MAPS_OFF_REFERENCE` after chromap, which can report primary and secondary alignments that run past the end of a contig; it now runs with `--VALIDATION_STRINGENCY LENIENT`, like the other Picard steps.
