@@ -27,6 +27,8 @@ Development version of grothlab/crepas.
 - TE counting (TEcount, TElocal and their name sorting) running once for each antibody on an input control shared by several antibodies, with identical outputs written over each other, and `TE_COUNTING_QC` then failing with `input file name collision` ([#152](https://github.com/grothlab/crepas/issues/152)). Without downsampling each input control is now counted once and its table is added to the QC of each antibody; with downsampling each antibody's copy is still counted, since it is downsampled separately.
 - TEcount and TElocal tables of the final BAM files missing `.flT3` in their names for antibodies in `--use_flT2_as_total_ref` (`H3K9me3` and `H3K27me3` by default). With `--skip_flTbl`, these tables had the same names as the `pre_flT3` ones and were written over them.
 - Stub runs with TE counting (`--skip_te_counting false`) failing with `input file name collision`, because the stubs of the TEcount gene and TE indices had the same name, and stub runs with `--bam_downsampling_method` failing on the empty read total of the downsampled BAM files.
+- Partition/RFD summary plots drawing their grey quadrant backgrounds once per plotted data row, which left hundreds of stacked grey squares in the PDFs ([#149](https://github.com/grothlab/crepas/issues/149)).
+- nf-test shards on GitHub Actions failing with `no space left on device` when pulling container images; the runner's unused preinstalled software is now removed before the tests.
 
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
 
