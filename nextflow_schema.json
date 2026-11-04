@@ -1074,6 +1074,36 @@
                     "description": "FDR threshold for EDD peak calling. See [EDD documentation](https://github.com/CollasLab/edd) for more details.",
                     "default": 0.01
                 },
+                "edd_max_ci_value": {
+                    "type": "number",
+                    "description": "Maximum width of the confidence interval of the IP fraction for a bin to count as informative in EDD peak calling.",
+                    "help_text": "Set in the EDD configuration file. See the configuration section of the [EDD documentation](https://github.com/CollasLab/edd) for more details.",
+                    "default": 0.25,
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "edd_required_fraction_of_informative_bins": {
+                    "type": "number",
+                    "description": "Minimum fraction of informative bins required for EDD peak calling.",
+                    "help_text": "Set in the EDD configuration file. Samples for which EDD cannot find a bin size with enough informative bins are skipped; lowering this value (or raising `--edd_max_ci_value`) can let them run. See the configuration section of the [EDD documentation](https://github.com/CollasLab/edd) for more details.",
+                    "default": 0.99,
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "edd_p_hat_ci_method": {
+                    "type": "string",
+                    "description": "Method for the confidence interval of the IP fraction in each bin in EDD peak calling.",
+                    "help_text": "Set in the EDD configuration file. See the configuration section of the [EDD documentation](https://github.com/CollasLab/edd) for more details.",
+                    "default": "agresti_coull",
+                    "enum": ["agresti_coull", "normal", "beta", "wilson", "jeffrey"]
+                },
+                "edd_log_ratio_bin_size": {
+                    "type": "integer",
+                    "description": "Bin size (kb) of the log ratio bedGraph written by EDD.",
+                    "help_text": "Set in the EDD configuration file. See the configuration section of the [EDD documentation](https://github.com/CollasLab/edd) for more details.",
+                    "default": 10,
+                    "minimum": 1
+                },
                 "genrich_narrow_gap": {
                     "type": "integer",
                     "default": 100,
