@@ -9,7 +9,7 @@ Development version of grothlab/crepas.
 
 ### `Added`
 
-- QC of the TEcount and TElocal count tables (`TE_COUNTS_QC`): the per-sample tables are merged, normalised with DESeq2 size factors and variance-stabilised, and plotted as a PCA and a sample distance heatmap (genes and TEs), also added to the MultiQC report. The merged raw count matrix, an unfiltered DESeqDataSet and the variance-stabilised object are saved for downstream analysis. Samples are compared per experiment type, filtering stage, downsampling method and strand. Disable with `skip_te_counting_qc`.
+- QC of the TEcount and TElocal count tables (`TE_COUNTING_QC`): the per-sample tables are merged, normalised with DESeq2 size factors and variance-stabilised, and plotted as a PCA and a sample distance heatmap (genes and TEs), also added to the MultiQC report. The merged raw count matrix, an unfiltered DESeqDataSet and the variance-stabilised object are saved for downstream analysis. Each PCA compares the IPs of one antibody with their input controls, separately per experiment type, filtering stage, downsampling method and strand. Disable with `skip_te_counting_qc`.
 - epic2 peak QC plots (fold enrichment, p-value, q-value and peak length per sample), as for MACS3 and Genrich. epic2 peaks are now also saved in ENCODE broadPeak format (`*.epic2.broadPeak`), next to the HOMER-compatible `*.epic2.diffusePeak`; both are written by the new `EPIC2_TO_PEAK` module.
 - Output documentation for every peak caller (MACS3, epic2, Genrich, SEACR, MACE, EDD, DANPOS2, Consenrich and ROCCO), as subsections of "Peak calling" in `docs/output.md`.
 
@@ -24,6 +24,9 @@ Development version of grothlab/crepas.
 - Genrich and Consenrich silently pairing replicates with the wrong input control when only some replicates of a sample have one; the pipeline now stops with an error naming the sample.
 - epic2, Genrich and MACE FRiP scores and peak counts not being calculated, missing from the MultiQC report.
 - Sample labels in the Genrich (and epic2) peak QC plots including the file extension.
+- TE counting (TEcount, TElocal and their name sorting) running once for each antibody on an input control shared by several antibodies, with identical outputs written over each other, and `TE_COUNTING_QC` then failing with `input file name collision` ([#152](https://github.com/grothlab/crepas/issues/152)). Without downsampling each input control is now counted once and its table is added to the QC of each antibody; with downsampling each antibody's copy is still counted, since it is downsampled separately.
+- TEcount and TElocal tables of the final BAM files missing `.flT3` in their names for antibodies in `--use_flT2_as_total_ref` (`H3K9me3` and `H3K27me3` by default). With `--skip_flTbl`, these tables had the same names as the `pre_flT3` ones and were written over them.
+- Stub runs with TE counting (`--skip_te_counting false`) failing with `input file name collision`, because the stubs of the TEcount gene and TE indices had the same name, and stub runs with `--bam_downsampling_method` failing on the empty read total of the downsampled BAM files.
 
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
 

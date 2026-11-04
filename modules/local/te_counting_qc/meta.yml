@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
-name: "te_counts_qc"
+name: "te_counting_qc"
 description: Merge per-sample TEcount/TElocal count tables, normalise them with DESeq2, and plot a PCA and a sample-to-sample distance heatmap
 keywords:
   - deseq2
@@ -11,7 +11,7 @@ tools:
   - deseq2:
       description: |
         R/Bioconductor package for differential gene expression analysis based on the negative
-        binomial distribution. Used here (via the bundled `bin/te_counts_qc.r` script) for its
+        binomial distribution. Used here (via the bundled `bin/te_counting_qc.r` script) for its
         median-of-ratios size factors and variance stabilising transformation, which feed a PCA
         and a sample-to-sample distance heatmap of the TE counts.
       homepage: https://bioconductor.org/packages/release/bioc/html/DESeq2.html

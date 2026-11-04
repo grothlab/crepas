@@ -4,24 +4,40 @@
 include { SAMTOOLS_SORT             } from '../../../modules/nf-core/samtools/sort/main'
 include { TECOUNT }                 from '../../../modules/local/tecount/main'
 include { TELOCAL }                 from '../../../modules/local/telocal/telocal/main'
-include { TE_COUNTS_QC as TE_COUNTS_QC_TECOUNT } from '../../../modules/local/te_counts_qc/main'
-include { TE_COUNTS_QC as TE_COUNTS_QC_TELOCAL } from '../../../modules/local/te_counts_qc/main'
+include { TE_COUNTING_QC as TECOUNT_QC } from '../../../modules/local/te_counting_qc/main'
+include { TE_COUNTING_QC as TELOCAL_QC } from '../../../modules/local/te_counting_qc/main'
 
-//
-// Group per-sample count tables into one QC run per experiment type, filtering stage,
-// downsampling method and strand, so that a PCA only compares samples processed the same way
-//
+
+// TODO: Improve readability
 def groupCountsForQc(ch_counts) {
+    // Antibodies of the IPs that use each input control
+    def ch_input_antibodies = ch_counts
+        // IPs that have an input control
+        .filter { meta, _counts -> meta.input_control }
+        .map { meta, _counts -> [ meta.input_control, meta.antibody ] }
+        .unique()
+
+    // pre_flT3 and pre_flTbl tables of input controls that are the reference for multiple antibodies need to be copied
     return ch_counts
+        // Input controls not yet assigned to an antibody (pre_flT3 and pre_flTbl stages, and final stage without downsampling)
+        .filter { meta, _counts -> meta.is_input_control && !meta.input_control_of_antibody }
+        .map { meta, counts -> [ meta.id, meta, counts ] }
+        .combine(ch_input_antibodies, by: 0)
+        .map { _id, meta, counts, antibody -> [ meta + [ input_control_of_antibody: antibody ], counts ] }
+        // IPs, and input controls already duplicated for each antibody (final stage with downsampling)
+        .mix(ch_counts.filter { meta, _counts -> !meta.is_input_control || meta.input_control_of_antibody })
         .map { meta, counts ->
             // SCAR-seq/OK-seq tables are labelled by strand
             def strand = meta.te_counting_strandedness
             if (strand && meta.exp_type in ['SCAR-seq', 'OK-seq'] && meta.strandedness != 'forward') {
                 strand = strand == 'forward' ? 'reverse' : 'forward'
             }
+            // IPs have meta.antibody, input controls have meta.input_control_of_antibody
+            def antibody = meta.antibody ?: meta.input_control_of_antibody
             def key = [
-                id                       : meta.exp_type + (strand ? '.' + strand : ''),
+                id                       : meta.exp_type + (antibody ? '_' + antibody : '') + (strand ? '.' + strand : ''),
                 exp_type                 : meta.exp_type,
+                antibody                 : antibody,
                 te_counting_stage        : meta.te_counting_stage,
                 downsampling_method      : meta.downsampling_method,
                 te_counting_strandedness : strand
@@ -46,9 +62,9 @@ workflow TE_COUNTING {
     skip_telocal
     skip_tecount_gz
     skip_telocal_gz
-    ch_te_counts_pca_header        // channel: [ header_file ]
-    ch_te_counts_clustering_header // channel: [ header_file ]
-    skip_te_counting_qc            // boolean: skip the PCA and sample distance QC of the count tables
+    ch_te_counting_qc_pca_header        // channel: [ header_file ]
+    ch_te_counting_qc_clustering_header // channel: [ header_file ]
+    skip_te_counting_qc                 // boolean: skip the PCA and sample distance QC of the count tables
 
     main:
 
@@ -110,25 +126,25 @@ workflow TE_COUNTING {
         //
         // MODULE: Normalise TEcount tables, PCA and sample distance heatmap
         //
-        TE_COUNTS_QC_TECOUNT (
+        TECOUNT_QC (
             groupCountsForQc(TECOUNT.out.counts),
-            ch_te_counts_pca_header,
-            ch_te_counts_clustering_header
+            ch_te_counting_qc_pca_header,
+            ch_te_counting_qc_clustering_header
         )
-        ch_multiqc_files = ch_multiqc_files.mix(TE_COUNTS_QC_TECOUNT.out.pca_multiqc.collect { it -> it[1] })
-        ch_multiqc_files = ch_multiqc_files.mix(TE_COUNTS_QC_TECOUNT.out.dists_multiqc.collect { it -> it[1] })
+        ch_multiqc_files = ch_multiqc_files.mix(TECOUNT_QC.out.pca_multiqc.collect { it -> it[1] })
+        ch_multiqc_files = ch_multiqc_files.mix(TECOUNT_QC.out.dists_multiqc.collect { it -> it[1] })
 
         if (!skip_telocal) {
             //
             // MODULE: Normalise TElocal tables, PCA and sample distance heatmap
             //
-            TE_COUNTS_QC_TELOCAL (
+            TELOCAL_QC (
                 groupCountsForQc(TELOCAL.out.counts),
-                ch_te_counts_pca_header,
-                ch_te_counts_clustering_header
+                ch_te_counting_qc_pca_header,
+                ch_te_counting_qc_clustering_header
             )
-            ch_multiqc_files = ch_multiqc_files.mix(TE_COUNTS_QC_TELOCAL.out.pca_multiqc.collect { it -> it[1] })
-            ch_multiqc_files = ch_multiqc_files.mix(TE_COUNTS_QC_TELOCAL.out.dists_multiqc.collect { it -> it[1] })
+            ch_multiqc_files = ch_multiqc_files.mix(TELOCAL_QC.out.pca_multiqc.collect { it -> it[1] })
+            ch_multiqc_files = ch_multiqc_files.mix(TELOCAL_QC.out.dists_multiqc.collect { it -> it[1] })
         }
     }
 

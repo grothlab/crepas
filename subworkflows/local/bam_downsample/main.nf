@@ -336,7 +336,7 @@ workflow BAM_DOWNSAMPLE {
     // Extract the total mapped reads (after downsampling) from the text file
     BAM_FLAGSTAT_MAPPED_DSP.out.txt
         .map { meta, total ->
-            [meta, total.splitCsv(header: false)[0][0]]
+            [meta, workflow.stubRun ? '1' : total.splitCsv(header: false)[0][0]]
         }
         .set { ch_dsp_total }
 

@@ -140,8 +140,8 @@ workflow CREPAS {
     ch_repliseq_gene_class_header = channel.value(file("${projectDir}/assets/multiqc/repliseq_gene_class_header.txt", checkIfExists: true))
     ch_hr_repliseq_features_header = channel.value(file("${projectDir}/assets/multiqc/hr_repliseq_features_header.txt", checkIfExists: true))
     ch_deseq2_clustering_header = channel.value(file("${projectDir}/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true))
-    ch_te_counts_pca_header = channel.value(file("${projectDir}/assets/multiqc/te_counts_pca_header.txt", checkIfExists: true))
-    ch_te_counts_clustering_header = channel.value(file("${projectDir}/assets/multiqc/te_counts_clustering_header.txt", checkIfExists: true))
+    ch_te_counting_qc_pca_header = channel.value(file("${projectDir}/assets/multiqc/te_counting_qc_pca_header.txt", checkIfExists: true))
+    ch_te_counting_qc_clustering_header = channel.value(file("${projectDir}/assets/multiqc/te_counting_qc_clustering_header.txt", checkIfExists: true))
 
     //
     // Create channel from input file provided through params.input
@@ -600,6 +600,12 @@ workflow CREPAS {
         ch_multiqc_files = ch_multiqc_files.mix(MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect { it -> it[1] })
     }
 
+    // Final BAMs for TE counting without downsampling, taken before input controls are duplicated
+    // for each antibody, so that each input control is counted once
+    ch_te_final_endo_bam = ch_filtered_bam_index
+        .filter { meta, _bam, _index -> meta.genome == params.genome }
+        .map { meta, bam, _index -> [ meta, bam ] }
+
     //
     // Duplicate input controls for each antibody
     // This is done for the cases where one input control is used for multiple IPs
@@ -802,12 +808,23 @@ workflow CREPAS {
     //
     if (!params.skip_te_counting) {
 
+        // TE counting runs on the final BAM files and on those before flT3 and flTbl filtering,
+        // tagged by stage so that the QC only compares samples from the same stage
+
+        // Final BAM files: when downsampling is performed, input controls are downsampled
+        // separately for each antibody, so each input control copy has to be counted
+        // When downsampling is not performed each input control can be counted only once
+        ch_te_final_bam = params.bam_downsampling_method ? ch_filtered_bam : ch_te_final_endo_bam
+        ch_te_final_bam = ch_te_final_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'final' ], bam ] }
+
+        // BAM files before blacklist filtering (flTbl)
+        ch_te_pre_flTbl_bam = ch_pre_flTbl_endo_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'pre_flTbl' ], bam ] }
+
+        // BAM files before flT3 filtering
+        ch_te_pre_flT3_bam = ch_pre_flT3_endo_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'pre_flT3' ], bam ] }
+
         TE_COUNTING (
-            // Here we run TE counting on both pre- and post flTbl and flT3 BAM files,
-            // tagged by stage so that the QC only compares samples from the same stage
-            ch_filtered_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'final' ], bam ] }
-                .mix(ch_pre_flTbl_endo_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'pre_flTbl' ], bam ] })
-                .mix(ch_pre_flT3_endo_bam.map { meta, bam -> [ meta + [ te_counting_stage: 'pre_flT3' ], bam ] }),
+            ch_te_final_bam.mix(ch_te_pre_flTbl_bam, ch_te_pre_flT3_bam),
             ch_fasta_fai,
             false,
             ch_tecount_gene_index,
@@ -817,8 +834,8 @@ workflow CREPAS {
             params.skip_telocal,
             params.skip_tecount_gz,
             params.skip_telocal_gz,
-            ch_te_counts_pca_header,
-            ch_te_counts_clustering_header,
+            ch_te_counting_qc_pca_header,
+            ch_te_counting_qc_clustering_header,
             params.skip_te_counting_qc
         )
         ch_multiqc_files = ch_multiqc_files.mix(TE_COUNTING.out.multiqc_files)

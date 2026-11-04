@@ -15,7 +15,7 @@ components:
   - samtools/sort
   - tecount
   - telocal
-  - te_counts_qc
+  - te_counting_qc
 input:
   - ch_bam:
       description: |
@@ -58,12 +58,12 @@ input:
       type: boolean
       description: Skip gzip-compressing the TElocal output
       pattern: "true|false"
-  - ch_te_counts_pca_header:
+  - ch_te_counting_qc_pca_header:
       type: file
       description: |
         MultiQC custom-content header for the TE counts PCA tables
         Structure: [ path(header) ]
-  - ch_te_counts_clustering_header:
+  - ch_te_counting_qc_clustering_header:
       type: file
       description: |
         MultiQC custom-content header for the TE counts sample-distance tables

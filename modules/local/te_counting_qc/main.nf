@@ -1,4 +1,4 @@
-process TE_COUNTS_QC {
+process TE_COUNTING_QC {
     tag "$meta.id"
     label 'process_medium'
 
@@ -36,15 +36,15 @@ process TE_COUNTS_QC {
     // MultiQC section IDs must be unique across all TE counting QC runs
     def mqc_id = prefix.replaceAll(/[^A-Za-z0-9_]/, '_')
     """
-    te_counts_qc.r \\
+    te_counting_qc.r \\
         --outprefix ${prefix} \\
         ${args} \\
         ${counts}
 
-    sed -e 's/te_counts_pca/te_counts_pca_${mqc_id}/g' -e 's/TE counts PCA/${prefix}: TE counts PCA/' ${pca_header} > ${prefix}.pca.vals_mqc.tsv
+    sed -e 's/te_counting_qc_pca/te_counting_qc_pca_${mqc_id}/g' -e 's/TE counts PCA/${prefix}: TE counts PCA/' ${pca_header} > ${prefix}.pca.vals_mqc.tsv
     cat ${prefix}.pca.vals.txt >> ${prefix}.pca.vals_mqc.tsv
 
-    sed -e 's/te_counts_clustering/te_counts_clustering_${mqc_id}/g' -e 's/TE counts sample similarity/${prefix}: TE counts sample similarity/' ${clustering_header} > ${prefix}.sample.dists_mqc.tsv
+    sed -e 's/te_counting_qc_clustering/te_counting_qc_clustering_${mqc_id}/g' -e 's/TE counts sample similarity/${prefix}: TE counts sample similarity/' ${clustering_header} > ${prefix}.sample.dists_mqc.tsv
     cat ${prefix}.sample.dists.txt >> ${prefix}.sample.dists_mqc.tsv
     """
 

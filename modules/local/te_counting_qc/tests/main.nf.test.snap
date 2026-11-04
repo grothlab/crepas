@@ -38,7 +38,7 @@
                     {
                         "id": "test"
                     },
-                    "test.pca.vals_mqc.tsv:md5,dce2eea8eb4a7539215099dd06560120"
+                    "test.pca.vals_mqc.tsv:md5,66219b79b4157889095e52bcaaf841e2"
                 ]
             ],
             [
@@ -54,7 +54,7 @@
                     {
                         "id": "test"
                     },
-                    "test.sample.dists_mqc.tsv:md5,98b1a50361032fb0c7d3e5dd18a31113"
+                    "test.sample.dists_mqc.tsv:md5,5c5ba965961b41e22e99d854bfa1c3a0"
                 ]
             ],
             "test.plots.pdf",
@@ -64,21 +64,21 @@
             {
                 "versions_deseq2": [
                     [
-                        "TE_COUNTS_QC",
+                        "TE_COUNTING_QC",
                         "bioconductor-deseq2",
                         "1.46.0"
                     ]
                 ],
                 "versions_rbase": [
                     [
-                        "TE_COUNTS_QC",
+                        "TE_COUNTING_QC",
                         "r-base",
                         "4.4.2"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-10-24T16:38:04.204358034",
+        "timestamp": "2026-11-04T14:52:13.812260035",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
@@ -148,14 +148,14 @@
                 ],
                 "11": [
                     [
-                        "TE_COUNTS_QC",
+                        "TE_COUNTING_QC",
                         "r-base",
                         "4.4.2"
                     ]
                 ],
                 "12": [
                     [
-                        "TE_COUNTS_QC",
+                        "TE_COUNTING_QC",
                         "bioconductor-deseq2",
                         "1.46.0"
                     ]
@@ -314,14 +314,14 @@
                 ],
                 "versions_deseq2": [
                     [
-                        "TE_COUNTS_QC",
+                        "TE_COUNTING_QC",
                         "bioconductor-deseq2",
                         "1.46.0"
                     ]
                 ],
                 "versions_rbase": [
                     [
-                        "TE_COUNTS_QC",
+                        "TE_COUNTING_QC",
                         "r-base",
                         "4.4.2"
                     ]

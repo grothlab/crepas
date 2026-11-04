@@ -29,6 +29,6 @@ process TETRANSCRIPTS_INDEXER {
 
     stub:
     """
-    touch TEtranscripts_index.ind
+    touch ${gtf}.ind
     """
 }
