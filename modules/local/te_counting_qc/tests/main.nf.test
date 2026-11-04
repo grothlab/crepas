@@ -1,13 +1,13 @@
 nextflow_process {
 
-    name "Test Process TE_COUNTS_QC"
+    name "Test Process TE_COUNTING_QC"
     script "../main.nf"
-    process "TE_COUNTS_QC"
+    process "TE_COUNTING_QC"
     config "./nextflow.config"
 
     tag "modules"
     tag "modules_local"
-    tag "te_counts_qc"
+    tag "te_counting_qc"
     tag "tecount"
     tag "bam_remove_orphans"
 
@@ -59,7 +59,7 @@ nextflow_process {
 
         when {
             params {
-                te_counts_qc_args = "--group_regex '_bRep_.*\$'"
+                te_counting_qc_args = "--group_regex '_bRep_.*\$'"
             }
             process {
                 """
@@ -67,8 +67,8 @@ nextflow_process {
                     .map { meta, counts -> counts }
                     .collect()
                     .map { counts -> [ [ id:'test' ], counts ] }
-                input[1] = file("${projectDir}/assets/multiqc/te_counts_pca_header.txt", checkIfExists: true)
-                input[2] = file("${projectDir}/assets/multiqc/te_counts_clustering_header.txt", checkIfExists: true)
+                input[1] = file("${projectDir}/assets/multiqc/te_counting_qc_pca_header.txt", checkIfExists: true)
+                input[2] = file("${projectDir}/assets/multiqc/te_counting_qc_clustering_header.txt", checkIfExists: true)
                 """
             }
         }
@@ -100,7 +100,7 @@ nextflow_process {
 
         when {
             params {
-                te_counts_qc_args = "--features gene --rlog"
+                te_counting_qc_args = "--features gene --rlog"
             }
             process {
                 """
@@ -108,8 +108,8 @@ nextflow_process {
                     .map { meta, counts -> counts }
                     .collect()
                     .map { counts -> [ [ id:'test' ], counts ] }
-                input[1] = file("${projectDir}/assets/multiqc/te_counts_pca_header.txt", checkIfExists: true)
-                input[2] = file("${projectDir}/assets/multiqc/te_counts_clustering_header.txt", checkIfExists: true)
+                input[1] = file("${projectDir}/assets/multiqc/te_counting_qc_pca_header.txt", checkIfExists: true)
+                input[2] = file("${projectDir}/assets/multiqc/te_counting_qc_clustering_header.txt", checkIfExists: true)
                 """
             }
         }
@@ -135,7 +135,7 @@ nextflow_process {
 
         when {
             params {
-                te_counts_qc_args = ''
+                te_counting_qc_args = ''
             }
             process {
                 """
@@ -143,8 +143,8 @@ nextflow_process {
                     .map { meta, counts -> counts }
                     .collect()
                     .map { counts -> [ [ id:'test' ], counts ] }
-                input[1] = file("${projectDir}/assets/multiqc/te_counts_pca_header.txt", checkIfExists: true)
-                input[2] = file("${projectDir}/assets/multiqc/te_counts_clustering_header.txt", checkIfExists: true)
+                input[1] = file("${projectDir}/assets/multiqc/te_counting_qc_pca_header.txt", checkIfExists: true)
+                input[2] = file("${projectDir}/assets/multiqc/te_counting_qc_clustering_header.txt", checkIfExists: true)
                 """
             }
         }

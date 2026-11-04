@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# te_counts_qc.r
+# te_counting_qc.r
 # Samuel Ruiz-Pérez <samper@cancer.dk>, for grothlab/crepas (https://github.com/grothlab/crepas/)
 # PCA code adapted from deseq2_qc.r (nf-core/chipseq: Jose Espinosa-Carrasco, Harshil Patel, Gavin Kelly).
 #

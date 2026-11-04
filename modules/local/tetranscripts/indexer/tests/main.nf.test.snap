@@ -7,7 +7,7 @@
                         {
                             "id": "test"
                         },
-                        "TEtranscripts_index.ind:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "genome.gtf.ind:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "1": [
@@ -22,7 +22,7 @@
                         {
                             "id": "test"
                         },
-                        "TEtranscripts_index.ind:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "genome.gtf.ind:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "versions_tetranscripts_indexer": [
@@ -34,10 +34,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-20T11:33:38.295560671",
+        "timestamp": "2026-11-04T14:29:30.360735403",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
     "sarscov2 - gtf - gene index": {
