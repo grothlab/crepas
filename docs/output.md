@@ -588,7 +588,7 @@ For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer
 
 </details>
 
-[EDD](https://github.com/CollasLab/edd) (Enriched Domain Detector) finds very broad domains, such as nuclear lamina-associated domains, from an IP and its input. The bin size and gap penalty are estimated from the data unless they are given with `--edd_bin_size` and `--edd_gap_penalty`; `--edd_num_trials` and `--edd_fdr` set the Monte Carlo trials and the FDR cutoff. A sample is skipped when EDD cannot estimate a bin size for it.
+[EDD](https://github.com/CollasLab/edd) (Enriched Domain Detector) finds very broad domains, such as nuclear lamina-associated domains, from an IP and its input. The bin size and gap penalty are estimated from the data unless they are given with `--edd_bin_size` and `--edd_gap_penalty`; `--edd_num_trials` and `--edd_fdr` set the Monte Carlo trials and the FDR cutoff. The settings of EDD's configuration file are set with `--edd_max_ci_value`, `--edd_required_fraction_of_informative_bins`, `--edd_p_hat_ci_method` and `--edd_log_ratio_bin_size`. A sample is skipped when EDD cannot find a bin size with enough informative bins for it; lowering `--edd_required_fraction_of_informative_bins` or raising `--edd_max_ci_value` can let it run.
 
 #### DANPOS2
 

@@ -12,6 +12,7 @@ Development version of grothlab/crepas.
 - QC of the TEcount and TElocal count tables (`TE_COUNTS_QC`): the per-sample tables are merged, normalised with DESeq2 size factors and variance-stabilised, and plotted as a PCA and a sample distance heatmap (genes and TEs), also added to the MultiQC report. The merged raw count matrix, an unfiltered DESeqDataSet and the variance-stabilised object are saved for downstream analysis. Samples are compared per experiment type, filtering stage, downsampling method and strand. Disable with `skip_te_counting_qc`.
 - epic2 peak QC plots (fold enrichment, p-value, q-value and peak length per sample), as for MACS3 and Genrich. epic2 peaks are now also saved in ENCODE broadPeak format (`*.epic2.broadPeak`), next to the HOMER-compatible `*.epic2.diffusePeak`; both are written by the new `EPIC2_TO_PEAK` module.
 - Output documentation for every peak caller (MACS3, epic2, Genrich, SEACR, MACE, EDD, DANPOS2, Consenrich and ROCCO), as subsections of "Peak calling" in `docs/output.md`.
+- EDD configuration file settings as parameters: `--edd_max_ci_value`, `--edd_required_fraction_of_informative_bins`, `--edd_p_hat_ci_method` and `--edd_log_ratio_bin_size` ([#32](https://github.com/grothlab/crepas/issues/32)). The `EDD` module takes them from `ext.args` (e.g. `--max_CI_value 0.3`) and sets them in a copy of EDD's default configuration file.
 
 ### `Fixed`
 
@@ -24,6 +25,7 @@ Development version of grothlab/crepas.
 - Genrich and Consenrich silently pairing replicates with the wrong input control when only some replicates of a sample have one; the pipeline now stops with an error naming the sample.
 - epic2, Genrich and MACE FRiP scores and peak counts not being calculated, missing from the MultiQC report.
 - Sample labels in the Genrich (and epic2) peak QC plots including the file extension.
+- EDD stopping the pipeline with a missing output error whenever it ran successfully, because EDD writes its results into a subdirectory that the module's outputs did not look in.
 - Partition/RFD summary plots drawing their grey quadrant backgrounds once per plotted data row, which left hundreds of stacked grey squares in the PDFs ([#149](https://github.com/grothlab/crepas/issues/149)).
 - nf-test shards on GitHub Actions failing with `no space left on device` when pulling container images; the runner's unused preinstalled software is now removed before the tests.
 
