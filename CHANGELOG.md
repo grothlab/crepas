@@ -26,6 +26,8 @@ Development version of grothlab/crepas.
 - epic2, Genrich and MACE FRiP scores and peak counts not being calculated, missing from the MultiQC report.
 - Sample labels in the Genrich (and epic2) peak QC plots including the file extension.
 - EDD stopping the pipeline with a missing output error whenever it ran successfully, because EDD writes its results into a subdirectory that the module's outputs did not look in.
+- Partition/RFD summary plots drawing their grey quadrant backgrounds once per plotted data row, which left hundreds of stacked grey squares in the PDFs ([#149](https://github.com/grothlab/crepas/issues/149)).
+- nf-test shards on GitHub Actions failing with `no space left on device` when pulling container images; the runner's unused preinstalled software is now removed before the tests.
 
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
 
