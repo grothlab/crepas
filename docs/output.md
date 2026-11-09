@@ -476,7 +476,7 @@ present, is used to drop bins it does not cover rather than becoming a row of th
 
 The peak callers are chosen with `--peak_callers` (default `macs3`), as a comma-separated list such as `--peak_callers macs3,epic2`. Each one writes its results under `<aligner>/mergedLibrary/<EXP_TYPE>/<PEAK_CALLER>/`. For samples downsampled with `--downsampling_method`, a `downsampled/` directory is added after `<EXP_TYPE>`; with a multimapper allocation method other than Chromap's, a directory named after it is added after `mergedLibrary/`. `<PEAK_TYPE>` below is `narrow_peak` with `--narrow_peak` and `broad_peak` otherwise.
 
-For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) annotates the peaks relative to the genomic features in the `--gtf` file. The [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html), peak count and peak-to-gene feature ratios of these callers are added to the MultiQC report, each caller in its own section. Annotation and its QC plots are switched off by `--skip_peak_annotation` and `--skip_peak_qc`.
+For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) annotates the peaks relative to the genomic features in the `--gtf` file. The [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html), peak count and peak-to-gene feature ratios of these callers are added to the MultiQC report, each caller in its own section. Annotation is switched off by `--skip_peak_annotation`, and the QC plots of the peaks and their annotation by `--skip_peak_qc`.
 
 ![MultiQC - MACS3 total peak count plot](images/mqc_macs3_peak_count_plot.png)
 
@@ -534,7 +534,7 @@ For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer
   - `*.nsorted.bam`: the name-sorted BAM files that Genrich reads.
   - `*.genrich.peaks.annotatePeaks.txt`: HOMER peak-to-gene annotation file.
 - `<aligner>/mergedLibrary/<EXP_TYPE>/genrich/<PEAK_TYPE>/qc/`
-  - `*.genrich.peaks.qc.plots.pdf`, `*.genrich.peaks.qc.summary.txt`: QC plots and summary statistics of the fold enrichment, p-value, q-value and length of the peaks, per sample.
+  - `*.genrich.peaks.qc.plots.pdf`, `*.genrich.peaks.qc.summary.txt`: QC plots and summary statistics of the area under the curve (the signalValue column), p-value, q-value and length of the peaks, per sample.
   - `*.genrich.homer_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
   - `*.FRiP_mqc.tsv`, `*.peak_count_mqc.tsv`, `*.summary_mqc.tsv`: MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios.
 
@@ -551,6 +551,7 @@ For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer
   - `*.<BIN_SIZE>.<NORM>[.map].stringent.bed` (or `.relaxed.bed`, depending on `--seacr_stringency`): SEACR peaks, one file per bin size (`--coverage_bin_size` and 1) and normalisation (`raw`, `rpm`, and `srpm` and `cisrpm` when they are made).
   - `*.seacr.<BIN_SIZE>.<NORM>.peaks.annotatePeaks.txt`: HOMER peak-to-gene annotation files.
 - `<aligner>/mergedLibrary/<EXP_TYPE>/SEACR/qc/`
+  - `*.seacr.<BIN_SIZE>.<NORM>.peaks.qc.plots.pdf`, `*.seacr.<BIN_SIZE>.<NORM>.peaks.qc.summary.txt`: QC plots and summary statistics of the total signal, maximum signal and length of the peaks, per sample.
   - `*.seacr.homer_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
   - `*.FRiP_mqc.tsv`, `*.peak_count_mqc.tsv`, `*.summary_mqc.tsv`: MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios.
 
@@ -569,6 +570,7 @@ For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer
   - `*.bw`: forward and reverse strand signal tracks. The WIG files they are made from are kept with `--save_mace_intermeds`.
   - `*.mace.peaks.annotatePeaks.txt`: HOMER peak-to-gene annotation file.
 - `<aligner>/mergedLibrary/<EXP_TYPE>/mace/qc/`
+  - `*.mace.peaks.qc.plots.pdf`, `*.mace.peaks.qc.summary.txt`: QC plots and summary statistics of the p-value and length of the peaks, per sample.
   - `*.mace.homer_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
   - `*.FRiP_mqc.tsv`, `*.peak_count_mqc.tsv`, `*.summary_mqc.tsv`: MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios.
 

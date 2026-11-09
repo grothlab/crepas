@@ -5,7 +5,7 @@
 include { FRIP_SCORE               } from '../../../modules/local/frip_score/main'
 include { MULTIQC_CUSTOM_PEAKS     } from '../../../modules/local/multiqc_custom_peaks/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../../modules/nf-core/homer/annotatepeaks/main'
-include { PLOT_MACS3_QC            } from '../../../modules/local/plot_macs3_qc/main'
+include { PLOT_PEAK_QC             } from '../../../modules/local/plot_peak_qc/main'
 include { PLOT_HOMER_ANNOTATEPEAKS } from '../../../modules/local/plot_homer_annotatepeaks/main'
 
 workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
@@ -13,7 +13,7 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
     take:
     ch_bam_peaks          // channel: [ val(meta), path(ip_bam), path(peaks) ], one per IP BAM, for FRiP scores and peak counts
     ch_peaks              // channel: [ val(meta), path(peaks) ], one per peak file, for HOMER annotation
-    ch_qc_peaks           // channel: [ val(meta), path(peaks) ], MACS3-like peak files (fold enrichment, p- and q-value columns) for the peak QC plots
+    ch_qc_peaks           // channel: [ val(meta), path(peaks) ], peak files for the peak QC plots, whose score columns are set per peak caller in ext.args
     ch_peak_count_frip_headers  // channel: [ val(peak_caller), val(peak_qc_variant), path(peak_count_header), path(frip_score_header) ], peak_qc_variant is '' for callers with one peak set per sample
     ch_peak_annotation_headers  // channel: [ val(peak_caller), path(peak_annotation_header), val(annotate_peaks_suffix) ]
     ch_fasta              // channel: [ val(meta), path(fasta) ]
@@ -70,24 +70,24 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
 
         if (!skip_peak_qc) {
 
-            // Create channel: [ meta, [ peaks ] ], one per peak caller and experiment type
+            // Create channel: [ meta, [ peaks ] ], one per peak caller, peak set (meta.peak_qc_variant) and experiment type
             // meta is that of the first sample, with id = exp_type
             ch_qc_peaks
-                .map { meta, peaks -> [ [ meta.peak_caller, meta.exp_type ], meta, peaks ] }
+                .map { meta, peaks -> [ [ meta.peak_caller, (meta.peak_qc_variant ?: '').toString(), meta.exp_type ], meta, peaks ] }
                 .groupTuple(by: 0)
                 .map { key, metas, peaks ->
-                    [ metas[0] + [ id: key[1] ], peaks.sort { it -> it.name } ]
+                    [ metas[0] + [ id: key[2] ], peaks.sort { it -> it.name } ]
                 }
                 .set { ch_qc_peaks_grouped }
 
             //
-            // MODULE: Peak QC plots (fold enrichment, p-value, q-value, length) with R
+            // MODULE: Peak QC plots (count, length and the score columns of each peak caller) with R
             //
-            PLOT_MACS3_QC (
+            PLOT_PEAK_QC (
                 ch_qc_peaks_grouped
             )
-            ch_plot_peak_qc_txt = PLOT_MACS3_QC.out.txt
-            ch_plot_peak_qc_pdf = PLOT_MACS3_QC.out.pdf
+            ch_plot_peak_qc_txt = PLOT_PEAK_QC.out.txt
+            ch_plot_peak_qc_pdf = PLOT_PEAK_QC.out.pdf
 
             // Create channel: [ meta, [ anns ], peak_annotation_header, annotate_peaks_suffix ], one per peak caller and experiment type
             HOMER_ANNOTATEPEAKS.out.txt

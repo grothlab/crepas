@@ -218,11 +218,13 @@ workflow CALL_PEAKS {
     ch_peaks_to_annotate = ch_macs3_peaks
         .mix(ch_epic2_peaks, ch_genrich_peaks, ch_mace_peaks, ch_seacr_peaks)
 
-    // Only peak files with MACS3-like columns (fold enrichment, p- and q-value) get the peak QC plots
+    // Peak files for the peak QC plots (epic2 gives its broadPeak, with the columns as MACS3)
     ch_qc_peaks = BAM_PEAKS_CALL_MACS3.out.qc_peaks
         .mix(
             BAM_PEAKS_CALL_EPIC2.out.qc_peaks,
-            BAM_PEAKS_CALL_GENRICH.out.qc_peaks
+            BAM_PEAKS_CALL_GENRICH.out.qc_peaks,
+            BAM_PEAKS_CALL_MACE.out.qc_peaks,
+            BAM_PEAKS_CALL_SEACR.out.qc_peaks
         )
 
     // Add the suffix that PLOT_HOMER_ANNOTATEPEAKS trims off annotation file names to label samples

@@ -1,17 +1,18 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
-name: "plot_macs3_qc"
-description: Generate summary plots (peak count, length, fold-enrichment, significance) and a summary table from MACS3 peak calls
+name: "plot_peak_qc"
+description: Generate summary plots (peak count, length and chosen score columns) and a summary table from the peak files of any peak caller
 keywords:
-  - macs3
-  - qc
   - peaks
+  - qc
+  - plots
 tools:
   - r-base:
       description: |
-        The R programming language, used here (via the bundled `bin/plot_macs3_qc.r` script)
-        to summarise and plot MACS3 narrowPeak/broadPeak calls
-        across samples: peak count, peak length, fold-enrichment, and significance
-        (p/q-value) distributions, plus a per-sample summary statistics table.
+        The R programming language, used here (via the bundled `bin/plot_peak_qc.r` script)
+        to summarise and plot peak calls across samples: peak count, peak length, and the
+        distributions of the score columns given with `--columns` in `ext.args` (e.g.
+        `7:fold:log2,9:-log10(qvalue),8:-log10(pvalue)` for MACS3), plus a per-sample
+        summary statistics table.
       homepage: https://www.r-project.org/
       documentation: https://www.r-project.org/other-docs.html
       licence: ["GPL-2.0-or-later"]
@@ -24,8 +25,8 @@ input:
           e.g. [ id:'test', single_end:false ]
     - peaks:
         type: file
-        description: One or more MACS3 narrowPeak/broadPeak files to summarise together
-        pattern: "*.{narrowPeak,broadPeak}"
+        description: One or more tab-separated peak files (BED-like, no header) to summarise together
+        pattern: "*.{narrowPeak,broadPeak,bed,peak}"
         ontologies:
           - edam: "http://edamontology.org/format_3003" # BED
 output:
@@ -37,7 +38,7 @@ output:
             e.g. [ id:'test', single_end:false ]
       - "*.txt":
           type: file
-          description: Per-sample peak summary statistics table (fold-enrichment, q-value, p-value, length)
+          description: Per-sample peak summary statistics table (score columns and length)
           pattern: "*.summary.txt"
   pdf:
     - - meta:
@@ -47,7 +48,7 @@ output:
             e.g. [ id:'test', single_end:false ]
       - "*.pdf":
           type: file
-          description: PDF report with peak count, length, fold-enrichment, and significance distribution plots
+          description: PDF report with peak count, length and score column distribution plots
           pattern: "*.plots.pdf"
           ontologies:
             - edam: "http://edamontology.org/format_3508" # PDF

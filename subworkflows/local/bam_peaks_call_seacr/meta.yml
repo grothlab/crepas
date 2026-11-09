@@ -42,6 +42,10 @@ output:
       description: |
         IP BAM file with its peaks, for FRiP scores and peak counts
         Structure: [ val(meta), path(ip_bam), path(peaks) ]
+  - qc_peaks:
+      description: |
+        SEACR peaks, for the peak QC plots
+        Structure: [ val(meta), path(peaks) ]
   - bedgraph:
       description: |
         bedGraphs given to SEACR, at both bin sizes, with a header line

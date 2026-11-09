@@ -15,7 +15,7 @@ components:
   - frip_score
   - multiqc_custom_peaks
   - homer/annotatepeaks
-  - plot_macs3_qc
+  - plot_peak_qc
   - plot_homer_annotatepeaks
 input:
   - ch_bam_peaks:
@@ -29,8 +29,8 @@ input:
         Structure: [ val(meta), path(peaks) ]
   - ch_qc_peaks:
       description: |
-        Peak files with MACS3-like columns (fold enrichment, -log10 p-value, -log10 q-value), for
-        the peak QC plots. Callers without these columns leave it empty.
+        Peak files for the peak QC plots: count, length and the score columns of each peak caller,
+        set in PLOT_PEAK_QC ext.args. Plotted per peak caller, meta.peak_qc_variant and experiment type.
         Structure: [ val(meta), path(peaks) ]
   - ch_peak_count_frip_headers:
       description: |
