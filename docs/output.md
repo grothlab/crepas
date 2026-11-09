@@ -548,15 +548,15 @@ For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer
     <summary>Output files</summary>
 
 - `<aligner>/mergedLibrary/<EXP_TYPE>/SEACR/`
-  - `*.stringent.bed` or `*.relaxed.bed`: SEACR peaks, depending on `--seacr_stringency`.
-  - `*.seacr.peaks.annotatePeaks.txt`: HOMER peak-to-gene annotation file.
+  - `*.<BIN_SIZE>.<NORM>[.map].stringent.bed` (or `.relaxed.bed`, depending on `--seacr_stringency`): SEACR peaks, one file per bin size (`--coverage_bin_size` and 1) and normalisation (`raw`, `rpm`, and `srpm` and `cisrpm` when they are made).
+  - `*.seacr.<BIN_SIZE>.<NORM>.peaks.annotatePeaks.txt`: HOMER peak-to-gene annotation files.
 - `<aligner>/mergedLibrary/<EXP_TYPE>/SEACR/qc/`
   - `*.seacr.homer_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
   - `*.FRiP_mqc.tsv`, `*.peak_count_mqc.tsv`, `*.summary_mqc.tsv`: MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios.
 
 </details>
 
-[SEACR](https://github.com/FredHutch/SEACR) calls peaks from the bedGraph coverage of CUT&RUN and CUT&Tag data. It uses the IgG control when there is one, and otherwise keeps the top `--seacr_peak_threshold` fraction of peaks by signal. `--seacr_norm` sets whether SEACR normalises the control to the target (`norm`) or not (`non`).
+[SEACR](https://github.com/FredHutch/SEACR) calls peaks in CUT&RUN and CUT&Tag data as blocks of contiguous signal. It runs at two bin sizes: on the coverage tracks, at `--coverage_bin_size`, and on 1 bp coverage of the BAM files (`bedtools genomecov`, of paired-end fragments or of single-end reads extended to `--fragment_size`), scaled by the factor of each normalisation of the coverage tracks.
 
 #### MACE
 

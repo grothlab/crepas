@@ -14,7 +14,7 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
     ch_bam_peaks          // channel: [ val(meta), path(ip_bam), path(peaks) ], one per IP BAM, for FRiP scores and peak counts
     ch_peaks              // channel: [ val(meta), path(peaks) ], one per peak file, for HOMER annotation
     ch_qc_peaks           // channel: [ val(meta), path(peaks) ], MACS3-like peak files (fold enrichment, p- and q-value columns) for the peak QC plots
-    ch_peak_count_frip_headers  // channel: [ val(peak_caller), val(norm_factor_type), path(peak_count_header), path(frip_score_header) ], norm_factor_type is '' for callers not run per normalisation
+    ch_peak_count_frip_headers  // channel: [ val(peak_caller), val(peak_qc_variant), path(peak_count_header), path(frip_score_header) ], peak_qc_variant is '' for callers with one peak set per sample
     ch_peak_annotation_headers  // channel: [ val(peak_caller), path(peak_annotation_header), val(annotate_peaks_suffix) ]
     ch_fasta              // channel: [ val(meta), path(fasta) ]
     ch_gtf                // channel: [ val(meta), path(gtf) ]
@@ -24,11 +24,11 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
     main:
 
     // Every meta carries meta.peak_caller, which selects the MultiQC headers and the output names/paths.
-    // Peaks of callers run on each normalisation of a sample (SEACR) also carry meta.norm_factor_type,
-    // and get the peak count and FRiP score headers of that normalisation.
+    // Callers with several peak sets per sample (SEACR: one per bin size and normalisation) set meta.peak_qc_variant,
+    // so that each peak set gets its own peak count and FRiP score sections; MultiQC would merge their rows otherwise.
 
     //
-    // Calculate FRiP score
+    // MODULE: Calculate FRiP score
     //
     FRIP_SCORE (
         ch_bam_peaks
@@ -37,15 +37,15 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
     // Create channel: [ meta, peaks, frip, peak_count_header, frip_score_header ]
     ch_bam_peaks
         .join(FRIP_SCORE.out.txt, by: 0)
-        .map { meta, _ip_bam, peaks, frip -> [ meta.peak_caller, meta.norm_factor_type ?: '', meta, peaks, frip ] }
+        .map { meta, _ip_bam, peaks, frip -> [ meta.peak_caller, (meta.peak_qc_variant ?: '').toString(), meta, peaks, frip ] }
         .combine(ch_peak_count_frip_headers, by: [ 0, 1 ])
-        .map { _peak_caller, _norm_factor_type, meta, peaks, frip, peak_count_header, frip_score_header ->
+        .map { _peak_caller, _peak_qc_variant, meta, peaks, frip, peak_count_header, frip_score_header ->
             [ meta, peaks, frip, peak_count_header, frip_score_header ]
         }
         .set { ch_peaks_frip_headers }
 
     //
-    // FRiP score and peak count custom content for MultiQC
+    // MODULE: FRiP score and peak count custom content for MultiQC
     //
     MULTIQC_CUSTOM_PEAKS (
         ch_peaks_frip_headers
@@ -59,7 +59,7 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
     ch_plot_homer_annotatepeaks_tsv = channel.empty()
     if (!skip_peak_annotation) {
         //
-        // Annotate peaks with HOMER
+        // MODULE: Annotate peaks with HOMER
         //
         HOMER_ANNOTATEPEAKS (
             ch_peaks,
@@ -81,7 +81,7 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
                 .set { ch_qc_peaks_grouped }
 
             //
-            // Peak QC plots (fold enrichment, p-value, q-value, length) with R
+            // MODULE: Peak QC plots (fold enrichment, p-value, q-value, length) with R
             //
             PLOT_MACS3_QC (
                 ch_qc_peaks_grouped
@@ -103,7 +103,7 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
                 .set { ch_homer_annotatepeaks_grouped }
 
             //
-            // Peak annotation QC plots with R
+            // MODULE: Peak annotation QC plots with R
             //
             PLOT_HOMER_ANNOTATEPEAKS (
                 ch_homer_annotatepeaks_grouped

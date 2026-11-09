@@ -316,8 +316,24 @@ report_section_order:
     order: -1436
   seacr_cisrpm_frip_score:
     order: -1437
-  seacr_peak_annotation:
+  seacr_1bp_raw_peak_count:
     order: -1438
+  seacr_1bp_raw_frip_score:
+    order: -1439
+  seacr_1bp_rpm_peak_count:
+    order: -1440
+  seacr_1bp_rpm_frip_score:
+    order: -1441
+  seacr_1bp_srpm_peak_count:
+    order: -1442
+  seacr_1bp_srpm_frip_score:
+    order: -1443
+  seacr_1bp_cisrpm_peak_count:
+    order: -1444
+  seacr_1bp_cisrpm_frip_score:
+    order: -1445
+  seacr_peak_annotation:
+    order: -1446
   deeptools_fingerprint:
     order: -1450
   consensus_featurecounts_se:

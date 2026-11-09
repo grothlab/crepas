@@ -34,10 +34,10 @@ input:
         Structure: [ val(meta), path(peaks) ]
   - ch_peak_count_frip_headers:
       description: |
-        MultiQC custom-content headers for the peak count and FRiP score tables, per peak caller
-        and, for callers run on each normalisation of a sample (SEACR), per normalisation.
-        norm_factor_type is '' for the other callers.
-        Structure: [ val(peak_caller), val(norm_factor_type), path(peak_count_header), path(frip_score_header) ]
+        MultiQC custom-content headers for the peak count and FRiP score tables, per peak caller and
+        meta.peak_qc_variant. Callers with several peak sets per sample (SEACR: one per bin size and
+        normalisation) set meta.peak_qc_variant so that each gets its own sections; it is '' for the others.
+        Structure: [ val(peak_caller), val(peak_qc_variant), path(peak_count_header), path(frip_score_header) ]
   - ch_peak_annotation_headers:
       description: |
         MultiQC custom-content header for the peak annotation plot per peak caller, and the suffix

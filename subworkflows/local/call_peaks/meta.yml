@@ -33,7 +33,8 @@ input:
         Structure: [ val(meta), path(bigwig) ]
   - ch_bedgraph_for_seacr:
       description: |
-        IP and input-control bedGraph signal, used when 'seacr' is among peak_callers
+        Coverage tracks, used when 'seacr' is among peak_callers. SEACR is run on these and on 1 bp
+        coverage of the BAM files, scaled for each normalisation of these tracks
         Structure: [ val(meta), path(bedgraph) ]
   - ch_peak_callers:
       description: |
@@ -70,9 +71,9 @@ input:
       description: Effective genome size, used by ROCCO and MACS3
   - ch_peak_count_frip_headers:
       description: |
-        MultiQC custom-content headers for the peak count and FRiP score tables, per peak caller
-        and, for SEACR, per normalisation (norm_factor_type is '' for the other callers)
-        Structure: [ val(peak_caller), val(norm_factor_type), path(peak_count_header), path(frip_score_header) ]
+        MultiQC custom-content headers for the peak count and FRiP score tables, per peak caller and,
+        for SEACR, per bin size and normalisation (peak_qc_variant, e.g. '1bp_rpm'; '' for the other callers)
+        Structure: [ val(peak_caller), val(peak_qc_variant), path(peak_count_header), path(frip_score_header) ]
   - ch_peak_annotation_headers:
       description: |
         MultiQC custom-content header for the peak annotation plot, per peak caller
@@ -118,6 +119,9 @@ input:
   - seacr_peak_threshold:
       type: float
       description: SEACR peak calling threshold, used when 'seacr' is among peak_callers
+  - coverage_bin_size:
+      type: integer
+      description: Bin size of the coverage tracks, one of the two bin sizes SEACR is run at (with 1 bp)
 output:
   - edd_peaks:
       description: |

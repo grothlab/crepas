@@ -45,7 +45,7 @@ output:
             bedGraph file with the score column normalized. Normalization factor and operation
             are read from `task.ext.args2` (`--norm_factor <value>`, `--norm_operation
             <multiply|divide|add|subtract>`, default `multiply`) and pseudocount from
-            `--add_pseudocount`.
+            `--add_pseudocount`. With `--track_line`, a `track type=bedGraph` header line is written first.
           pattern: "*.{bdg,bedGraph,bedgraph}"
           ontologies:
             - edam: "http://edamontology.org/format_3583" # bedGraph
