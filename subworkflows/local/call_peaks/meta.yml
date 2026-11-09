@@ -68,11 +68,15 @@ input:
       description: ROCCO parameters file
   - ch_effective_gsize:
       description: Effective genome size, used by ROCCO and MACS3
-  - ch_peak_qc_headers:
+  - ch_peak_count_frip_headers:
       description: |
-        MultiQC custom-content headers for the peak count table, FRiP score table and peak
-        annotation plot, one row per peak caller with FRiP scores and annotation
-        Structure: [ val(peak_caller), path(peak_count_header), path(frip_score_header), path(peak_annotation_header) ]
+        MultiQC custom-content headers for the peak count and FRiP score tables, per peak caller
+        and, for SEACR, per normalisation (norm_factor_type is '' for the other callers)
+        Structure: [ val(peak_caller), val(norm_factor_type), path(peak_count_header), path(frip_score_header) ]
+  - ch_peak_annotation_headers:
+      description: |
+        MultiQC custom-content header for the peak annotation plot, per peak caller
+        Structure: [ val(peak_caller), path(peak_annotation_header) ]
   - ch_deseq2_pca_header:
       type: file
       description: MultiQC custom-content header for the consensus-peak DESeq2 PCA plot

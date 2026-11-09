@@ -13,10 +13,12 @@ workflow BAM_PEAKS_CALL_MACE {
     main:
 
     // Create channel: [ meta, [bams_merged_reps] ]
+    // MACE has no input control option, so input controls are left out rather than treated as samples
     ch_bam_bai
+        .filter { meta, _bam, _bai -> !meta.is_input_control }
         .map { meta, bam, bai ->
             def meta_clone = meta.clone()
-            def antibody = meta_clone.input_control_of_antibody ?: meta_clone.antibody
+            def antibody = meta_clone.antibody
             meta_clone.id = meta_clone.id - ~/_bRep_.*$/
             meta_clone.input_control = meta_clone.input_control - ~/_bRep_.*$/
             [meta_clone.id, antibody, meta_clone, bam, bai]

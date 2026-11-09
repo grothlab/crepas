@@ -14,7 +14,8 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
     ch_bam_peaks          // channel: [ val(meta), path(ip_bam), path(peaks) ], one per IP BAM, for FRiP scores and peak counts
     ch_peaks              // channel: [ val(meta), path(peaks) ], one per peak file, for HOMER annotation
     ch_qc_peaks           // channel: [ val(meta), path(peaks) ], MACS3-like peak files (fold enrichment, p- and q-value columns) for the peak QC plots
-    ch_peak_qc_headers    // channel: [ val(peak_caller), path(peak_count_header), path(frip_score_header), path(peak_annotation_header), val(annotate_peaks_suffix) ]
+    ch_peak_count_frip_headers  // channel: [ val(peak_caller), val(norm_factor_type), path(peak_count_header), path(frip_score_header) ], norm_factor_type is '' for callers not run per normalisation
+    ch_peak_annotation_headers  // channel: [ val(peak_caller), path(peak_annotation_header), val(annotate_peaks_suffix) ]
     ch_fasta              // channel: [ val(meta), path(fasta) ]
     ch_gtf                // channel: [ val(meta), path(gtf) ]
     skip_peak_annotation  // boolean: true/false
@@ -22,7 +23,9 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
 
     main:
 
-    // Every meta carries meta.peak_caller, which selects the MultiQC headers and the output names/paths
+    // Every meta carries meta.peak_caller, which selects the MultiQC headers and the output names/paths.
+    // Peaks of callers run on each normalisation of a sample (SEACR) also carry meta.norm_factor_type,
+    // and get the peak count and FRiP score headers of that normalisation.
 
     //
     // Calculate FRiP score
@@ -34,9 +37,9 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
     // Create channel: [ meta, peaks, frip, peak_count_header, frip_score_header ]
     ch_bam_peaks
         .join(FRIP_SCORE.out.txt, by: 0)
-        .map { meta, _ip_bam, peaks, frip -> [ meta.peak_caller, meta, peaks, frip ] }
-        .combine(ch_peak_qc_headers, by: 0)
-        .map { _peak_caller, meta, peaks, frip, peak_count_header, frip_score_header, _peak_annotation_header, _suffix ->
+        .map { meta, _ip_bam, peaks, frip -> [ meta.peak_caller, meta.norm_factor_type ?: '', meta, peaks, frip ] }
+        .combine(ch_peak_count_frip_headers, by: [ 0, 1 ])
+        .map { _peak_caller, _norm_factor_type, meta, peaks, frip, peak_count_header, frip_score_header ->
             [ meta, peaks, frip, peak_count_header, frip_score_header ]
         }
         .set { ch_peaks_frip_headers }
@@ -93,8 +96,8 @@ workflow BAM_PEAKS_QC_ANNOTATE_HOMER {
                 .map { key, metas, anns ->
                     [ key[0], metas[0] + [ id: key[1] ], anns.sort { it -> it.name } ]
                 }
-                .combine(ch_peak_qc_headers, by: 0)
-                .map { _peak_caller, meta, anns, _peak_count_header, _frip_score_header, peak_annotation_header, suffix ->
+                .combine(ch_peak_annotation_headers, by: 0)
+                .map { _peak_caller, meta, anns, peak_annotation_header, suffix ->
                     [ meta, anns, peak_annotation_header, suffix ]
                 }
                 .set { ch_homer_annotatepeaks_grouped }
