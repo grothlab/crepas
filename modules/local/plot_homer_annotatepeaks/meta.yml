@@ -27,11 +27,11 @@ input:
         type: file
         description: One or more HOMER `annotatePeaks.pl` output text files to summarise together
         pattern: "*.txt"
-  - - mqc_header:
+    - mqc_header:
         type: file
         description: MultiQC custom-content header file prepended to the summary table
         pattern: "*.txt"
-  - - suffix:
+    - suffix:
         type: string
         description: Suffix trimmed off each `annos` file basename to derive the sample id used in plot labels
 output:

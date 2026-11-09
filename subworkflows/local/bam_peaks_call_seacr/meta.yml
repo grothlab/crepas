@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_seacr"
+description: |
+  Call peaks from bedGraph signal with SEACR. FRiP scores and annotation are done for all peak
+  callers by bam_peaks_qc_annotate_homer.
+keywords:
+  - seacr
+  - peak-calling
+  - cut-and-run
+components:
+  - seacr/callpeak
+input:
+  - ch_bedgraph_control:
+      description: |
+        IP bedGraph file(s) and matched input control bedGraph file(s), when a control exists
+        Structure: [ val(meta), [ path(ip_bedgraph) ], [ path(ipcontrol_bedgraph) ] ]
+  - seacr_peak_threshold:
+      type: float
+      description: SEACR peak calling threshold (numeric threshold, used when no input control is available)
+  - ch_bam:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s), paired with the peaks for FRiP scores
+        Structure: [ val(meta), path(ip_bam), path(control_bam) ]
+output:
+  - peaks:
+      description: |
+        SEACR peaks, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(peaks) ]
+  - bam_peaks:
+      description: |
+        IP BAM file with its peaks, for FRiP scores and peak counts
+        Structure: [ val(meta), path(ip_bam), path(peaks) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

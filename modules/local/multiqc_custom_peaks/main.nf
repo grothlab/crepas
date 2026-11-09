@@ -7,9 +7,7 @@ process MULTIQC_CUSTOM_PEAKS {
         'community.wave.seqera.io/library/coreutils_gawk:c6711ba4a1d2d075' }"
 
     input:
-    tuple val(meta), path(peak), path(frip)
-    path peak_count_header
-    path frip_score_header
+    tuple val(meta), path(peak), path(frip), path(peak_count_header), path(frip_score_header)
 
     output:
     tuple val(meta), path("*.peak_count_mqc.tsv"), emit: count

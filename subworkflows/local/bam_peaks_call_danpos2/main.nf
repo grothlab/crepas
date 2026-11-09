@@ -1,6 +1,5 @@
-
 //
-// Call peaks with epic2, annotate with HOMER and perform downstream QC
+// Call peaks with DANPOS2 (dpeak, dpos, dregion or dtriple)
 //
 
 include { BAM_REMOVE_SCAFFOLDS      } from '../../../modules/local/bam_remove_scaffolds/main'
@@ -9,7 +8,7 @@ include { DANPOS2_DPOS              } from '../../../modules/local/danpos2/dpos/
 include { DANPOS2_DREGION           } from '../../../modules/local/danpos2/dregion/main'
 include { DANPOS2_DTRIPLE           } from '../../../modules/local/danpos2/dtriple/main'
 
-workflow BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER {
+workflow BAM_PEAKS_CALL_DANPOS2 {
     take:
     ch_bam                            // channel: [ val(meta), [ ip_bam ], [ control_bam ] ]
 
@@ -64,7 +63,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER {
             meta, ip_bams, ipcontrol_bams, treatment_count, control, control_input, control_count ->
                 "${meta}\t${ip_bams}\t${ipcontrol_bams}\t${treatment_count}\t${control}\t${control_input}\t${control_count}"
         }
-        .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER" )
+        .collectFile( name: 'ch_ip_control_bam_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_DANPOS2" )
 
 
     ch_dpeak_pooled_xls = channel.empty()

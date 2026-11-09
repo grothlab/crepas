@@ -8,9 +8,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
         'community.wave.seqera.io/library/bioconductor-biostrings_bioconductor-complexheatmap_r-base_r-optparse_pruned:b699da7f1540e3bb' }"
 
     input:
-    tuple val(meta), path(annos)
-    path mqc_header
-    val suffix
+    tuple val(meta), path(annos), path(mqc_header), val(suffix)
 
     output:
     tuple val(meta), path("*.txt")       , emit: txt

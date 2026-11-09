@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_mace"
+description: |
+  Call ChIP-exo borders/peaks with MACE on the pooled replicates of each sample (preprocess BAM to
+  strand-specific wig, convert to bigWig, run border detection/pairing). FRiP scores and
+  annotation are done for all peak callers by bam_peaks_qc_annotate_homer.
+keywords:
+  - mace
+  - chip-exo
+  - peak-calling
+components:
+  - mace/preprocessor
+  - ucsc/wigtobigwig
+  - mace/mace
+input:
+  - ch_bam_bai:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s), with indices
+        Structure: [ val(meta), path(bam), path(bai) ]
+  - ch_chrom_sizes:
+      type: file
+      description: |
+        Chromosome sizes file
+        Structure: [ val(meta), path(chrom_sizes) ]
+output:
+  - peaks:
+      description: |
+        MACE border-pair peaks, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(peaks) ]
+  - bam_peaks:
+      description: |
+        Each replicate's BAM file with the peaks called on the pooled replicates, for FRiP scores
+        and peak counts
+        Structure: [ val(meta), path(bam), path(peaks) ]
+  - border:
+      description: |
+        MACE border BED file
+        Structure: [ val(meta), path(bed) ]
+  - border_cluster:
+      description: |
+        MACE border cluster BED file
+        Structure: [ val(meta), path(bed) ]
+  - border_pair_elite:
+      description: |
+        MACE elite border pair BED file
+        Structure: [ val(meta), path(bed) ]
+  - border_pair:
+      description: |
+        MACE border pair BED file
+        Structure: [ val(meta), path(bed) ]
+  - border_pair_peak:
+      description: |
+        MACE border pair peak BED file
+        Structure: [ val(meta), path(bed) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"
