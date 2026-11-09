@@ -26,7 +26,8 @@ workflow CALL_PEAKS {
     ch_active_regions
     ch_rocco_params
     ch_effective_gsize
-    ch_peak_qc_headers      // channel: [ val(peak_caller), path(peak_count_header), path(frip_score_header), path(peak_annotation_header) ]
+    ch_peak_count_frip_headers  // channel: [ val(peak_caller), val(norm_factor_type), path(peak_count_header), path(frip_score_header) ]
+    ch_peak_annotation_headers  // channel: [ val(peak_caller), path(peak_annotation_header) ]
     ch_deseq2_pca_header
     ch_deseq2_clustering_header
     narrow_peak
@@ -250,18 +251,19 @@ workflow CALL_PEAKS {
         )
 
     // Add the suffix that PLOT_HOMER_ANNOTATEPEAKS trims off annotation file names to label samples
-    ch_peak_qc_headers
-        .map { peak_caller, peak_count_header, frip_score_header, peak_annotation_header ->
+    ch_peak_annotation_headers
+        .map { peak_caller, peak_annotation_header ->
             def suffix = peak_caller == 'macs3' ? '_peaks.annotatePeaks.txt' : '.annotatePeaks.txt'
-            [ peak_caller, peak_count_header, frip_score_header, peak_annotation_header, suffix ]
+            [ peak_caller, peak_annotation_header, suffix ]
         }
-        .set { ch_peak_qc_headers_suffix }
+        .set { ch_peak_annotation_headers_suffix }
 
     BAM_PEAKS_QC_ANNOTATE_HOMER (
         ch_bam_peaks,
         ch_peaks_to_annotate,
         ch_qc_peaks,
-        ch_peak_qc_headers_suffix,
+        ch_peak_count_frip_headers,
+        ch_peak_annotation_headers_suffix,
         ch_fasta,
         ch_gtf,
         skip_peak_annotation,

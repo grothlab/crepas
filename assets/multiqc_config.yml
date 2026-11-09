@@ -300,6 +300,24 @@ report_section_order:
     order: -1410
   macs3_peak_annotation:
     order: -1420
+  seacr_raw_peak_count:
+    order: -1430
+  seacr_raw_frip_score:
+    order: -1431
+  seacr_rpm_peak_count:
+    order: -1432
+  seacr_rpm_frip_score:
+    order: -1433
+  seacr_srpm_peak_count:
+    order: -1434
+  seacr_srpm_frip_score:
+    order: -1435
+  seacr_cisrpm_peak_count:
+    order: -1436
+  seacr_cisrpm_frip_score:
+    order: -1437
+  seacr_peak_annotation:
+    order: -1438
   deeptools_fingerprint:
     order: -1450
   consensus_featurecounts_se:

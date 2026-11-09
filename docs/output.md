@@ -574,7 +574,7 @@ For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer
 
 </details>
 
-[MACE](https://github.com/tanglab/MACE) (Model-based Analysis of ChIP-exo) calls peaks in ChIP-exo data from the borders of the protein-DNA crosslinks on each strand. Its options are the `--mace_*` parameters.
+[MACE](https://github.com/tanglab/MACE) (Model-based Analysis of ChIP-exo) calls peaks in ChIP-exo data from the borders of the protein-DNA crosslinks on each strand. It runs on the pooled replicates of each IP sample. MACE has no input control option, so input controls are not given to it. Its options are the `--mace_*` parameters.
 
 #### EDD
 

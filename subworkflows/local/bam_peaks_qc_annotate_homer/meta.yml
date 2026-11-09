@@ -32,11 +32,17 @@ input:
         Peak files with MACS3-like columns (fold enrichment, -log10 p-value, -log10 q-value), for
         the peak QC plots. Callers without these columns leave it empty.
         Structure: [ val(meta), path(peaks) ]
-  - ch_peak_qc_headers:
+  - ch_peak_count_frip_headers:
       description: |
-        MultiQC custom-content headers per peak caller, and the suffix trimmed off HOMER
-        annotation file names to label samples in the annotation plots
-        Structure: [ val(peak_caller), path(peak_count_header), path(frip_score_header), path(peak_annotation_header), val(annotate_peaks_suffix) ]
+        MultiQC custom-content headers for the peak count and FRiP score tables, per peak caller
+        and, for callers run on each normalisation of a sample (SEACR), per normalisation.
+        norm_factor_type is '' for the other callers.
+        Structure: [ val(peak_caller), val(norm_factor_type), path(peak_count_header), path(frip_score_header) ]
+  - ch_peak_annotation_headers:
+      description: |
+        MultiQC custom-content header for the peak annotation plot per peak caller, and the suffix
+        trimmed off HOMER annotation file names to label samples in the annotation plots
+        Structure: [ val(peak_caller), path(peak_annotation_header), val(annotate_peaks_suffix) ]
   - ch_fasta:
       type: file
       description: |
