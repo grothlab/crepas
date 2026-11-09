@@ -3,7 +3,7 @@ include { CONSENRICH           } from '../../../modules/local/consenrich/main'
 include { ROCCO               } from '../../../modules/local/rocco/main'
 
 
-workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
+workflow BAM_PEAKS_CALL_CONSENRICH_ROCCO {
     take:
     ch_bam_bai            // channel: [ val(meta), [ bam ], [ bai ] ]
     ch_chrom_sizes        // channel: [ val(meta), [ chrom_sizes ] ]
@@ -67,7 +67,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
         .map { meta, bams, bais, ipcontrol_bams, ipcontrol_bais ->
             "${meta}\t${bams}\t${bais}\t${ipcontrol_bams}\t${ipcontrol_bais}"
         }
-        .collectFile(name: 'ch_ip_ipcontrol_bam_bai_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_HOMER" )
+        .collectFile(name: 'ch_ip_ipcontrol_bam_bai_merged_reps.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_CONSENRICH" )
 
 
     //
@@ -100,7 +100,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER {
         .map { meta, ch_csr_signal, bamlist, bailist ->
             "${meta}\t${ch_csr_signal}\t${bamlist}\t${bailist}"
         }
-        .collectFile( name: 'ch_csr_signal_bamlist.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_HOMER" )
+        .collectFile( name: 'ch_csr_signal_bamlist.txt', newLine: true, sort: false, storeDir: "${params.outdir}/.debug/BAM_PEAKS_CALL_CONSENRICH" )
 
     //
     // MODULE: Call peaks

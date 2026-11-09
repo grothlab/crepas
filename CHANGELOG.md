@@ -17,6 +17,7 @@ Development version of grothlab/crepas.
 ### `Changed`
 
 - The run's RO-Crate (`ro-crate-metadata_<timestamp>.json`) and the files nf-prov copies next to it (`README.md`, `main.nf`, `nextflow.config`, `nextflow_schema.json` and the input samplesheet) are saved in `pipeline_info/provenance/` instead of `pipeline_info/`.
+- FRiP scores, peak counts, HOMER annotation and peak QC plots are done once for all peak callers, in the new `BAM_PEAKS_QC_ANNOTATE_HOMER` subworkflow, instead of separately in each peak caller's subworkflow. The peak caller subworkflows are renamed `BAM_PEAKS_CALL_<CALLER>` (e.g. `BAM_PEAKS_CALL_MACS3`), so custom configs that select their processes by name (`withName: '.*:BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER:...'`) need updating. Output file names and directories are unchanged.
 
 ### `Fixed`
 
@@ -29,6 +30,7 @@ Development version of grothlab/crepas.
 - Genrich and Consenrich silently pairing replicates with the wrong input control when only some replicates of a sample have one; the pipeline now stops with an error naming the sample.
 - epic2, Genrich and MACE FRiP scores and peak counts not being calculated, missing from the MultiQC report.
 - Sample labels in the Genrich (and epic2) peak QC plots including the file extension.
+- epic2, Genrich and MACE peak QC and peak annotation plots being written outside `downsampled/` with `--bam_downsampling_method`, and missing parts of the file name prefix (e.g. `.dedup`, `.flTbl`). They now follow the MACS3 plots. Samples in the Genrich and MACE annotation plots are now in a fixed order.
 - TE counting (TEcount, TElocal and their name sorting) running once for each antibody on an input control shared by several antibodies, with identical outputs written over each other, and `TE_COUNTING_QC` then failing with `input file name collision` ([#152](https://github.com/grothlab/crepas/issues/152)). Without downsampling each input control is now counted once and its table is added to the QC of each antibody; with downsampling each antibody's copy is still counted, since it is downsampled separately.
 - TEcount and TElocal tables of the final BAM files missing `.flT3` in their names for antibodies in `--use_flT2_as_total_ref` (`H3K9me3` and `H3K27me3` by default). With `--skip_flTbl`, these tables had the same names as the `pre_flT3` ones and were written over them.
 - Stub runs with TE counting (`--skip_te_counting false`) failing with `input file name collision`, because the stubs of the TEcount gene and TE indices had the same name, and stub runs with `--bam_downsampling_method` failing on the empty read total of the downsampled BAM files.

@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_epic2"
+description: |
+  Call broad peaks with epic2 on the pooled replicates of each sample, and convert them to
+  diffusePeak and broadPeak files. FRiP scores, annotation and QC plots are done for all peak
+  callers by bam_peaks_qc_annotate_homer.
+keywords:
+  - epic2
+  - peak-calling
+components:
+  - epic2
+  - epic2_to_peak
+input:
+  - ch_bam_bai:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s), with indices
+        Structure: [ val(meta), path(bam), path(bai) ]
+  - ch_chrom_sizes:
+      type: file
+      description: |
+        Chromosome sizes file
+        Structure: [ val(meta), path(bed) ]
+  - efective_gfraction:
+      type: float
+      description: Effective genome fraction, passed to epic2
+output:
+  - peaks:
+      description: |
+        epic2 peaks in diffusePeak format, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(diffusepeak) ]
+  - bam_peaks:
+      description: |
+        Each replicate's IP BAM file with the peaks called on the pooled replicates, for FRiP
+        scores and peak counts
+        Structure: [ val(meta), path(ip_bam), path(diffusepeak) ]
+  - qc_peaks:
+      description: |
+        epic2 peaks in broadPeak format, for the peak QC plots
+        Structure: [ val(meta), path(broadpeak) ]
+  - bed:
+      description: |
+        epic2 output
+        Structure: [ val(meta), path(bed) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

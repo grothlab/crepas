@@ -1,13 +1,14 @@
-include { BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER                        } from '../../../subworkflows/local/bam_peaks_call_qc_annotate_epic2_homer/main'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                        } from '../../../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer/main'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER                      } from '../../../subworkflows/local/bam_peaks_call_qc_annotate_genrich_homer/main'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACE_HOMER                         } from '../../../subworkflows/local/bam_peaks_call_qc_annotate_mace_homer/main'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER                      } from '../../../subworkflows/local/bam_peaks_call_qc_annotate_danpos2_homer/main'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER                        } from '../../../subworkflows/local/bam_peaks_call_qc_annotate_seacr_homer/main'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER             } from '../../../subworkflows/local/bam_peaks_call_qc_annotate_consenrich_rocco_homer/main'
-include { EDD                                                           } from '../../../modules/local/edd/main'
-include { DENOPA                                                        } from '../../../modules/local/denopa/main'
-include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2       } from '../../../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2/main'
+include { BAM_PEAKS_CALL_EPIC2                                    } from '../../../subworkflows/local/bam_peaks_call_epic2/main'
+include { BAM_PEAKS_CALL_MACS3                                    } from '../../../subworkflows/local/bam_peaks_call_macs3/main'
+include { BAM_PEAKS_CALL_GENRICH                                  } from '../../../subworkflows/local/bam_peaks_call_genrich/main'
+include { BAM_PEAKS_CALL_MACE                                     } from '../../../subworkflows/local/bam_peaks_call_mace/main'
+include { BAM_PEAKS_CALL_DANPOS2                                  } from '../../../subworkflows/local/bam_peaks_call_danpos2/main'
+include { BAM_PEAKS_CALL_SEACR                                    } from '../../../subworkflows/local/bam_peaks_call_seacr/main'
+include { BAM_PEAKS_CALL_CONSENRICH_ROCCO                         } from '../../../subworkflows/local/bam_peaks_call_consenrich_rocco/main'
+include { BAM_PEAKS_QC_ANNOTATE_HOMER                             } from '../../../subworkflows/local/bam_peaks_qc_annotate_homer/main'
+include { EDD                                                     } from '../../../modules/local/edd/main'
+include { DENOPA                                                  } from '../../../modules/local/denopa/main'
+include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../../../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2/main'
 
 workflow CALL_PEAKS {
 
@@ -25,21 +26,7 @@ workflow CALL_PEAKS {
     ch_active_regions
     ch_rocco_params
     ch_effective_gsize
-    ch_epic2_peak_count_header
-    ch_epic2_frip_score_header
-    ch_epic2_peak_annotation_header
-    ch_gr_peak_count_header
-    ch_gr_frip_score_header
-    ch_gr_peak_annotation_header
-    ch_mace_peak_count_header
-    ch_mace_frip_score_header
-    ch_mace_peak_annotation_header
-    ch_macs3_peak_count_header
-    ch_macs3_frip_score_header
-    ch_macs3_peak_annotation_header
-    ch_seacr_peak_count_header
-    ch_seacr_frip_score_header
-    ch_seacr_peak_annotation_header
+    ch_peak_qc_headers      // channel: [ val(peak_caller), path(peak_count_header), path(frip_score_header), path(peak_annotation_header) ]
     ch_deseq2_pca_header
     ch_deseq2_clustering_header
     narrow_peak
@@ -81,7 +68,7 @@ workflow CALL_PEAKS {
     //
     ch_consenrich_tracks = channel.empty()
     ch_rocco_peaks = channel.empty()
-    BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER (
+    BAM_PEAKS_CALL_CONSENRICH_ROCCO (
         ch_bam_index.filter { it -> it[0].peak_caller == 'consenrich' },
         ch_chrom_sizes_endo,
         ch_blacklist,
@@ -90,79 +77,44 @@ workflow CALL_PEAKS {
         ch_rocco_params,
         ch_effective_gsize
     )
-    ch_consenrich_tracks = BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER.out.consenrich_signal
-    ch_consenrich_tracks = ch_consenrich_tracks.mix(BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER.out.consenrich_residuals)
-    ch_consenrich_tracks = ch_consenrich_tracks.mix(BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER.out.consenrich_eratio)
-    ch_rocco_peaks = BAM_PEAKS_CALL_QC_ANNOTATE_CONSENRICH_ROCCO_HOMER.out.rocco_peaks
+    ch_consenrich_tracks = BAM_PEAKS_CALL_CONSENRICH_ROCCO.out.consenrich_signal
+    ch_consenrich_tracks = ch_consenrich_tracks.mix(BAM_PEAKS_CALL_CONSENRICH_ROCCO.out.consenrich_residuals)
+    ch_consenrich_tracks = ch_consenrich_tracks.mix(BAM_PEAKS_CALL_CONSENRICH_ROCCO.out.consenrich_eratio)
+    ch_rocco_peaks = BAM_PEAKS_CALL_CONSENRICH_ROCCO.out.rocco_peaks
 
     //
-    // SUBWORKFLOW: Call peaks with epic2, annotate with HOMER and perform downstream QC
+    // SUBWORKFLOW: Call peaks with epic2
     //
-    ch_epic2_peaks = channel.empty()
-    BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER (
+    BAM_PEAKS_CALL_EPIC2 (
         ch_bam_index.filter { it -> it[0].peak_caller == 'epic2' },
-        ch_fasta,
-        ch_gtf,
         ch_chrom_sizes_endo,
-        ch_effective_gfraction,
-        ".annotatePeaks.txt",
-        ch_epic2_peak_count_header,
-        ch_epic2_frip_score_header,
-        ch_epic2_peak_annotation_header,
-        skip_peak_annotation,
-        skip_peak_qc
+        ch_effective_gfraction
     )
-    ch_epic2_peaks = BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.peaks
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.frip_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.peak_count_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_EPIC2_HOMER.out.plot_homer_annotatepeaks_tsv.collect { it -> it[1] })
+    ch_epic2_peaks = BAM_PEAKS_CALL_EPIC2.out.peaks
 
     //
-    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
+    // SUBWORKFLOW: Call peaks with Genrich
     //
-    ch_genrich_peaks = channel.empty()
-    BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER (
+    BAM_PEAKS_CALL_GENRICH (
         ch_bam.filter { it -> it[0].peak_caller == 'genrich' },
         ch_fasta_fai,
-        ch_gtf,
-        ch_blacklist,
-        ".annotatePeaks.txt",
-        ch_gr_peak_count_header,
-        ch_gr_frip_score_header,
-        ch_gr_peak_annotation_header,
-        skip_peak_annotation,
-        skip_peak_qc
+        ch_blacklist
     )
-    ch_genrich_peaks = BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER.out.peaks
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER.out.frip_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER.out.peak_count_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER.out.plot_homer_annotatepeaks_tsv.collect { it -> it[1] })
+    ch_genrich_peaks = BAM_PEAKS_CALL_GENRICH.out.peaks
 
     //
     // SUBWORKFLOW: Call peaks with MACE (for ChIP-exo samples)
     //
-    ch_mace_peaks = channel.empty()
-    BAM_PEAKS_CALL_QC_ANNOTATE_MACE_HOMER(
+    BAM_PEAKS_CALL_MACE (
         ch_bam_index.filter { it -> it[0].peak_caller == 'mace' },
-        ch_fasta,
-        ch_gtf,
-        ch_chrom_sizes_endo,
-        ".annotatePeaks.txt",
-        ch_mace_peak_count_header,
-        ch_mace_frip_score_header,
-        ch_mace_peak_annotation_header,
-        skip_peak_annotation,
-        skip_peak_qc
+        ch_chrom_sizes_endo
     )
-    ch_mace_peaks = BAM_PEAKS_CALL_QC_ANNOTATE_MACE_HOMER.out.peaks
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACE_HOMER.out.frip_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACE_HOMER.out.peak_count_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACE_HOMER.out.plot_homer_annotatepeaks_tsv.collect { it -> it[1] })
+    ch_mace_peaks = BAM_PEAKS_CALL_MACE.out.peaks
 
     //
     // SUBWORKFLOW: Call peaks with DANPOS2
     //
-    BAM_PEAKS_CALL_QC_ANNOTATE_DANPOS2_HOMER (
+    BAM_PEAKS_CALL_DANPOS2 (
         ch_bam.filter { it -> ['dpeak', 'dpos', 'dregion', 'dtriple'].contains(it[0].peak_caller)}
     )
 
@@ -224,35 +176,22 @@ workflow CALL_PEAKS {
     ch_denopa_peaks = DENOPA.out.arers
 
 
-    ch_macs3_peaks = channel.empty()
     //
-    // SUBWORKFLOW: Call peaks with MACS3, annotate with HOMER and perform downstream QC
+    // SUBWORKFLOW: Call peaks with MACS3
     //
-    BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER (
+    BAM_PEAKS_CALL_MACS3 (
         ch_all_ip_and_controls.filter { it -> it[0].peak_caller == 'macs3' },
-        ch_fasta,
-        ch_gtf,
         ch_chrom_sizes_endo,
         ch_effective_gsize,
-        "_peaks.annotatePeaks.txt",
-        ch_macs3_peak_count_header,
-        ch_macs3_frip_score_header,
-        ch_macs3_peak_annotation_header,
-        skip_peak_annotation,
-        skip_peak_qc,
         skip_bdgcmp
     )
-    ch_macs3_peaks = BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.peaks
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.frip_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.peak_count_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.plot_homer_annotatepeaks_tsv.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.xls.collect { it -> it[1] })
+    ch_macs3_peaks = BAM_PEAKS_CALL_MACS3.out.peaks
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_MACS3.out.xls.collect { it -> it[1] })
 
 
     //
     // SUBWORKFLOW: Call peaks with SEACR
     //
-    ch_seacr_peaks = channel.empty()
 
     // Create channels: [ meta, ip_bam, ipcontrol_bam ]
     // Including ips_wo_ipcontrol as they will be used for peak calling without control
@@ -281,23 +220,56 @@ workflow CALL_PEAKS {
         .set { ch_all_bdg_ip_and_controls }
 
 
-    BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER (
+    BAM_PEAKS_CALL_SEACR (
         ch_all_bdg_ip_and_controls.filter { it -> it[0].peak_caller == 'seacr' },
         seacr_peak_threshold,
-        ch_all_ip_and_controls.filter { it -> it[0].peak_caller == 'seacr' },
+        ch_all_ip_and_controls.filter { it -> it[0].peak_caller == 'seacr' }
+    )
+    ch_seacr_peaks = BAM_PEAKS_CALL_SEACR.out.peaks
+
+
+    //
+    // SUBWORKFLOW: FRiP scores, peak counts, HOMER annotation and QC plots, shared by all peak callers
+    //
+    ch_bam_peaks = BAM_PEAKS_CALL_MACS3.out.bam_peaks
+        .mix(
+            BAM_PEAKS_CALL_EPIC2.out.bam_peaks,
+            BAM_PEAKS_CALL_GENRICH.out.bam_peaks,
+            BAM_PEAKS_CALL_MACE.out.bam_peaks,
+            BAM_PEAKS_CALL_SEACR.out.bam_peaks
+        )
+
+    ch_peaks_to_annotate = ch_macs3_peaks
+        .mix(ch_epic2_peaks, ch_genrich_peaks, ch_mace_peaks, ch_seacr_peaks)
+
+    // Only peak files with MACS3-like columns (fold enrichment, p- and q-value) get the peak QC plots
+    ch_qc_peaks = BAM_PEAKS_CALL_MACS3.out.qc_peaks
+        .mix(
+            BAM_PEAKS_CALL_EPIC2.out.qc_peaks,
+            BAM_PEAKS_CALL_GENRICH.out.qc_peaks
+        )
+
+    // Add the suffix that PLOT_HOMER_ANNOTATEPEAKS trims off annotation file names to label samples
+    ch_peak_qc_headers
+        .map { peak_caller, peak_count_header, frip_score_header, peak_annotation_header ->
+            def suffix = peak_caller == 'macs3' ? '_peaks.annotatePeaks.txt' : '.annotatePeaks.txt'
+            [ peak_caller, peak_count_header, frip_score_header, peak_annotation_header, suffix ]
+        }
+        .set { ch_peak_qc_headers_suffix }
+
+    BAM_PEAKS_QC_ANNOTATE_HOMER (
+        ch_bam_peaks,
+        ch_peaks_to_annotate,
+        ch_qc_peaks,
+        ch_peak_qc_headers_suffix,
         ch_fasta,
         ch_gtf,
-        ".annotatePeaks.txt",
-        ch_seacr_peak_count_header,
-        ch_seacr_frip_score_header,
-        ch_seacr_peak_annotation_header,
         skip_peak_annotation,
         skip_peak_qc
     )
-    ch_seacr_peaks = BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER.out.peaks
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER.out.frip_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER.out.peak_count_multiqc.collect { it -> it[1] })
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_CALL_QC_ANNOTATE_SEACR_HOMER.out.plot_homer_annotatepeaks_tsv.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_QC_ANNOTATE_HOMER.out.frip_multiqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_QC_ANNOTATE_HOMER.out.peak_count_multiqc.collect { it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_PEAKS_QC_ANNOTATE_HOMER.out.plot_homer_annotatepeaks_tsv.collect { it -> it[1] })
 
 
     //

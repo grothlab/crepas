@@ -32,14 +32,14 @@ input:
         type: file
         description: Single-line FRiP score text file (as produced by FRIP_SCORE)
         pattern: "*.txt"
-  - peak_count_header:
-      type: file
-      description: MultiQC custom-content header file for the peak count table
-      pattern: "*.txt"
-  - frip_score_header:
-      type: file
-      description: MultiQC custom-content header file for the FRiP score table
-      pattern: "*.txt"
+    - peak_count_header:
+        type: file
+        description: MultiQC custom-content header file for the peak count table
+        pattern: "*.txt"
+    - frip_score_header:
+        type: file
+        description: MultiQC custom-content header file for the FRiP score table
+        pattern: "*.txt"
 output:
   count:
     - - meta:

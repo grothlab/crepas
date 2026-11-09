@@ -1,0 +1,101 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_qc_annotate_homer"
+description: |
+  Peak QC and annotation shared by every peak caller: FRiP scores and peak counts as MultiQC
+  custom content, HOMER peak annotation, and (optionally) peak and peak-annotation QC plots.
+  Every meta map must carry `peak_caller`, which selects the MultiQC headers and the output
+  names and directories.
+keywords:
+  - peaks
+  - frip
+  - homer
+  - annotation
+  - qc
+components:
+  - frip_score
+  - multiqc_custom_peaks
+  - homer/annotatepeaks
+  - plot_macs3_qc
+  - plot_homer_annotatepeaks
+input:
+  - ch_bam_peaks:
+      description: |
+        One IP BAM file with the peaks called for it, for FRiP scores and peak counts. Callers
+        that pool replicates pair each replicate's BAM with the pooled peaks.
+        Structure: [ val(meta), path(ip_bam), path(peaks) ]
+  - ch_peaks:
+      description: |
+        One peak file per peak calling run, for HOMER annotation
+        Structure: [ val(meta), path(peaks) ]
+  - ch_qc_peaks:
+      description: |
+        Peak files with MACS3-like columns (fold enrichment, -log10 p-value, -log10 q-value), for
+        the peak QC plots. Callers without these columns leave it empty.
+        Structure: [ val(meta), path(peaks) ]
+  - ch_peak_qc_headers:
+      description: |
+        MultiQC custom-content headers per peak caller, and the suffix trimmed off HOMER
+        annotation file names to label samples in the annotation plots
+        Structure: [ val(peak_caller), path(peak_count_header), path(frip_score_header), path(peak_annotation_header), val(annotate_peaks_suffix) ]
+  - ch_fasta:
+      type: file
+      description: |
+        Reference fasta file
+        Structure: [ val(meta), path(fasta) ]
+  - ch_gtf:
+      type: file
+      description: |
+        Reference GTF annotation file
+        Structure: [ val(meta), path(gtf) ]
+  - skip_peak_annotation:
+      type: boolean
+      description: Skip HOMER peak annotation (and the QC plots)
+      pattern: "true|false"
+  - skip_peak_qc:
+      type: boolean
+      description: Skip the peak and peak-annotation QC plots (only used when skip_peak_annotation is false)
+      pattern: "true|false"
+output:
+  - frip_txt:
+      description: |
+        FRiP score text file
+        Structure: [ val(meta), path(txt) ]
+  - frip_multiqc:
+      description: |
+        FRiP score MultiQC custom-content file
+        Structure: [ val(meta), path(tsv) ]
+  - peak_count_multiqc:
+      description: |
+        Peak count MultiQC custom-content file
+        Structure: [ val(meta), path(tsv) ]
+  - homer_annotatepeaks:
+      description: |
+        HOMER peak annotation, when skip_peak_annotation is false
+        Structure: [ val(meta), path(txt) ]
+  - plot_peak_qc_txt:
+      description: |
+        Peak QC summary statistics per peak caller and experiment type, when skip_peak_annotation
+        and skip_peak_qc are false
+        Structure: [ val(meta), path(txt) ]
+  - plot_peak_qc_pdf:
+      description: |
+        Peak QC plots per peak caller and experiment type, when skip_peak_annotation and
+        skip_peak_qc are false
+        Structure: [ val(meta), path(pdf) ]
+  - plot_homer_annotatepeaks_txt:
+      description: |
+        Peak annotation QC plot data, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(txt) ]
+  - plot_homer_annotatepeaks_pdf:
+      description: |
+        Peak annotation QC plots, when skip_peak_annotation and skip_peak_qc are false
+        Structure: [ val(meta), path(pdf) ]
+  - plot_homer_annotatepeaks_tsv:
+      description: |
+        Peak annotation MultiQC custom-content file, when skip_peak_annotation and skip_peak_qc
+        are false
+        Structure: [ val(meta), path(tsv) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

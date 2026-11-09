@@ -34,10 +34,10 @@ nextflow_process {
                     .map { meta, txt -> [
                         meta,
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true),
-                        txt
+                        txt,
+                        file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true),
+                        file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true)
                     ] }
-                input[1] = file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true)
-                input[2] = file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true)
                 """
             }
         }
@@ -66,10 +66,10 @@ nextflow_process {
                     .map { meta, txt -> [
                         meta,
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true),
-                        txt
+                        txt,
+                        file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true),
+                        file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true)
                     ] }
-                input[1] = file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true)
-                input[2] = file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true)
                 """
             }
         }

@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_macs3"
+description: |
+  Call peaks with MACS3 and optionally compute and normalise a bdgcmp signal-vs-control bigWig.
+  FRiP scores, annotation and QC plots are done for all peak callers by bam_peaks_qc_annotate_homer.
+keywords:
+  - macs3
+  - peak-calling
+components:
+  - macs3/callpeak
+  - macs3/bdgcmp
+  - bedtools/slop
+  - awk_fix_macs3_bdgcmp
+  - ucsc/bedclip
+  - file_sort
+  - bigtools/bedgraphtobigwig
+input:
+  - ch_bam:
+      description: |
+        IP BAM file(s) and matched input control BAM file(s)
+        Structure: [ val(meta), [ path(ip_bam) ], [ path(control_bam) ] ]
+  - ch_chrom_sizes:
+      type: file
+      description: |
+        Chromosome sizes file
+        Structure: [ val(meta), path(bed) ]
+  - macs_gsize:
+      type: string
+      description: Effective genome size passed to MACS3's --gsize
+  - skip_bdgcmp:
+      type: boolean
+      description: Skip the MACS3 bdgcmp signal-vs-control bigWig generation
+      pattern: "true|false"
+output:
+  - peaks:
+      description: |
+        MACS3 peaks, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(peaks) ]
+  - bam_peaks:
+      description: |
+        IP BAM file with its peaks, for FRiP scores and peak counts
+        Structure: [ val(meta), path(ip_bam), path(peaks) ]
+  - qc_peaks:
+      description: |
+        MACS3 peaks, for the peak QC plots
+        Structure: [ val(meta), path(peaks) ]
+  - xls:
+      description: |
+        MACS3 XLS peak summary
+        Structure: [ val(meta), path(xls) ]
+  - gapped_peaks:
+      description: |
+        MACS3 gapped peak file (broad peak mode)
+        Structure: [ val(meta), path(gapped_peak) ]
+  - bed:
+      description: |
+        MACS3 summit/peak BED file
+        Structure: [ val(meta), path(bed) ]
+  - pileup_bdg:
+      description: |
+        MACS3 pileup bedGraph
+        Structure: [ val(meta), path(bedgraph) ]
+  - lambda_bdg:
+      description: |
+        MACS3 local lambda bedGraph
+        Structure: [ val(meta), path(bedgraph) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

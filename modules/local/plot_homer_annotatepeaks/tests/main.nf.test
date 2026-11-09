@@ -50,8 +50,12 @@ nextflow_process {
                     .mix(ANNOTATE_SAMPLE2.out.txt)
                     .map { meta, txt -> [ [ id: 'test_group' ], txt ] }
                     .groupTuple()
-                input[1] = file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
-                input[2] = '.annotatePeaks.txt'
+                    .map { meta, txts -> [
+                        meta,
+                        txts,
+                        file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true),
+                        '.annotatePeaks.txt'
+                    ] }
                 """
             }
         }
@@ -81,8 +85,12 @@ nextflow_process {
                     .mix(ANNOTATE_SAMPLE2.out.txt)
                     .map { meta, txt -> [ [ id: 'test_group' ], txt ] }
                     .groupTuple()
-                input[1] = file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
-                input[2] = '.annotatePeaks.txt'
+                    .map { meta, txts -> [
+                        meta,
+                        txts,
+                        file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true),
+                        '.annotatePeaks.txt'
+                    ] }
                 """
             }
         }

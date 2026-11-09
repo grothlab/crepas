@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
-name: "bam_peaks_call_qc_annotate_consenrich_rocco_homer"
+name: "bam_peaks_call_consenrich_rocco"
 description: |
   Integrate ChIP and matched input control BAM files with Consenrich to produce a consensus
   signal track, then call consensus peaks on that track with ROCCO

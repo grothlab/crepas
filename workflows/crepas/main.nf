@@ -120,21 +120,14 @@ workflow CREPAS {
     ch_spp_nsc_header = file("${projectDir}/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
     ch_spp_rsc_header = file("${projectDir}/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
     ch_spp_correlation_header = file("${projectDir}/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
-    ch_macs3_peak_count_header = file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true)
-    ch_gr_peak_count_header = file("${projectDir}/assets/multiqc/gr_peak_count_header.txt", checkIfExists: true)
-    ch_mace_peak_count_header = file("${projectDir}/assets/multiqc/mace_peak_count_header.txt", checkIfExists: true)
-    ch_epic2_peak_count_header = file("${projectDir}/assets/multiqc/epic2_peak_count_header.txt", checkIfExists: true)
-    ch_seacr_peak_count_header = file("${projectDir}/assets/multiqc/seacr_peak_count_header.txt", checkIfExists: true)
-    ch_macs3_frip_score_header = file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true)
-    ch_gr_frip_score_header = file("${projectDir}/assets/multiqc/gr_frip_score_header.txt", checkIfExists: true)
-    ch_mace_frip_score_header = file("${projectDir}/assets/multiqc/mace_frip_score_header.txt", checkIfExists: true)
-    ch_epic2_frip_score_header = file("${projectDir}/assets/multiqc/epic2_frip_score_header.txt", checkIfExists: true)
-    ch_seacr_frip_score_header = file("${projectDir}/assets/multiqc/seacr_frip_score_header.txt", checkIfExists: true)
-    ch_macs3_peak_annotation_header = file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
-    ch_gr_peak_annotation_header = file("${projectDir}/assets/multiqc/gr_peak_annotation_header.txt", checkIfExists: true)
-    ch_mace_peak_annotation_header = file("${projectDir}/assets/multiqc/mace_peak_annotation_header.txt", checkIfExists: true)
-    ch_epic2_peak_annotation_header = file("${projectDir}/assets/multiqc/epic2_peak_annotation_header.txt", checkIfExists: true)
-    ch_seacr_peak_annotation_header = file("${projectDir}/assets/multiqc/seacr_peak_annotation_header.txt", checkIfExists: true)
+    // MultiQC custom-content headers for the peak QC shared by the peak callers: [ peak_caller, peak_count, frip_score, peak_annotation ]
+    ch_peak_qc_headers = channel.of(
+        [ 'macs3',   file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true),       file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true),       file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true) ],
+        [ 'epic2',   file("${projectDir}/assets/multiqc/epic2_peak_count_header.txt", checkIfExists: true), file("${projectDir}/assets/multiqc/epic2_frip_score_header.txt", checkIfExists: true), file("${projectDir}/assets/multiqc/epic2_peak_annotation_header.txt", checkIfExists: true) ],
+        [ 'genrich', file("${projectDir}/assets/multiqc/gr_peak_count_header.txt", checkIfExists: true),    file("${projectDir}/assets/multiqc/gr_frip_score_header.txt", checkIfExists: true),    file("${projectDir}/assets/multiqc/gr_peak_annotation_header.txt", checkIfExists: true) ],
+        [ 'mace',    file("${projectDir}/assets/multiqc/mace_peak_count_header.txt", checkIfExists: true),  file("${projectDir}/assets/multiqc/mace_frip_score_header.txt", checkIfExists: true),  file("${projectDir}/assets/multiqc/mace_peak_annotation_header.txt", checkIfExists: true) ],
+        [ 'seacr',   file("${projectDir}/assets/multiqc/seacr_peak_count_header.txt", checkIfExists: true), file("${projectDir}/assets/multiqc/seacr_frip_score_header.txt", checkIfExists: true), file("${projectDir}/assets/multiqc/seacr_peak_annotation_header.txt", checkIfExists: true) ]
+    )
     ch_deseq2_pca_header = channel.value(file("${projectDir}/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true))
     ch_repliseq_rt_header = channel.value(file("${projectDir}/assets/multiqc/repliseq_rt_header.txt", checkIfExists: true))
     ch_repliseq_gene_class_header = channel.value(file("${projectDir}/assets/multiqc/repliseq_gene_class_header.txt", checkIfExists: true))
@@ -879,21 +872,7 @@ workflow CREPAS {
             ch_active_regions.ifEmpty([[:], []]),
             ch_rocco_params,
             ch_effective_gsize,
-            ch_epic2_peak_count_header,
-            ch_epic2_frip_score_header,
-            ch_epic2_peak_annotation_header,
-            ch_gr_peak_count_header,
-            ch_gr_frip_score_header,
-            ch_gr_peak_annotation_header,
-            ch_mace_peak_count_header,
-            ch_mace_frip_score_header,
-            ch_mace_peak_annotation_header,
-            ch_macs3_peak_count_header,
-            ch_macs3_frip_score_header,
-            ch_macs3_peak_annotation_header,
-            ch_seacr_peak_count_header,
-            ch_seacr_frip_score_header,
-            ch_seacr_peak_annotation_header,
+            ch_peak_qc_headers,
             ch_deseq2_pca_header,
             ch_deseq2_clustering_header,
             params.narrow_peak,

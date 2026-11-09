@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_genrich"
+description: |
+  Name-sort BAM files and call peaks with Genrich on the pooled replicates of each sample.
+  FRiP scores, annotation and QC plots are done for all peak callers by bam_peaks_qc_annotate_homer.
+keywords:
+  - genrich
+  - peak-calling
+components:
+  - samtools/sort
+  - genrich
+input:
+  - ch_bam:
+      description: |
+        IP and input control BAM files
+        Structure: [ val(meta), path(bam) ]
+  - ch_fasta_fai:
+      type: file
+      description: |
+        Reference fasta file and its index
+        Structure: [ val(meta), path(fasta), path(fai) ]
+  - ch_blacklist:
+      type: file
+      description: |
+        Blacklist regions to exclude
+        Structure: [ val(meta), path(blacklist) ]
+output:
+  - peaks:
+      description: |
+        Genrich peaks, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(peaks) ]
+  - bam_peaks:
+      description: |
+        Each replicate's IP BAM file with the peaks called on the pooled replicates, for FRiP
+        scores and peak counts
+        Structure: [ val(meta), path(ip_bam), path(peaks) ]
+  - qc_peaks:
+      description: |
+        Genrich peaks, for the peak QC plots
+        Structure: [ val(meta), path(peaks) ]
+  - bed_intervals:
+      description: |
+        Genrich BED intervals output
+        Structure: [ val(meta), path(bed) ]
+  - bedgraph_pileup:
+      description: |
+        Genrich pileup bedGraph
+        Structure: [ val(meta), path(bedgraph) ]
+  - bedgraph_pvalues:
+      description: |
+        Genrich p-value bedGraph
+        Structure: [ val(meta), path(bedgraph) ]
+  - duplicates:
+      description: |
+        Genrich duplicate reads BED file
+        Structure: [ val(meta), path(bed) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"
