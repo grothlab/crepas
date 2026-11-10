@@ -1,26 +1,38 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
 name: "bam_peaks_call_seacr"
 description: |
-  Call peaks from bedGraph signal with SEACR. FRiP scores and annotation are done for all peak
-  callers by bam_peaks_qc_annotate_homer.
+  Call peaks with SEACR at two bin sizes (meta.seacr_bin_size): on the coverage tracks, at their bin size,
+  and on 1 bp coverage of the BAM files, made once per BAM file with bedtools genomecov and scaled by the
+  factor of each normalisation of the coverage tracks (left out when the coverage tracks are 1 bp already).
+  All bedGraphs get a header line (SEACR skips the first line), and each IP is paired with the input
+  control of the same bin size and normalisation. meta.peak_qc_variant (<normalisation> for
+  the coverage tracks, 1bp_<normalisation> for 1 bp) gives each its own MultiQC sections.
+  FRiP scores and annotation are done for all peak callers by bam_peaks_qc_annotate_homer.
 keywords:
   - seacr
   - peak-calling
   - cut-and-run
 components:
+  - bedtools/genomecov
+  - bedgraph_normalize
   - seacr/callpeak
 input:
-  - ch_bedgraph_control:
-      description: |
-        IP bedGraph file(s) and matched input control bedGraph file(s), when a control exists
-        Structure: [ val(meta), [ path(ip_bedgraph) ], [ path(ipcontrol_bedgraph) ] ]
-  - seacr_peak_threshold:
-      type: float
-      description: SEACR peak calling threshold (numeric threshold, used when no input control is available)
   - ch_bam:
       description: |
-        IP BAM file(s) and matched input control BAM file(s), paired with the peaks for FRiP scores
-        Structure: [ val(meta), path(ip_bam), path(control_bam) ]
+        IP and input control BAM files
+        Structure: [ val(meta), path(bam) ]
+  - ch_bedgraph:
+      description: |
+        Coverage tracks, one per BAM file and normalisation, with meta.norm_factor_type and
+        meta.norm_factor_val. Their normalisations and factors are also used for the 1 bp coverage.
+        A track is matched to its BAM file by meta.id, meta.genome and meta.input_control_of_antibody.
+        Structure: [ val(meta), path(bedgraph) ]
+  - coverage_bin_size:
+      type: integer
+      description: Bin size of the coverage tracks
+  - seacr_peak_threshold:
+      type: float
+      description: Fraction of top peaks to keep, used when an IP has no input control
 output:
   - peaks:
       description: |
@@ -30,6 +42,10 @@ output:
       description: |
         IP BAM file with its peaks, for FRiP scores and peak counts
         Structure: [ val(meta), path(ip_bam), path(peaks) ]
+  - bedgraph:
+      description: |
+        bedGraphs given to SEACR, at both bin sizes, with a header line
+        Structure: [ val(meta), path(bedgraph) ]
 authors:
   - "@samuelruizperez"
 maintainers:

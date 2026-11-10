@@ -61,7 +61,7 @@ workflow BAM_PEAKS_CALL_GENRICH {
 
 
     //
-    // Call peaks with Genrich
+    // MODULE: Call peaks with Genrich
     //
     GENRICH (
         ch_ip_ipcontrol_bam_merged_reps,

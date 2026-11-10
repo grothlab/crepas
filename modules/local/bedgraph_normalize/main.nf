@@ -25,6 +25,8 @@ process BEDGRAPH_NORMALIZE {
     def norm_factor = args2.contains('--norm_factor ') ? args2.split('--norm_factor ')[1].split(' ')[0] : '1'
     def norm_operation = args2.contains('--norm_operation ') ? args2.split('--norm_operation ')[1].split(' ')[0] : 'multiply'
     def pseudocount = args2.contains('--add_pseudocount') ? 1 : 0
+    // Some tools (e.g. SEACR) skip the first line of a bedGraph as a header, so optionally write one
+    def track_line = args2.contains('--track_line') ? 1 : 0
 
     """
     awk \\
@@ -32,7 +34,8 @@ process BEDGRAPH_NORMALIZE {
         -v norm_factor=${norm_factor} \\
         -v operation=${norm_operation} \\
         -v pseudocount=${pseudocount} \\
-        'BEGIN { OFS="\\t" } { \\
+        -v track_line=${track_line} \\
+        'BEGIN { OFS="\\t"; if (track_line) print "track type=bedGraph" } { \\
         if (operation == "multiply") \$4 = (\$4 + pseudocount) * norm_factor; \\
         else if (operation == "divide") \$4 = (\$4 + pseudocount) / norm_factor; \\
         else if (operation == "add") \$4 = (\$4 + pseudocount) + norm_factor; \\

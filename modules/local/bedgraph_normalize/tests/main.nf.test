@@ -35,6 +35,32 @@ nextflow_process {
 
     }
 
+    test("homo_sapiens - bedgraph - multiply with track line") {
+
+        config "./nextflow.track_line.config"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bedgraph/cutandtag_h3k27me3_test_1.bedGraph', checkIfExists: true)
+                ]
+                input[1] = 'bedGraph'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.normalized[0][1]).readLines().first() == "track type=bedGraph" },
+                { assert snapshot(process.out.normalized).match() }
+            )
+        }
+
+    }
+
     test("homo_sapiens - bedgraph - multiply with pseudocount - stub") {
 
         options "-stub"

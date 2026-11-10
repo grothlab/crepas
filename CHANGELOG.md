@@ -18,6 +18,7 @@ Development version of grothlab/crepas.
 
 - The run's RO-Crate (`ro-crate-metadata_<timestamp>.json`) and the files nf-prov copies next to it (`README.md`, `main.nf`, `nextflow.config`, `nextflow_schema.json` and the input samplesheet) are saved in `pipeline_info/provenance/` instead of `pipeline_info/`.
 - FRiP scores, peak counts, HOMER annotation and peak QC plots are done once for all peak callers, in the new `BAM_PEAKS_QC_ANNOTATE_HOMER` subworkflow, instead of separately in each peak caller's subworkflow. The peak caller subworkflows are renamed `BAM_PEAKS_CALL_<CALLER>` (e.g. `BAM_PEAKS_CALL_MACS3`), so custom configs that select their processes by name (`withName: '.*:BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER:...'`) need updating. Output file names and directories are unchanged.
+- SEACR also runs on 1 bp coverage of the BAM files (`bedtools genomecov`), scaled by the factor of each normalisation, besides the coverage tracks at `--coverage_bin_size`. SEACR finds peaks as blocks of contiguous signal and is designed for 1 bp coverage; on 250 bp bins nearly the whole genome formed a few thousand long blocks, which made its threshold jump between very different values (rpm peak counts dropped by about 90% compared with raw for some replicates and not at all for others). The new peak files are named `*.1.<NORM>.stringent.bed`; the SEACR FRiP score, peak count and annotation files now also have the bin size in their names (e.g. `*.seacr.250.rpm.peaks.annotatePeaks.txt`), and each bin size and normalisation has its own FRiP score and peak count sections in the MultiQC report (e.g. "SEACR (1 bp, rpm) FRiP score").
 
 ### `Fixed`
 
@@ -32,13 +33,18 @@ Development version of grothlab/crepas.
 - Sample labels in the Genrich (and epic2) peak QC plots including the file extension.
 - epic2, Genrich and MACE peak QC and peak annotation plots being written outside `downsampled/` with `--bam_downsampling_method`, and missing parts of the file name prefix (e.g. `.dedup`, `.flTbl`). They now follow the MACS3 plots. Samples in the Genrich and MACE annotation plots are now in a fixed order.
 - MACE being run on input controls, as if they were samples. MACE has no input control option, so its peaks for input controls meant nothing, and on input controls with few reads it stopped the pipeline (`Only N border pairs found! MACE will be terminated`). Input controls are now left out.
-- SEACR FRiP scores and peak counts missing from the MultiQC report for all but one normalisation of each sample, because MultiQC trims sample names back to the sample ID and the rows of the different normalisations got the same name. Each normalisation now has its own FRiP score and peak count sections (e.g. "SEACR (rpm) FRiP score"). The SEACR sections were also missing from the MultiQC section order.
+- SEACR FRiP scores and peak counts missing from the MultiQC report for all but one normalisation of each sample, because MultiQC trims sample names back to the sample ID and the rows of the different normalisations got the same name. Each normalisation now has its own FRiP score and peak count sections. The SEACR sections were also missing from the MultiQC section order.
+- SEACR ignoring the first bin of every bedGraph, which it skips as a header line. Its bedGraphs now start with a `track` line.
 - TE counting (TEcount, TElocal and their name sorting) running once for each antibody on an input control shared by several antibodies, with identical outputs written over each other, and `TE_COUNTING_QC` then failing with `input file name collision` ([#152](https://github.com/grothlab/crepas/issues/152)). Without downsampling each input control is now counted once and its table is added to the QC of each antibody; with downsampling each antibody's copy is still counted, since it is downsampled separately.
 - TEcount and TElocal tables of the final BAM files missing `.flT3` in their names for antibodies in `--use_flT2_as_total_ref` (`H3K9me3` and `H3K27me3` by default). With `--skip_flTbl`, these tables had the same names as the `pre_flT3` ones and were written over them.
 - Stub runs with TE counting (`--skip_te_counting false`) failing with `input file name collision`, because the stubs of the TEcount gene and TE indices had the same name, and stub runs with `--bam_downsampling_method` failing on the empty read total of the downsampled BAM files.
 - EDD stopping the pipeline with a missing output error whenever it ran successfully, because EDD writes its results into a subdirectory that the module's outputs did not look in.
 - Partition/RFD summary plots drawing their grey quadrant backgrounds once per plotted data row, which left hundreds of stacked grey squares in the PDFs ([#149](https://github.com/grothlab/crepas/issues/149)).
 - nf-test shards on GitHub Actions failing with `no space left on device` when pulling container images; the runner's unused preinstalled software is now removed before the tests.
+
+### `Removed`
+
+- `--seacr_norm`. SEACR now normalises the input control to the IP (`norm`) for raw tracks, where IP and control are not on the same scale, and compares the normalised rpm, srpm and cisrpm tracks as they are (`non`). Before, `--seacr_norm` defaulted to `non` for all tracks, so raw IP and control signal were compared without correcting for their different depths.
 
 ## [[1.1.0](https://github.com/grothlab/crepas/releases/tag/1.1.0)] - Venusian Pyrite - 2026-09-26
 

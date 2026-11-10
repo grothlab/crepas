@@ -1205,13 +1205,6 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "SEACR specifies returns the top n fraction (between 0 and 1) of peaks based on total signal within peaks. This is only used if there are no controls included with the samples and if `--use_control` is `false`"
                 },
-                "seacr_norm": {
-                    "type": "string",
-                    "default": "non",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "SEACR normalization.",
-                    "enum": ["non", "norm"]
-                },
                 "seacr_stringency": {
                     "type": "string",
                     "default": "stringent",

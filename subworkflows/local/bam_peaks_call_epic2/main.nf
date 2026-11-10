@@ -57,7 +57,7 @@ workflow BAM_PEAKS_CALL_EPIC2 {
 
 
     //
-    // Call peaks with epic2
+    // MODULE: Call peaks with epic2
     //
     EPIC2 (
         ch_ip_control_bam_bai_merged_reps,
@@ -67,7 +67,7 @@ workflow BAM_PEAKS_CALL_EPIC2 {
     )
 
     //
-    // Convert epic2 output to diffusePeak and broadPeak files
+    // MODULE: Convert epic2 output to diffusePeak and broadPeak files
     //
     EPIC2_TO_PEAK (
         EPIC2.out.bed

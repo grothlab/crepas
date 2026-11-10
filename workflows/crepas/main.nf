@@ -120,24 +120,20 @@ workflow CREPAS {
     ch_spp_nsc_header = file("${projectDir}/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
     ch_spp_rsc_header = file("${projectDir}/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
     ch_spp_correlation_header = file("${projectDir}/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
-    // MultiQC custom-content headers for the peak count and FRiP score tables: [ peak_caller, norm_factor_type, peak_count_header, frip_score_header ]
-    // SEACR is run on each normalisation of a sample, and MultiQC would merge their rows, so each normalisation has its own sections
     ch_peak_count_frip_headers = channel.of(
-        [ 'macs3',   '', file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true),       file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true) ],
-        [ 'epic2',   '', file("${projectDir}/assets/multiqc/epic2_peak_count_header.txt", checkIfExists: true), file("${projectDir}/assets/multiqc/epic2_frip_score_header.txt", checkIfExists: true) ],
-        [ 'genrich', '', file("${projectDir}/assets/multiqc/gr_peak_count_header.txt", checkIfExists: true),    file("${projectDir}/assets/multiqc/gr_frip_score_header.txt", checkIfExists: true) ],
-        [ 'mace',    '', file("${projectDir}/assets/multiqc/mace_peak_count_header.txt", checkIfExists: true),  file("${projectDir}/assets/multiqc/mace_frip_score_header.txt", checkIfExists: true) ]
+        [ 'macs3',   '',           file("${projectDir}/assets/multiqc/peak_count_header.txt", checkIfExists: true),                  file("${projectDir}/assets/multiqc/frip_score_header.txt", checkIfExists: true) ],
+        [ 'epic2',   '',           file("${projectDir}/assets/multiqc/epic2_peak_count_header.txt", checkIfExists: true),            file("${projectDir}/assets/multiqc/epic2_frip_score_header.txt", checkIfExists: true) ],
+        [ 'genrich', '',           file("${projectDir}/assets/multiqc/gr_peak_count_header.txt", checkIfExists: true),               file("${projectDir}/assets/multiqc/gr_frip_score_header.txt", checkIfExists: true) ],
+        [ 'mace',    '',           file("${projectDir}/assets/multiqc/mace_peak_count_header.txt", checkIfExists: true),             file("${projectDir}/assets/multiqc/mace_frip_score_header.txt", checkIfExists: true) ],
+        [ 'seacr',   'raw',        file("${projectDir}/assets/multiqc/seacr_raw_peak_count_header.txt", checkIfExists: true),        file("${projectDir}/assets/multiqc/seacr_raw_frip_score_header.txt", checkIfExists: true) ],
+        [ 'seacr',   'rpm',        file("${projectDir}/assets/multiqc/seacr_rpm_peak_count_header.txt", checkIfExists: true),        file("${projectDir}/assets/multiqc/seacr_rpm_frip_score_header.txt", checkIfExists: true) ],
+        [ 'seacr',   'srpm',       file("${projectDir}/assets/multiqc/seacr_srpm_peak_count_header.txt", checkIfExists: true),       file("${projectDir}/assets/multiqc/seacr_srpm_frip_score_header.txt", checkIfExists: true) ],
+        [ 'seacr',   'cisrpm',     file("${projectDir}/assets/multiqc/seacr_cisrpm_peak_count_header.txt", checkIfExists: true),     file("${projectDir}/assets/multiqc/seacr_cisrpm_frip_score_header.txt", checkIfExists: true) ],
+        [ 'seacr',   '1bp_raw',    file("${projectDir}/assets/multiqc/seacr_1bp_raw_peak_count_header.txt", checkIfExists: true),    file("${projectDir}/assets/multiqc/seacr_1bp_raw_frip_score_header.txt", checkIfExists: true) ],
+        [ 'seacr',   '1bp_rpm',    file("${projectDir}/assets/multiqc/seacr_1bp_rpm_peak_count_header.txt", checkIfExists: true),    file("${projectDir}/assets/multiqc/seacr_1bp_rpm_frip_score_header.txt", checkIfExists: true) ],
+        [ 'seacr',   '1bp_srpm',   file("${projectDir}/assets/multiqc/seacr_1bp_srpm_peak_count_header.txt", checkIfExists: true),   file("${projectDir}/assets/multiqc/seacr_1bp_srpm_frip_score_header.txt", checkIfExists: true) ],
+        [ 'seacr',   '1bp_cisrpm', file("${projectDir}/assets/multiqc/seacr_1bp_cisrpm_peak_count_header.txt", checkIfExists: true), file("${projectDir}/assets/multiqc/seacr_1bp_cisrpm_frip_score_header.txt", checkIfExists: true) ]
     )
-        .mix(
-            channel.of('raw', 'rpm', 'srpm', 'cisrpm').map { norm_factor_type ->
-                [
-                    'seacr',
-                    norm_factor_type,
-                    file("${projectDir}/assets/multiqc/seacr_${norm_factor_type}_peak_count_header.txt", checkIfExists: true),
-                    file("${projectDir}/assets/multiqc/seacr_${norm_factor_type}_frip_score_header.txt", checkIfExists: true)
-                ]
-            }
-        )
     // MultiQC custom-content headers for the peak annotation plots: [ peak_caller, peak_annotation_header ]
     ch_peak_annotation_headers = channel.of(
         [ 'macs3',   file("${projectDir}/assets/multiqc/peak_annotation_header.txt", checkIfExists: true) ],
@@ -902,7 +898,8 @@ workflow CREPAS {
             params.skip_deseq2_qc,
             params.skip_consensus_plotprofile,
             params.input_cisrpm_in_plotprofile,
-            params.seacr_peak_threshold
+            params.seacr_peak_threshold,
+            params.coverage_bin_size
         )
 
         ch_edd_peaks = CALL_PEAKS.out.edd_peaks

@@ -20,7 +20,7 @@ workflow BAM_PEAKS_CALL_MACS3 {
     main:
 
     //
-    // Call peaks with MACS3
+    // MODULE: Call peaks with MACS3
     //
     MACS3_CALLPEAK (
         ch_bam,
@@ -47,30 +47,48 @@ workflow BAM_PEAKS_CALL_MACS3 {
 
 
     if (!skip_bdgcmp) {
+        //
+        // MODULE: Fold enrichment of the IP pileup over the control lambda
+        //
         MACS3_BDGCMP (
             ch_bdgs
         )
 
+        //
+        // MODULE: Clip the fold-enrichment intervals at the chromosome ends
+        //
         BEDTOOLS_SLOP (
             MACS3_BDGCMP.out.bdg,
             ch_chrom_sizes.map{ it -> it[1] }
         )
 
+        //
+        // MODULE: Remove intervals with an invalid (-1) end coordinate
+        //
         AWK_FIX_MACS3_BDGCMP (
             BEDTOOLS_SLOP.out.bed,
         )
 
+        //
+        // MODULE: Clip intervals to the chromosome sizes
+        //
         UCSC_BEDCLIP (
             AWK_FIX_MACS3_BDGCMP.out.bed,
             ch_chrom_sizes.map{ it -> it[1] }
         )
 
+        //
+        // MODULE: Sort the bedGraph
+        //
         // TODO: maybe a whole module for this is overkill
         FILE_SORT (
             UCSC_BEDCLIP.out.bedgraph,
             'sorted'
         )
 
+        //
+        // MODULE: Convert the fold-enrichment bedGraph to bigWig
+        //
         BIGTOOLS_BEDGRAPHTOBIGWIG (
             FILE_SORT.out.sorted,
             ch_chrom_sizes

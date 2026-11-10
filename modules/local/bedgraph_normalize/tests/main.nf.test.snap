@@ -40,6 +40,23 @@
             "nextflow": "26.04.4"
         }
     },
+    "homo_sapiens - bedgraph - multiply with track line": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.bedGraph:md5,0624517945c3c178e7a71e70d8291bf3"
+                ]
+            ]
+        ],
+        "timestamp": "2026-11-09T14:22:14.864538826",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
     "homo_sapiens - bedgraph - multiply with pseudocount": {
         "content": [
             [

@@ -60,6 +60,9 @@ workflow BAM_PEAKS_CALL_MACE {
     // Merge forward and reverse strands into one channel
     ch_wig = ch_fwd_wig.mix(ch_rwd_wig)
 
+    //
+    // MODULE: Convert the strand-specific wig files to bigWig
+    //
     UCSC_WIGTOBIGWIG (
         ch_wig,
         ch_chrom_sizes.map { it -> it[1] }

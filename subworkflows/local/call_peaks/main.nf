@@ -15,7 +15,7 @@ workflow CALL_PEAKS {
     take:
     ch_bam_index              // channel: [ val(meta), [ bam ], [ index ] ]
     ch_bigwig_norm
-    ch_bedgraph_for_seacr
+    ch_bedgraph_for_seacr   // channel: [ val(meta), path(bedgraph) ], coverage tracks for SEACR, also used for the normalisations of its 1 bp coverage
     ch_peak_callers         // channel: [ 'macs3', 'genrich' ]
     ch_fasta_fai            // channel: [ val(meta), path(fasta), path(fai) ]
     ch_gtf
@@ -26,7 +26,7 @@ workflow CALL_PEAKS {
     ch_active_regions
     ch_rocco_params
     ch_effective_gsize
-    ch_peak_count_frip_headers  // channel: [ val(peak_caller), val(norm_factor_type), path(peak_count_header), path(frip_score_header) ]
+    ch_peak_count_frip_headers  // channel: [ val(peak_caller), val(peak_qc_variant), path(peak_count_header), path(frip_score_header) ]
     ch_peak_annotation_headers  // channel: [ val(peak_caller), path(peak_annotation_header) ]
     ch_deseq2_pca_header
     ch_deseq2_clustering_header
@@ -39,6 +39,7 @@ workflow CALL_PEAKS {
     skip_consensus_plotprofile
     input_cisrpm_in_plotprofile
     seacr_peak_threshold
+    coverage_bin_size       // integer: bin size of the coverage tracks, one of the bin sizes SEACR is run at
 
     main:
 
@@ -191,40 +192,14 @@ workflow CALL_PEAKS {
 
 
     //
-    // SUBWORKFLOW: Call peaks with SEACR
+    // SUBWORKFLOW: Call peaks with SEACR, on the coverage tracks and on 1 bp coverage of the BAM files scaled
+    // for each normalisation of the coverage tracks (raw, rpm, srpm, cisrpm)
     //
-
-    // Create channels: [ meta, ip_bam, ipcontrol_bam ]
-    // Including ips_wo_ipcontrol as they will be used for peak calling without control
-    ch_bedgraph_for_seacr
-        .branch { meta, bdg ->
-            ips_with_ipcontrol: meta.input_control
-                return [meta.input_control, meta.antibody, meta.norm_factor_type, meta, bdg]
-            ips_wo_ipcontrol: !meta.input_control && !meta.is_input_control
-                return [meta, bdg, []]
-            ipcontrols: !meta.input_control && meta.is_input_control
-                return [meta.id, meta.input_control_of_antibody, meta.norm_factor_type, meta, bdg]
-        }
-        .set { ch_bedgraph_by_type }
-
-    ch_bedgraph_by_type
-        .ips_with_ipcontrol
-        .combine(ch_bedgraph_by_type.ipcontrols, by: [0,1,2])
-        .map { ipcontrol_id, antibody, norm_factor_type, ip_meta, ip_bdg, ipcontrol_meta, ipcontrol_bdg ->
-            [ ip_meta, ip_bdg, ipcontrol_bdg ]
-        }
-        .set { ch_ip_and_ipcontrols_bdg }
-
-    ch_bedgraph_by_type
-        .ips_wo_ipcontrol
-        .mix(ch_ip_and_ipcontrols_bdg)
-        .set { ch_all_bdg_ip_and_controls }
-
-
     BAM_PEAKS_CALL_SEACR (
-        ch_all_bdg_ip_and_controls.filter { it -> it[0].peak_caller == 'seacr' },
-        seacr_peak_threshold,
-        ch_all_ip_and_controls.filter { it -> it[0].peak_caller == 'seacr' }
+        ch_bam.filter { it -> it[0].peak_caller == 'seacr' },
+        ch_bedgraph_for_seacr,
+        coverage_bin_size,
+        seacr_peak_threshold
     )
     ch_seacr_peaks = BAM_PEAKS_CALL_SEACR.out.peaks
 
