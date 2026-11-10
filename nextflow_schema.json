@@ -979,7 +979,7 @@
                 "skip_peak_qc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
-                    "description": "Skip MACS3 peak QC plot generation."
+                    "description": "Skip the peak QC and peak annotation QC plots."
                 },
                 "skip_peak_annotation": {
                     "type": "boolean",

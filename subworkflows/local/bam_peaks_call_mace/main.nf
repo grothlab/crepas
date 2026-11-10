@@ -116,6 +116,7 @@ workflow BAM_PEAKS_CALL_MACE {
     emit:
     peaks                        = ch_mace_peaks                    // channel: [ val(meta), path(peaks) ]
     bam_peaks                    = ch_bam_peaks                     // channel: [ val(meta), path(bam), path(peaks) ]
+    qc_peaks                     = ch_mace_peaks                    // channel: [ val(meta), path(peaks) ]
     border                       = MACE_MACE.out.border             // channel: [ val(meta), path(bed) ]
     border_cluster               = MACE_MACE.out.border_cluster     // channel: [ val(meta), path(bed) ]
     border_pair_elite            = MACE_MACE.out.border_pair_elite  // channel: [ val(meta), path(bed) ]

@@ -1,5 +1,5 @@
 {
-    "homo_sapiens - 2 samples - macs3 qc plots - stub": {
+    "homo_sapiens - 2 samples - score columns - stub": {
         "content": [
             {
                 "0": [
@@ -20,7 +20,7 @@
                 ],
                 "2": [
                     [
-                        "PLOT_MACS3_QC",
+                        "PLOT_PEAK_QC",
                         "r-base",
                         "4.5.3"
                     ]
@@ -43,37 +43,58 @@
                 ],
                 "versions_rbase": [
                     [
-                        "PLOT_MACS3_QC",
+                        "PLOT_PEAK_QC",
                         "r-base",
                         "4.5.3"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-20T11:26:33.919766679",
+        "timestamp": "2026-11-09T23:11:29.792681645",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     },
-    "homo_sapiens - 2 samples - macs3 qc plots": {
+    "homo_sapiens - 2 samples - count and length only": {
+        "content": [
+            [
+                "measure",
+                "length"
+            ],
+            "test_group.plots.pdf"
+        ],
+        "timestamp": "2026-11-09T23:11:20.055028797",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    },
+    "homo_sapiens - 2 samples - score columns": {
         "content": [
             "test_group.summary.txt",
+            [
+                "measure",
+                "fold",
+                "-log10(qvalue)",
+                "-log10(pvalue)",
+                "length"
+            ],
             "test_group.plots.pdf",
             {
                 "versions_rbase": [
                     [
-                        "PLOT_MACS3_QC",
+                        "PLOT_PEAK_QC",
                         "r-base",
                         "4.5.3"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-20T11:26:23.565154528",
+        "timestamp": "2026-11-09T23:11:08.245699049",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.4"
         }
     }
 }

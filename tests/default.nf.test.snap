@@ -132,7 +132,7 @@
                 "PLOT_HOMER_ANNOTATEPEAKS": {
                     "r-base": "4.5.3"
                 },
-                "PLOT_MACS3_QC": {
+                "PLOT_PEAK_QC": {
                     "r-base": "4.5.3"
                 },
                 "SAMBAMBA_VIEW": {

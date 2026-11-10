@@ -127,5 +127,6 @@ workflow BAM_PEAKS_CALL_SEACR {
     emit:
     peaks     = ch_seacr_peaks                       // channel: [ val(meta), path(peaks) ]
     bam_peaks = ch_bam_peaks                         // channel: [ val(meta), path(ip_bam), path(peaks) ]
+    qc_peaks  = ch_seacr_peaks                       // channel: [ val(meta), path(peaks) ]
     bedgraph  = BEDGRAPH_NORMALIZE.out.normalized    // channel: [ val(meta), path(bedgraph) ], the bedGraphs given to SEACR
 }

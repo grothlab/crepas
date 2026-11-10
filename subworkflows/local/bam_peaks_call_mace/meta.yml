@@ -32,6 +32,10 @@ output:
         Each replicate's BAM file with the peaks called on the pooled replicates, for FRiP scores
         and peak counts
         Structure: [ val(meta), path(bam), path(peaks) ]
+  - qc_peaks:
+      description: |
+        MACE peaks, for the peak QC plots
+        Structure: [ val(meta), path(peaks) ]
   - border:
       description: |
         MACE border BED file

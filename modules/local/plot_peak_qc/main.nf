@@ -1,4 +1,4 @@
-process PLOT_MACS3_QC {
+process PLOT_PEAK_QC {
     tag "$meta.id"
     label 'process_medium'
 
@@ -21,10 +21,10 @@ process PLOT_MACS3_QC {
     script:
     def args      = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    // Sample labels: file names without "_peaks" (MACS3) and the peak file extension
-    def sample_ids = peaks.collect { peak -> peak.name.replaceAll(/(_peaks)?\.(narrowPeak|broadPeak)$/, '') }.join(',')
+    // Sample labels: file names without "_peaks" (MACS3) and the file extension
+    def sample_ids = peaks.collect { peak -> peak.name.replaceAll(/(_peaks)?\.[^.]+$/, '') }.join(',')
     """
-    plot_macs3_qc.r \\
+    plot_peak_qc.r \\
         -i ${peaks.join(',')} \\
         -s ${sample_ids} \\
         -p $prefix \\
