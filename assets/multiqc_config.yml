@@ -334,6 +334,12 @@ report_section_order:
     order: -1445
   seacr_peak_annotation:
     order: -1446
+  lanceotron_peak_count:
+    order: -1447
+  lanceotron_frip_score:
+    order: -1448
+  lanceotron_peak_annotation:
+    order: -1449
   deeptools_fingerprint:
     order: -1450
   consensus_featurecounts_se:

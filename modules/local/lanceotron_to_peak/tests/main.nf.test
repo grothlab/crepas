@@ -1,0 +1,161 @@
+nextflow_process {
+
+    name "Test Process LANCEOTRON_TO_PEAK"
+    script "../main.nf"
+    process "LANCEOTRON_TO_PEAK"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "lanceotron_to_peak"
+    tag "lanceotron/callpeaks"
+    tag "lanceotron/callpeaksinput"
+
+    setup {
+        run("DEEPTOOLS_BAMCOVERAGE", alias: "BAMCOVERAGE_IP") {
+            script "../../../nf-core/deeptools/bamcoverage/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test_ip', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test.paired_end.sorted.bam.bai', checkIfExists: true)
+                ]
+                input[1] = []
+                input[2] = []
+                input[3] = [ [:], [] ]
+                """
+            }
+        }
+
+        run("DEEPTOOLS_BAMCOVERAGE", alias: "BAMCOVERAGE_CONTROL") {
+            script "../../../nf-core/deeptools/bamcoverage/main.nf"
+            process {
+                """
+                input[0] = [
+                    [ id:'test_control', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.sorted.bam', checkIfExists: true),
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/test2.paired_end.sorted.bam.bai', checkIfExists: true)
+                ]
+                input[1] = []
+                input[2] = []
+                input[3] = [ [:], [] ]
+                """
+            }
+        }
+
+        run("LANCEOTRON_CALLPEAKS") {
+            script "../../lanceotron/callpeaks/main.nf"
+            process {
+                """
+                input[0] = BAMCOVERAGE_IP.out.bigwig
+                    .map { meta, bw -> [ [ id:'test' ], bw ] }
+                """
+            }
+        }
+
+        run("LANCEOTRON_CALLPEAKSINPUT") {
+            script "../../lanceotron/callpeaksinput/main.nf"
+            process {
+                """
+                input[0] = BAMCOVERAGE_IP.out.bigwig
+                    .map { meta, bw -> [ [ id:'test' ], bw ] }
+                    .combine( BAMCOVERAGE_CONTROL.out.bigwig.map { meta, bw -> bw } )
+                """
+            }
+        }
+    }
+
+    test("homo_sapiens - lanceotron callPeaksInput table") {
+
+        when {
+            params {
+                lanceotron_score_cutoff = 0.5
+            }
+            process {
+                """
+                input[0] = LANCEOTRON_CALLPEAKSINPUT.out.candidates
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - lanceotron callPeaks table") {
+
+        when {
+            params {
+                lanceotron_score_cutoff = 0.5
+            }
+            process {
+                """
+                input[0] = LANCEOTRON_CALLPEAKS.out.candidates
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - lanceotron callPeaksInput table - high cutoff") {
+
+        // Of the two candidates (overall_peak_score 0.9998 and 0.9992), only the first passes
+        when {
+            params {
+                lanceotron_score_cutoff = 0.9995
+            }
+            process {
+                """
+                input[0] = LANCEOTRON_CALLPEAKSINPUT.out.candidates
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.narrowpeak[0][1]).readLines().size() == 1 },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens - lanceotron callPeaksInput table - stub") {
+
+        options "-stub"
+
+        when {
+            params {
+                lanceotron_score_cutoff = 0.5
+            }
+            process {
+                """
+                input[0] = LANCEOTRON_CALLPEAKSINPUT.out.candidates
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

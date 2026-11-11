@@ -1,0 +1,104 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "lanceotron_to_peak"
+description: Keep the LanceOtron candidate peaks above a score cutoff, as narrowPeak, as LanceOtron table and as scores for peak QC plots
+keywords:
+  - lanceotron
+  - narrowpeak
+  - peak-calling
+  - filter
+  - awk
+tools:
+  - gawk:
+      description: |
+        GNU Awk (gawk) is a text-processing language for extracting and reporting data. Used
+        here to keep the LanceOtron candidates with overall_peak_score >= a cutoff
+        (`-v cutoff=<score>` in ext.args, default 0) and write them in three forms. Columns are
+        looked up by name in LanceOtron's header, so tables from callPeaks and callPeaksInput
+        (which adds pvalue_input) are both accepted.
+      homepage: https://www.gnu.org/software/gawk/
+      documentation: https://www.gnu.org/software/gawk/manual/gawk.html
+      tool_dev_url: http://savannah.gnu.org/projects/gawk/
+      licence: ["GPL-3.0-or-later"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - candidates:
+        type: file
+        description: LanceOtron table of candidate peaks, with header, from lanceotron/callpeaks or lanceotron/callpeaksinput (may be empty)
+        pattern: "*.tsv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3475" # TSV
+output:
+  narrowpeak:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.lanceotron.narrowPeak":
+          type: file
+          description: |
+            Peaks above the cutoff in narrowPeak format: name peak_N, score overall_peak_score x 1000,
+            signalValue the enrichment_score, pValue the -log10 p-value against the input control
+            (pvalue_input), or against the chromosome background (pvalue_chrom) without a control,
+            qValue -1, and the summit the position of maximum coverage
+          pattern: "*.lanceotron.narrowPeak"
+          ontologies:
+            - edam: "http://edamontology.org/format_3613" # ENCODE narrow peak format
+  tsv:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.lanceotron.tsv":
+          type: file
+          description: The LanceOtron table, with its header, for the peaks above the cutoff
+          pattern: "*.lanceotron.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  scores:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.lanceotron.scores":
+          type: file
+          description: |
+            Headerless scores of the peaks above the cutoff, with the same columns with or without a
+            control, for peak QC plots: chrom, start, end, overall_peak_score, shape_score,
+            enrichment_score, pValue (as in the narrowPeak)
+          pattern: "*.lanceotron.scores"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_awk:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "awk":
+          type: string
+          description: The name of the tool
+      - "awk -Wversion 2>&1 | head -1 | sed 's/^GNU Awk //; s/,.*//'":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"
