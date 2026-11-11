@@ -1167,7 +1167,7 @@ workflow CREPAS {
         ch_lanceotron_peaks
             .map { meta, peak ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/lanceotron/" +
