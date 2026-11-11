@@ -859,6 +859,7 @@ workflow CREPAS {
     ch_macs3_peaks = channel.empty()
     ch_genrich_peaks = channel.empty()
     ch_epic2_peaks = channel.empty()
+    ch_seacr_peaks = channel.empty()
     ch_mace_peaks = channel.empty()
     ch_consenrich_tracks = channel.empty()
     ch_rocco_peaks = channel.empty()
@@ -906,6 +907,7 @@ workflow CREPAS {
         ch_macs3_peaks = CALL_PEAKS.out.macs3_peaks
         ch_genrich_peaks = CALL_PEAKS.out.genrich_peaks
         ch_epic2_peaks = CALL_PEAKS.out.epic2_peaks
+        ch_seacr_peaks = CALL_PEAKS.out.seacr_peaks
         ch_mace_peaks = CALL_PEAKS.out.mace_peaks
         ch_consenrich_tracks = CALL_PEAKS.out.consenrich_tracks
         ch_rocco_peaks = CALL_PEAKS.out.rocco_peaks
@@ -1130,6 +1132,19 @@ workflow CREPAS {
                     "${params.narrow_peak ? 'narrow_peak' : 'broad_peak'}" +
                     "/${peak.getName()}"
                 [meta, peak, outpath, "34,139,34"] // forest green
+            }
+            .mix(ch_files_and_outpaths)
+            .set { ch_files_and_outpaths }
+
+        ch_seacr_peaks
+            .map { meta, peak ->
+                def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
+                    "/${meta.exp_type}" +
+                    "${meta.downsampling_method ? '/downsampled' : ''}" +
+                    "/SEACR/" +
+                    "${peak.getName()}"
+                [meta, peak, outpath, "218,165,32"] // goldenrod
             }
             .mix(ch_files_and_outpaths)
             .set { ch_files_and_outpaths }

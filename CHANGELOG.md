@@ -23,6 +23,7 @@ Development version of grothlab/crepas.
 
 ### `Fixed`
 
+- SEACR peaks missing from the IGV session: every SEACR peak file (each bin size and normalisation) is now a track.
 - IGV session pointing at missing files with `--multimap_allocation_method chromap`: the paths of the coverage tracks and of the MACS3, EDD, Genrich, MACE, epic2, Consenrich and ROCCO files had a `cm_allo/` directory that the files are not published in.
 - `PICARD_ADDORREPLACEREADGROUPS` failing with `CIGAR_MAPS_OFF_REFERENCE` after chromap, which can report primary and secondary alignments that run past the end of a contig; it now runs with `--VALIDATION_STRINGENCY LENIENT`, like the other Picard steps.
 - Institutional profiles from `--custom_config_base` (e.g. `grothlab/configs`) not being found with Nextflow 25.10, because lineage tracking was enabled; lineage is now disabled by default (enable it with `lineage.enabled = true` in a custom config).
