@@ -127,9 +127,22 @@ def read_bed(path):
     return df
 
 
+def columns_with_gaps(starts, ends, values):
+    """Column edges at the bins' own coordinates, with an all-NaN column over each gap.
+
+    Bins dropped by the G1 filter leave gaps; drawn evenly spaced instead, the columns
+    after a gap would sit megabases away from the features called on them.
+    """
+    gaps = np.flatnonzero(starts[1:] > ends[:-1]) + 1
+    values = np.insert(values.astype(float), gaps, np.nan, axis=0)
+    edges = np.concatenate([[starts[0]], np.insert(ends, gaps, starts[gaps])])
+    return edges, values
+
+
 def plot_el_track(ax, el, extent):
     """The early/late log2 ratio over the same window, above the heatmap.
     """
+    el = el.sort_values('start')
     mid = ((el['start'] + el['end']) / 2e6).to_numpy()
     values = el['value'].to_numpy()
     if len(mid) > 1:
@@ -138,7 +151,10 @@ def plot_el_track(ax, el, extent):
         # colour each segment by its sign, so the line changes colour at the crossing
         midpoints = (values[:-1] + values[1:]) / 2
         colours = np.where(midpoints >= 0, EL_EARLY_COLOR, EL_LATE_COLOR)
-        ax.add_collection(LineCollection(segments, colors=colours, linewidths=0.7))
+        # no segment across a gap, which would draw a timing where nothing was measured
+        adjacent = el['start'].to_numpy()[1:] <= el['end'].to_numpy()[:-1]
+        ax.add_collection(LineCollection(segments[adjacent], colors=colours[adjacent],
+                                         linewidths=0.7))
     span = float(np.nanmax(np.abs(values))) if len(values) else 1.0
     ax.set_ylim(-span * 1.1, span * 1.1)
     ax.axhline(0, color='0.4', linewidth=0.5, zorder=0)
@@ -150,6 +166,7 @@ def plot_el_track(ax, el, extent):
 
 def plot_chromosome(fig, chrom, sub, partitions, fractions, el=None):
     """Heatmap of one chromosome, with a partition track per reading below."""
+    sub = sub.sort_index(level=1)
     starts = sub.index.get_level_values(1).to_numpy()
     ends = sub.index.get_level_values(2).to_numpy()
     extent = [starts.min() / 1e6, ends.max() / 1e6, len(fractions) + 0.5, 0.5]
@@ -173,8 +190,13 @@ def plot_chromosome(fig, chrom, sub, partitions, fractions, el=None):
         fig.add_subplot(grid[row + 1 + i, 1]).axis('off')
     tax = taxes[-1]
 
-    image = ax.imshow(sub.to_numpy().T, aspect='auto', origin='upper', extent=extent,
-                      cmap='RdYlBu_r', interpolation='nearest')
+    edges, values = columns_with_gaps(starts, ends, sub.to_numpy())
+    image = ax.pcolormesh(edges / 1e6, np.arange(len(fractions) + 1) + 0.5,
+                          np.ma.masked_invalid(values.T), cmap='RdYlBu_r', rasterized=True)
+    # gaps are left uncoloured, so they show the axes background
+    ax.set_facecolor('0.85')
+    ax.set_xlim(extent[0], extent[1])
+    ax.set_ylim(extent[2], extent[3])
     ax.set_yticks(range(1, len(fractions) + 1))
     ax.set_yticklabels(fractions, fontsize=6)
     ax.set_ylabel('S phase fraction')

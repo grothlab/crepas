@@ -14,7 +14,7 @@
                     {
                         "id": "test"
                     },
-                    "test.hr_repliseq_heatmap_chr21_mqc.png:md5,57a37e56529b2a41ef851bab69f1046e"
+                    "test.hr_repliseq_heatmap_chr21_mqc.png:md5,1be127c50504cef9d034738d52f661c5"
                 ]
             ],
             [
@@ -29,10 +29,10 @@
                 ]
             ]
         ],
-        "timestamp": "2026-08-26T17:20:14.624404967",
+        "timestamp": "2026-11-11T10:02:30.304949102",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.10.5"
         }
     },
     "homo_sapiens - 4 fractions - stub": {
@@ -110,10 +110,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-26T17:20:33.922408064",
+        "timestamp": "2026-11-11T10:02:51.16965888",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.10.5"
         }
     }
 }

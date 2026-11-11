@@ -462,7 +462,7 @@ documentation for the parameters controlling each step.
   - `*.hr_TTR.speed.tsv`: fork speed within each transition region, in kb/min, with the fractions it traverses and how many breakages were stitched over.
   - `*.hr_cluster_rank.tsv`: the S-phase fraction of the cluster centroid each bin was assigned to, one row per analysed bin. This is the profile every feature is read off, and what the example-feature pages plot.
   - `*.hr_features.qc.txt`: counts, bp and genome fractions for the raw calls and for all three partitions, plus the fork-speed quartiles.
-  - `*.hr_repliseq.plots.pdf`: feature summary, genome coverage under each partition, the fork-speed distribution, pages of example features (one randomly drawn instance of each feature shape, its rank profile over the heatmap of the same bins), and one Repli-seq heatmap per chromosome with the early/late track above it when the sample also has one.
+  - `*.hr_repliseq.plots.pdf`: feature summary, genome coverage under each partition, the fork-speed distribution, pages of example features (one randomly drawn instance of each feature shape, its rank profile over the heatmap of the same bins), and one Repli-seq heatmap per chromosome with the early/late track above it when the sample also has one. Bins removed when building the array (e.g. not covered by the G1 control) are shown as grey gaps in the heatmap and as breaks in the early/late track.
   - `*_mqc.png`: the heatmap of one chromosome, for the MultiQC report.
 
 </details>
