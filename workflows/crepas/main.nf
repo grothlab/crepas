@@ -1064,7 +1064,7 @@ workflow CREPAS {
         .mix(BAM_NORMALIZE_BIGWIG_DEEPTOOLS.out.bigwig_avg_endo)
             .map { meta, bw ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                 "/${meta.exp_type}" +
                 "${meta.downsampling_method ? '/downsampled' : ''}" +
                 "/coverage/" +
@@ -1080,7 +1080,7 @@ workflow CREPAS {
         ch_edd_peaks
             .map { meta, peak ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/edd/" +
@@ -1093,7 +1093,7 @@ workflow CREPAS {
         ch_macs3_peaks
             .map { meta, peak ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/macs3/" +
@@ -1108,7 +1108,7 @@ workflow CREPAS {
             .mix(ch_consensus_txt)
             .map { meta, bed ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/macs3/" +
@@ -1123,7 +1123,7 @@ workflow CREPAS {
         ch_genrich_peaks
             .map { meta, peak ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/genrich/" +
@@ -1137,7 +1137,7 @@ workflow CREPAS {
         ch_mace_peaks
             .map { meta, peak ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/mace/" +
@@ -1150,7 +1150,7 @@ workflow CREPAS {
         ch_epic2_peaks
             .map { meta, peak ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/epic2/" +
@@ -1163,7 +1163,7 @@ workflow CREPAS {
         ch_consenrich_tracks
             .map { meta, signal ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/consenrich/" +
@@ -1176,7 +1176,7 @@ workflow CREPAS {
         ch_rocco_peaks
             .map { meta, peak ->
                 def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
-                    "${params.multimap_allocation_method ? params.multimap_allocation_method == 'chromap' ? 'cm_allo' : params.multimap_allocation_method : ''}" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
                     "/${meta.exp_type}" +
                     "${meta.downsampling_method ? '/downsampled' : ''}" +
                     "/consenrich/rocco/" +
