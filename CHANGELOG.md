@@ -23,6 +23,7 @@ Development version of grothlab/crepas.
 
 ### `Fixed`
 
+- MACS3 peaks and consensus peaks in the IGV session pointing at missing files: the peak files were given MACS3's `*_peaks.<type>Peak` name instead of the published `*.peaks.<type>Peak`, and the consensus files lost the `/` before their antibody directory.
 - SEACR peaks missing from the IGV session: every SEACR peak file (each bin size and normalisation) is now a track.
 - IGV session pointing at missing files with `--multimap_allocation_method chromap`: the paths of the coverage tracks and of the MACS3, EDD, Genrich, MACE, epic2, Consenrich and ROCCO files had a `cm_allo/` directory that the files are not published in.
 - `PICARD_ADDORREPLACEREADGROUPS` failing with `CIGAR_MAPS_OFF_REFERENCE` after chromap, which can report primary and secondary alignments that run past the end of a contig; it now runs with `--VALIDATION_STRINGENCY LENIENT`, like the other Picard steps.
