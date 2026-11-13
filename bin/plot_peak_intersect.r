@@ -24,6 +24,7 @@
 
 library(optparse)
 library(UpSetR)
+library(grid)
 
 ################################################
 ################################################
@@ -71,7 +72,7 @@ if (nintersects > 70) {
 
 pdf(opt$output_file,onefile=F,height=10,width=20)
 
-upset(
+p <- upset(
     fromExpression(comb.vec),
     nsets = length(sets),
     nintersects = nintersects,
@@ -82,9 +83,16 @@ upset(
     line.size = 1,
     mb.ratio = c(0.55, 0.45),
     order.by = "freq",
-    number.angles = 30,
+    number.angles = 90,
     text.scale = c(1.5, 1.5, 1.5, 1.5, 1.5, 1.2)
 )
+
+## Start each vertical number just above its bar
+panel <- which(p$Main_bar$layout$name == "panel")
+numbers <- getGrob(p$Main_bar$grobs[[panel]], "text", grep=TRUE)
+p$Main_bar$grobs[[panel]] <- editGrob(p$Main_bar$grobs[[panel]], numbers$name, hjust=0, vjust=0.5, y=numbers$y + unit(3, "pt"))
+p$Main_bar$layout$clip[panel] <- "off"
+print(p)
 
 dev.off()
 
