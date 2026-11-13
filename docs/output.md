@@ -462,7 +462,7 @@ documentation for the parameters controlling each step.
   - `*.hr_TTR.speed.tsv`: fork speed within each transition region, in kb/min, with the fractions it traverses and how many breakages were stitched over.
   - `*.hr_cluster_rank.tsv`: the S-phase fraction of the cluster centroid each bin was assigned to, one row per analysed bin. This is the profile every feature is read off, and what the example-feature pages plot.
   - `*.hr_features.qc.txt`: counts, bp and genome fractions for the raw calls and for all three partitions, plus the fork-speed quartiles.
-  - `*.hr_repliseq.plots.pdf`: feature summary, genome coverage under each partition, the fork-speed distribution, pages of example features (one randomly drawn instance of each feature shape, its rank profile over the heatmap of the same bins), and one Repli-seq heatmap per chromosome with the early/late track above it when the sample also has one.
+  - `*.hr_repliseq.plots.pdf`: feature summary, genome coverage under each partition, the fork-speed distribution, pages of example features (one randomly drawn instance of each feature shape, its rank profile over the heatmap of the same bins), and one Repli-seq heatmap per chromosome with the early/late track above it when the sample also has one. Bins removed when building the array (e.g. not covered by the G1 control) are shown as grey gaps in the heatmap and as breaks in the early/late track.
   - `*_mqc.png`: the heatmap of one chromosome, for the MultiQC report.
 
 </details>
@@ -476,7 +476,7 @@ present, is used to drop bins it does not cover rather than becoming a row of th
 
 The peak callers are chosen with `--peak_callers` (default `macs3`), as a comma-separated list such as `--peak_callers macs3,epic2`. Each one writes its results under `<aligner>/mergedLibrary/<EXP_TYPE>/<PEAK_CALLER>/`. For samples downsampled with `--downsampling_method`, a `downsampled/` directory is added after `<EXP_TYPE>`; with a multimapper allocation method other than Chromap's, a directory named after it is added after `mergedLibrary/`. `<PEAK_TYPE>` below is `narrow_peak` with `--narrow_peak` and `broad_peak` otherwise.
 
-For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) annotates the peaks relative to the genomic features in the `--gtf` file. The [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html), peak count and peak-to-gene feature ratios of these callers are added to the MultiQC report, each caller in its own section. Annotation is switched off by `--skip_peak_annotation`, and the QC plots of the peaks and their annotation by `--skip_peak_qc`.
+For MACS3, epic2, Genrich, MACE, SEACR and LanceOtron, [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) annotates the peaks relative to the genomic features in the `--gtf` file. The [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html), peak count and peak-to-gene feature ratios of these callers are added to the MultiQC report, each caller in its own section. Annotation is switched off by `--skip_peak_annotation`, and the QC plots of the peaks and their annotation by `--skip_peak_qc`.
 
 ![MultiQC - MACS3 total peak count plot](images/mqc_macs3_peak_count_plot.png)
 
@@ -577,6 +577,26 @@ For MACS3, epic2, Genrich, MACE and SEACR, [HOMER annotatePeaks.pl](http://homer
 </details>
 
 [MACE](https://github.com/tanglab/MACE) (Model-based Analysis of ChIP-exo) calls peaks in ChIP-exo data from the borders of the protein-DNA crosslinks on each strand. It runs on the pooled replicates of each IP sample. MACE has no input control option, so input controls are not given to it. Its options are the `--mace_*` parameters.
+
+#### LanceOtron
+
+<details markdown="1">
+    <summary>Output files</summary>
+
+- `<aligner>/mergedLibrary/<EXP_TYPE>/lanceotron/`
+  - `*.lanceotron.narrowPeak`: LanceOtron peaks with an overall peak score of at least `--lanceotron_score_cutoff`. The score column is the overall peak score × 1000, signalValue the enrichment score, pValue the -log10 p-value against the input control (or against the chromosome, for IPs without a control), and the summit the position of maximum coverage. This file is used for annotation, FRiP scores and the downstream steps.
+  - `*.lanceotron.tsv`: LanceOtron's own table for the same peaks, with all its scores and p-values.
+  - `*.lanceotron.peaks.annotatePeaks.txt`: HOMER peak-to-gene annotation file.
+- `<aligner>/mergedLibrary/<EXP_TYPE>/lanceotron/bigwig/`
+  - `*.lanceotron.1bp.rpkm.bigWig`: the 1 bp coverage tracks LanceOtron is run on, with `--save_lanceotron_bigwig`.
+- `<aligner>/mergedLibrary/<EXP_TYPE>/lanceotron/qc/`
+  - `*.lanceotron.peaks.qc.plots.pdf`, `*.lanceotron.peaks.qc.summary.txt`: QC plots and summary statistics of the overall, shape and enrichment scores, p-value and length of the peaks, per sample.
+  - `*.lanceotron.homer_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
+  - `*.FRiP_mqc.tsv`, `*.peak_count_mqc.tsv`, `*.summary_mqc.tsv`: MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios.
+
+</details>
+
+[LanceOtron](https://github.com/LHentges/LanceOtron) finds candidate peaks in a coverage track and scores each one with a convolutional neural network, for its shape and its enrichment over the local background. Because it scores the shape of the signal, it runs on its own 1 bp coverage track of each BAM file (deepTools `bamCoverage --binSize 1 --normalizeUsing RPKM`, with reads extended by `--coverage_extend_reads`), not on the binned coverage tracks. IPs with an input control are called with `lanceotron callPeaksInput`, which adds a p-value against the control; IPs without one with `lanceotron callPeaks`. Peaks are then kept when their overall peak score is at least `--lanceotron_score_cutoff` (default 0.5, as in the LanceOtron paper); this is a separate step, so the cutoff can be changed with `-resume` without running LanceOtron again. `--lanceotron_threshold` and `--lanceotron_window` set how candidate regions are selected; lower them if LanceOtron finds no candidates. LanceOtron runs on the CPU and needs no GPU. It skips chromosomes whose names contain `_` or start with `chrUn`, and `chrM`.
 
 #### EDD
 

@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "lanceotron_callpeaks"
+description: Find and score candidate peaks in a 1 bp bigWig coverage track with the LanceOtron deep learning peak caller, without an input control
+keywords:
+  - lanceotron
+  - peak-calling
+  - deep-learning
+  - bigwig
+  - chip-seq
+  - atac-seq
+tools:
+  - lanceotron:
+      description: |
+        LanceOtron finds candidate regions in a bigWig coverage track and scores each with a
+        convolutional neural network for its peak shape and its enrichment over the local
+        background. Expects a 1 bp, read-extended track (e.g. deepTools bamCoverage --binSize 1
+        --extendReads --normalizeUsing RPKM). Runs on the CPU.
+      homepage: https://github.com/LHentges/LanceOtron
+      documentation: https://github.com/LHentges/LanceOtron/blob/master/README.md
+      tool_dev_url: https://github.com/LHentges/LanceOtron
+      doi: "10.1093/bioinformatics/btac525"
+      licence: ["GPL-3.0-only"]
+      identifier: biotools:lanceotron
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bigwig:
+        type: file
+        description: 1 bp, read-extended coverage track of the IP sample
+        pattern: "*.{bw,bigWig,bigwig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3006" # bigWig
+output:
+  candidates:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.lanceotron.candidates.tsv":
+          type: file
+          description: |
+            LanceOtron's table of candidate peaks with overall_peak_score > 0, with header:
+            chrom, start, end, overall_peak_score, shape_score, enrichment_score,
+            max_coverage_position, region_id and the -log10 Poisson p-values against the chromosome
+            (pvalue_chrom) and the 10-100 kb backgrounds. Empty when no candidates are found.
+          pattern: "*.lanceotron.candidates.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_lanceotron:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "lanceotron":
+          type: string
+          description: The name of the tool
+      - 'python -c "import importlib.metadata as m; print(m.version(''lanceotron''))"':
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "lanceotron":
+          type: string
+          description: The name of the tool
+      - 'python -c "import importlib.metadata as m; print(m.version(''lanceotron''))"':
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

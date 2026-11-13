@@ -1,0 +1,84 @@
+{
+    "homo_sapiens - bigwig - input control - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.candidates.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "LANCEOTRON_CALLPEAKSINPUT",
+                        "lanceotron",
+                        "1.2.7"
+                    ]
+                ],
+                "candidates": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.candidates.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_lanceotron": [
+                    [
+                        "LANCEOTRON_CALLPEAKSINPUT",
+                        "lanceotron",
+                        "1.2.7"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-10T23:34:39.384376593",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    },
+    "homo_sapiens - bigwig - input control": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.candidates.tsv:md5,29478a5c2841f69def1a2b89e452a6a3"
+                    ]
+                ],
+                "1": [
+                    [
+                        "LANCEOTRON_CALLPEAKSINPUT",
+                        "lanceotron",
+                        "1.2.7"
+                    ]
+                ],
+                "candidates": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.candidates.tsv:md5,29478a5c2841f69def1a2b89e452a6a3"
+                    ]
+                ],
+                "versions_lanceotron": [
+                    [
+                        "LANCEOTRON_CALLPEAKSINPUT",
+                        "lanceotron",
+                        "1.2.7"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-10T23:34:22.760260551",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    }
+}

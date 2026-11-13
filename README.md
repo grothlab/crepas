@@ -80,6 +80,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 - Call peaks ([`Genrich`](https://github.com/jsh58/Genrich)), annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html)), and create consensus peakset ([`BEDTools`](https://github.com/arq5x/bedtools2/))
 
+- Call peaks with a deep learning model ([`LanceOtron`](https://github.com/LHentges/LanceOtron)) and annotate them ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
+
 - Call diffuse peaks ([`epic2`](https://github.com/biocore-ntnu/epic2)), annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html)), and create consensus peakset ([`BEDTools`](https://github.com/arq5x/bedtools2/))
 
 - Extract genome-wide uncertainty-moderated signal from multi-sample datasets ([`Consenrich`](https://github.com/nolan-h-hamilton/Consenrich)), call consensus peaks ([`ROCCO`](https://github.com/nolan-h-hamilton/ROCCO)) and annotate ([`HOMER`](http://homer.ucsd.edu/homer/download.html))

@@ -1,0 +1,294 @@
+{
+    "homo_sapiens - lanceotron callPeaksInput table - high cutoff": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.narrowPeak:md5,dddc1552d29cd13e9c46931071fd9cea"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.tsv:md5,b6c577cfb368641a3833bdefca73e888"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.scores:md5,cea303f04582fbcda9d37423c889d3cf"
+                    ]
+                ],
+                "3": [
+                    [
+                        "LANCEOTRON_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "narrowpeak": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.narrowPeak:md5,dddc1552d29cd13e9c46931071fd9cea"
+                    ]
+                ],
+                "scores": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.scores:md5,cea303f04582fbcda9d37423c889d3cf"
+                    ]
+                ],
+                "tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.tsv:md5,b6c577cfb368641a3833bdefca73e888"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "LANCEOTRON_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-10T23:36:12.716687897",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    },
+    "homo_sapiens - lanceotron callPeaks table": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.narrowPeak:md5,efd55d8919827aa4edabf2ae17e50860"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.tsv:md5,9ee2a332ea8f616700d526cf7ffdf0b3"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.scores:md5,299e34e279aed0439a6de141016d523d"
+                    ]
+                ],
+                "3": [
+                    [
+                        "LANCEOTRON_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "narrowpeak": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.narrowPeak:md5,efd55d8919827aa4edabf2ae17e50860"
+                    ]
+                ],
+                "scores": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.scores:md5,299e34e279aed0439a6de141016d523d"
+                    ]
+                ],
+                "tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.tsv:md5,9ee2a332ea8f616700d526cf7ffdf0b3"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "LANCEOTRON_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-10T23:35:39.937984477",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    },
+    "homo_sapiens - lanceotron callPeaksInput table": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.narrowPeak:md5,dcdc5e46a7421e084caeeaf03a27c26e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.tsv:md5,29478a5c2841f69def1a2b89e452a6a3"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.scores:md5,7cb76f9d9d6df3002bf77989d0fc3b77"
+                    ]
+                ],
+                "3": [
+                    [
+                        "LANCEOTRON_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "narrowpeak": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.narrowPeak:md5,dcdc5e46a7421e084caeeaf03a27c26e"
+                    ]
+                ],
+                "scores": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.scores:md5,7cb76f9d9d6df3002bf77989d0fc3b77"
+                    ]
+                ],
+                "tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.tsv:md5,29478a5c2841f69def1a2b89e452a6a3"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "LANCEOTRON_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-10T23:35:09.830595072",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    },
+    "homo_sapiens - lanceotron callPeaksInput table - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.narrowPeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.scores:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        "LANCEOTRON_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ],
+                "narrowpeak": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.narrowPeak:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "scores": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.scores:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.lanceotron.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_awk": [
+                    [
+                        "LANCEOTRON_TO_PEAK",
+                        "awk",
+                        "5.4.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-10T23:36:30.962610552",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    }
+}

@@ -154,6 +154,10 @@
 
   > Crusoe MR, Alameldin HF, Awad S, Boucher E, Caldwell A, Cartwright R, Charbonneau A, Constantinides B, Edvenson G, Fay S, et al. The khmer software package: enabling efficient nucleotide sequence analysis. F1000Research. 2015;4:900. doi: 10.12688/f1000research.6924.1. PubMed PMID: 26535114; PubMed Central PMCID: PMC4608353.
 
+- [LanceOtron](https://doi.org/10.1093/bioinformatics/btac525)
+
+  > Hentges LD, Sergeant MJ, Cole CB, Downes DJ, Hughes JR, Taylor S. LanceOtron: a deep learning peak caller for genome sequencing experiments. Bioinformatics. 2022 Sep 15;38(18):4255-4263. doi: 10.1093/bioinformatics/btac525.
+
 - [lbzip2](https://github.com/kjn/lbzip2)
 
   > lbzip2: a parallel bzip2 compression utility. GitHub repository. URL: https://github.com/kjn/lbzip2.
