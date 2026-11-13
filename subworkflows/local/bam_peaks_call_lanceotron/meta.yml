@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "bam_peaks_call_lanceotron"
+description: |
+  Call peaks with LanceOtron on 1 bp, read-extended RPKM coverage of the BAM files, made once per BAM
+  file with deepTools bamCoverage (input controls shared by several antibodies are one file). Each IP
+  with an input control is called with `lanceotron callPeaksInput` against the control's coverage, each
+  IP without one with `lanceotron callPeaks`; input controls are not called themselves. Peaks are kept
+  when their overall_peak_score is at least the cutoff (ext.args of LANCEOTRON_TO_PEAK), in a separate step,
+  so changing the cutoff with -resume does not re-run LanceOtron.
+  FRiP scores and annotation are done for all peak callers by bam_peaks_qc_annotate_homer.
+keywords:
+  - lanceotron
+  - peak-calling
+  - deep-learning
+components:
+  - deeptools/bamcoverage
+  - lanceotron/callpeaks
+  - lanceotron/callpeaksinput
+  - lanceotron_to_peak
+input:
+  - ch_bam_bai:
+      description: |
+        IP and input control BAM files with their indices. IPs are paired with their input control by
+        meta.input_control and meta.antibody (meta.id and meta.input_control_of_antibody of the control).
+        Structure: [ val(meta), path(bam), path(bai) ]
+output:
+  - peaks:
+      description: |
+        LanceOtron peaks in narrowPeak format, filtered to remove samples with zero peaks called
+        Structure: [ val(meta), path(narrowPeak) ]
+  - bam_peaks:
+      description: |
+        IP BAM file with its peaks, for FRiP scores and peak counts
+        Structure: [ val(meta), path(ip_bam), path(narrowPeak) ]
+  - qc_peaks:
+      description: |
+        Headerless scores of the peaks (coordinates, overall_peak_score, shape_score, enrichment_score,
+        -log10 p-value), for the peak QC plots, for the samples with peaks
+        Structure: [ val(meta), path(scores) ]
+  - table:
+      description: |
+        LanceOtron's full output table, with header, for the peaks kept
+        Structure: [ val(meta), path(tsv) ]
+  - bigwig:
+      description: |
+        1 bp coverage tracks given to LanceOtron, one per BAM file
+        Structure: [ val(meta), path(bigwig) ]
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

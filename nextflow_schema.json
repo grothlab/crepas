@@ -910,9 +910,9 @@
                     "type": "string",
                     "default": "macs3",
                     "description": "Comma-separated list of peak calling algorithms to use.",
-                    "help_text": "One or more of `macs3`, `genrich`, `consenrich`, `epic2`, `mace`, `dpeak`, `dpos`, `dregion`, `dtriple`, `edd`, `denopa`, `seacr`, given as a comma-separated list without spaces, e.g. `--peak_callers macs3,genrich`. Every listed peak caller is run on all applicable samples. Use `--skip_peak_calling` to switch peak calling off entirely. `denopa` is currently not supported: no usable container for it exists yet.",
+                    "help_text": "One or more of `macs3`, `genrich`, `consenrich`, `epic2`, `mace`, `dpeak`, `dpos`, `dregion`, `dtriple`, `edd`, `denopa`, `seacr`, `lanceotron`, given as a comma-separated list without spaces, e.g. `--peak_callers macs3,genrich`. Every listed peak caller is run on all applicable samples. Use `--skip_peak_calling` to switch peak calling off entirely. `denopa` is currently not supported: no usable container for it exists yet.",
                     "fa_icon": "fas fa-chart-area",
-                    "pattern": "^(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr)(,(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr))*$"
+                    "pattern": "^(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr|lanceotron)(,(macs3|genrich|consenrich|epic2|mace|dpeak|dpos|dregion|dtriple|edd|denopa|seacr|lanceotron))*$"
                 },
                 "narrow_peak": {
                     "type": "boolean",
@@ -1211,6 +1211,31 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "SEACR stringency.",
                     "enum": ["stringent", "relaxed"]
+                },
+                "lanceotron_score_cutoff": {
+                    "type": "number",
+                    "default": 0.5,
+                    "minimum": 0,
+                    "maximum": 1,
+                    "fa_icon": "fas fa-filter",
+                    "description": "Keep LanceOtron peaks with an overall peak score of at least this value (0 to 1).",
+                    "help_text": "LanceOtron scores every candidate region with a neural network; its authors use 0.5, the default here. Applies with and without an input control (`callPeaksInput` has no cutoff of its own)."
+                },
+                "lanceotron_threshold": {
+                    "type": "number",
+                    "fa_icon": "fas fa-sliders-h",
+                    "description": "Initial threshold for LanceOtron's candidate regions, as a multiple of the chromosome's mean coverage (LanceOtron's `--threshold`; its default is 4).",
+                    "help_text": "Lower it (together with `--lanceotron_window`) when LanceOtron finds no candidate peaks, e.g. on small or shallow data."
+                },
+                "lanceotron_window": {
+                    "type": "integer",
+                    "fa_icon": "fas fa-sliders-h",
+                    "description": "Window size (bp) of the rolling mean LanceOtron uses to select candidate regions (LanceOtron's `--window`; its default is 400)."
+                },
+                "save_lanceotron_bigwig": {
+                    "type": "boolean",
+                    "description": "Save the 1 bp RPKM coverage tracks (bigWig) LanceOtron is run on.",
+                    "fa_icon": "fas fa-save"
                 },
                 "mace_kmer_size": {
                     "type": "integer",

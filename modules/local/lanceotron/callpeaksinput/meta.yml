@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "lanceotron_callpeaksinput"
+description: Find and score candidate peaks in a 1 bp bigWig coverage track with the LanceOtron deep learning peak caller, with a p-value against an input control
+keywords:
+  - lanceotron
+  - peak-calling
+  - deep-learning
+  - bigwig
+  - input-control
+  - chip-seq
+tools:
+  - lanceotron:
+      description: |
+        LanceOtron finds candidate regions in a bigWig coverage track and scores each with a
+        convolutional neural network for its peak shape and its enrichment over the local
+        background. callPeaksInput also computes a Poisson p-value of each candidate against an
+        input control track. Expects 1 bp, read-extended tracks (e.g. deepTools bamCoverage
+        --binSize 1 --extendReads --normalizeUsing RPKM). Runs on the CPU.
+      homepage: https://github.com/LHentges/LanceOtron
+      documentation: https://github.com/LHentges/LanceOtron/blob/master/README.md
+      tool_dev_url: https://github.com/LHentges/LanceOtron
+      doi: "10.1093/bioinformatics/btac525"
+      licence: ["GPL-3.0-only"]
+      identifier: biotools:lanceotron
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - bigwig:
+        type: file
+        description: 1 bp, read-extended coverage track of the IP sample
+        pattern: "*.{bw,bigWig,bigwig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3006" # bigWig
+    - control_bigwig:
+        type: file
+        description: 1 bp coverage track of the input control, made the same way as `bigwig`
+        pattern: "*.{bw,bigWig,bigwig}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3006" # bigWig
+output:
+  candidates:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.lanceotron.candidates.tsv":
+          type: file
+          description: |
+            LanceOtron's table of all candidate peaks (callPeaksInput has no score cutoff), with
+            header: chrom, start, end, overall_peak_score, shape_score, enrichment_score,
+            pvalue_input (-log10 Poisson p-value against the input control), max_coverage_position,
+            region_id and the -log10 Poisson p-values against the chromosome (pvalue_chrom) and the
+            10-100 kb backgrounds
+          pattern: "*.lanceotron.candidates.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  versions_lanceotron:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "lanceotron":
+          type: string
+          description: The name of the tool
+      - 'python -c "import importlib.metadata as m; print(m.version(''lanceotron''))"':
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "lanceotron":
+          type: string
+          description: The name of the tool
+      - 'python -c "import importlib.metadata as m; print(m.version(''lanceotron''))"':
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@samuelruizperez"
+maintainers:
+  - "@samuelruizperez"

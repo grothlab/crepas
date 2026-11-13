@@ -4,6 +4,7 @@ include { BAM_PEAKS_CALL_GENRICH                                  } from '../../
 include { BAM_PEAKS_CALL_MACE                                     } from '../../../subworkflows/local/bam_peaks_call_mace/main'
 include { BAM_PEAKS_CALL_DANPOS2                                  } from '../../../subworkflows/local/bam_peaks_call_danpos2/main'
 include { BAM_PEAKS_CALL_SEACR                                    } from '../../../subworkflows/local/bam_peaks_call_seacr/main'
+include { BAM_PEAKS_CALL_LANCEOTRON                               } from '../../../subworkflows/local/bam_peaks_call_lanceotron/main'
 include { BAM_PEAKS_CALL_CONSENRICH_ROCCO                         } from '../../../subworkflows/local/bam_peaks_call_consenrich_rocco/main'
 include { BAM_PEAKS_QC_ANNOTATE_HOMER                             } from '../../../subworkflows/local/bam_peaks_qc_annotate_homer/main'
 include { EDD                                                     } from '../../../modules/local/edd/main'
@@ -205,6 +206,15 @@ workflow CALL_PEAKS {
 
 
     //
+    // SUBWORKFLOW: Call peaks with LanceOtron, on 1 bp coverage of the BAM files
+    //
+    BAM_PEAKS_CALL_LANCEOTRON (
+        ch_bam_index.filter { it -> it[0].peak_caller == 'lanceotron' }
+    )
+    ch_lanceotron_peaks = BAM_PEAKS_CALL_LANCEOTRON.out.peaks
+
+
+    //
     // SUBWORKFLOW: FRiP scores, peak counts, HOMER annotation and QC plots, shared by all peak callers
     //
     ch_bam_peaks = BAM_PEAKS_CALL_MACS3.out.bam_peaks
@@ -212,19 +222,22 @@ workflow CALL_PEAKS {
             BAM_PEAKS_CALL_EPIC2.out.bam_peaks,
             BAM_PEAKS_CALL_GENRICH.out.bam_peaks,
             BAM_PEAKS_CALL_MACE.out.bam_peaks,
-            BAM_PEAKS_CALL_SEACR.out.bam_peaks
+            BAM_PEAKS_CALL_SEACR.out.bam_peaks,
+            BAM_PEAKS_CALL_LANCEOTRON.out.bam_peaks
         )
 
     ch_peaks_to_annotate = ch_macs3_peaks
-        .mix(ch_epic2_peaks, ch_genrich_peaks, ch_mace_peaks, ch_seacr_peaks)
+        .mix(ch_epic2_peaks, ch_genrich_peaks, ch_mace_peaks, ch_seacr_peaks, ch_lanceotron_peaks)
 
-    // Peak files for the peak QC plots (epic2 gives its broadPeak, with the columns as MACS3)
+    // Peak files for the peak QC plots (epic2 gives its broadPeak, with the columns as MACS3; LanceOtron
+    // gives headerless scores, with the same columns with or without an input control)
     ch_qc_peaks = BAM_PEAKS_CALL_MACS3.out.qc_peaks
         .mix(
             BAM_PEAKS_CALL_EPIC2.out.qc_peaks,
             BAM_PEAKS_CALL_GENRICH.out.qc_peaks,
             BAM_PEAKS_CALL_MACE.out.qc_peaks,
-            BAM_PEAKS_CALL_SEACR.out.qc_peaks
+            BAM_PEAKS_CALL_SEACR.out.qc_peaks,
+            BAM_PEAKS_CALL_LANCEOTRON.out.qc_peaks
         )
 
     // Add the suffix that PLOT_HOMER_ANNOTATEPEAKS trims off annotation file names to label samples
@@ -291,6 +304,7 @@ workflow CALL_PEAKS {
     genrich_peaks       = ch_genrich_peaks           // channel: [ meta, peaks ]
     epic2_peaks         = ch_epic2_peaks            // channel: [ meta
     seacr_peaks         = ch_seacr_peaks            // channel: [ meta, peaks ]
+    lanceotron_peaks    = ch_lanceotron_peaks       // channel: [ meta, narrowPeak ]
     denopa_peaks        = ch_denopa_peaks           // channel: [ meta,
     consensus_bed       = ch_consensus_bed          // channel: [ antibody, consensus_bed ]
     consensus_txt       = ch_consensus_txt          // channel: [ antibody, consensus_txt ]
