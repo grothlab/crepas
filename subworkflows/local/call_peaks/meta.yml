@@ -2,8 +2,8 @@
 name: "call_peaks"
 description: |
   Wrapper subworkflow that calls peaks with each of the peak callers selected via peak_callers
-  (MACS3, epic2, Genrich, MACE, SEACR, Consenrich+ROCCO, DANPOS2, EDD or denopa), computes FRiP
-  scores and annotates the MACS3, epic2, Genrich, MACE and SEACR peaks with HOMER, then, unless
+  (MACS3, epic2, Genrich, MACE, SEACR, LanceOtron, Consenrich+ROCCO, DANPOS2, EDD or denopa), computes FRiP
+  scores and annotates the MACS3, epic2, Genrich, MACE, SEACR and LanceOtron peaks with HOMER, then, unless
   skip_consensus_peaks is true, builds a consensus peak set across samples from the resulting
   peaks
 keywords:
@@ -17,6 +17,7 @@ components:
   - bam_peaks_call_mace
   - bam_peaks_call_danpos2
   - bam_peaks_call_seacr
+  - bam_peaks_call_lanceotron
   - bam_peaks_call_consenrich_rocco
   - bam_peaks_qc_annotate_homer
   - edd
@@ -39,7 +40,7 @@ input:
   - ch_peak_callers:
       description: |
         One peak caller name per element; every emitted caller is run on all applicable samples.
-        Each is one of: macs3, epic2, genrich, mace, seacr, consenrich,
+        Each is one of: macs3, epic2, genrich, mace, seacr, lanceotron, consenrich,
         dpeak/dpos/dregion/dtriple (DANPOS2), edd, denopa.
         Structure: [ val(peak_caller) ]
   - ch_fasta_fai:
@@ -142,6 +143,10 @@ output:
   - seacr_peaks:
       description: |
         SEACR peaks, when 'seacr' is among peak_callers
+        Structure: [ val(meta), path(peaks) ]
+  - lanceotron_peaks:
+      description: |
+        LanceOtron peaks in narrowPeak format, when 'lanceotron' is among peak_callers
         Structure: [ val(meta), path(peaks) ]
   - denopa_peaks:
       description: |

@@ -125,6 +125,7 @@ workflow CREPAS {
         [ 'epic2',   '',           file("${projectDir}/assets/multiqc/epic2_peak_count_header.txt", checkIfExists: true),            file("${projectDir}/assets/multiqc/epic2_frip_score_header.txt", checkIfExists: true) ],
         [ 'genrich', '',           file("${projectDir}/assets/multiqc/gr_peak_count_header.txt", checkIfExists: true),               file("${projectDir}/assets/multiqc/gr_frip_score_header.txt", checkIfExists: true) ],
         [ 'mace',    '',           file("${projectDir}/assets/multiqc/mace_peak_count_header.txt", checkIfExists: true),             file("${projectDir}/assets/multiqc/mace_frip_score_header.txt", checkIfExists: true) ],
+        [ 'lanceotron', '',        file("${projectDir}/assets/multiqc/lanceotron_peak_count_header.txt", checkIfExists: true),       file("${projectDir}/assets/multiqc/lanceotron_frip_score_header.txt", checkIfExists: true) ],
         [ 'seacr',   'raw',        file("${projectDir}/assets/multiqc/seacr_raw_peak_count_header.txt", checkIfExists: true),        file("${projectDir}/assets/multiqc/seacr_raw_frip_score_header.txt", checkIfExists: true) ],
         [ 'seacr',   'rpm',        file("${projectDir}/assets/multiqc/seacr_rpm_peak_count_header.txt", checkIfExists: true),        file("${projectDir}/assets/multiqc/seacr_rpm_frip_score_header.txt", checkIfExists: true) ],
         [ 'seacr',   'srpm',       file("${projectDir}/assets/multiqc/seacr_srpm_peak_count_header.txt", checkIfExists: true),       file("${projectDir}/assets/multiqc/seacr_srpm_frip_score_header.txt", checkIfExists: true) ],
@@ -140,6 +141,7 @@ workflow CREPAS {
         [ 'epic2',   file("${projectDir}/assets/multiqc/epic2_peak_annotation_header.txt", checkIfExists: true) ],
         [ 'genrich', file("${projectDir}/assets/multiqc/gr_peak_annotation_header.txt", checkIfExists: true) ],
         [ 'mace',    file("${projectDir}/assets/multiqc/mace_peak_annotation_header.txt", checkIfExists: true) ],
+        [ 'lanceotron', file("${projectDir}/assets/multiqc/lanceotron_peak_annotation_header.txt", checkIfExists: true) ],
         [ 'seacr',   file("${projectDir}/assets/multiqc/seacr_peak_annotation_header.txt", checkIfExists: true) ]
     )
     ch_deseq2_pca_header = channel.value(file("${projectDir}/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true))
@@ -861,6 +863,7 @@ workflow CREPAS {
     ch_epic2_peaks = channel.empty()
     ch_seacr_peaks = channel.empty()
     ch_mace_peaks = channel.empty()
+    ch_lanceotron_peaks = channel.empty()
     ch_consenrich_tracks = channel.empty()
     ch_rocco_peaks = channel.empty()
     ch_consensus_bed = channel.empty()
@@ -909,6 +912,7 @@ workflow CREPAS {
         ch_epic2_peaks = CALL_PEAKS.out.epic2_peaks
         ch_seacr_peaks = CALL_PEAKS.out.seacr_peaks
         ch_mace_peaks = CALL_PEAKS.out.mace_peaks
+        ch_lanceotron_peaks = CALL_PEAKS.out.lanceotron_peaks
         ch_consenrich_tracks = CALL_PEAKS.out.consenrich_tracks
         ch_rocco_peaks = CALL_PEAKS.out.rocco_peaks
         ch_consensus_bed = CALL_PEAKS.out.consensus_bed
@@ -1171,6 +1175,19 @@ workflow CREPAS {
                     "/epic2/" +
                     "${peak.getName()}"
                 [meta, peak, outpath, "138,43,226"] // blue violet
+            }
+            .mix(ch_files_and_outpaths)
+            .set { ch_files_and_outpaths }
+
+        ch_lanceotron_peaks
+            .map { meta, peak ->
+                def outpath = "${params.outdir}/${params.aligner}/mergedLibrary/" +
+                    "${params.multimap_allocation_method ? (params.multimap_allocation_method != 'chromap' ? params.multimap_allocation_method : '') : ''}" +
+                    "/${meta.exp_type}" +
+                    "${meta.downsampling_method ? '/downsampled' : ''}" +
+                    "/lanceotron/" +
+                    "${peak.getName()}"
+                [meta, peak, outpath, "0,139,139"] // dark cyan
             }
             .mix(ch_files_and_outpaths)
             .set { ch_files_and_outpaths }
