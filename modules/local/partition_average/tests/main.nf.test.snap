@@ -93,7 +93,7 @@
                     {
                         "id": "test"
                     },
-                    "test.average.tsv:md5,a65d954e7757c0822b798ae242469c71"
+                    "test.average.tsv:md5,ebe249c8bf9c98e02fd893540eae2ec2"
                 ]
             ],
             [
@@ -101,7 +101,7 @@
                     {
                         "id": "test"
                     },
-                    "test.average.flT_by_counts.tsv:md5,a65d954e7757c0822b798ae242469c71"
+                    "test.average.flT_by_counts.tsv:md5,b5814c9964a47def30c0bd62dd21402d"
                 ]
             ],
             [
@@ -109,7 +109,7 @@
                     {
                         "id": "test"
                     },
-                    "test.average.flT_by_counts.bdg:md5,d3bb65a53f23076825b1455341103c8c"
+                    "test.average.flT_by_counts.bdg:md5,c3d2ebaed281482c1cf8e728e4f483b3"
                 ]
             ],
             {
@@ -129,10 +129,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-17T14:21:19.826526215",
+        "timestamp": "2026-11-14T13:07:01.372327375",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.10.5"
         }
     }
 }

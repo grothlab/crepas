@@ -3,76 +3,69 @@ nextflow_process {
     name "Test Process PARTITION_AVERAGE"
     script "../main.nf"
     process "PARTITION_AVERAGE"
+    config "./nextflow.config"
 
     tag "modules"
     tag "modules_local"
     tag "partition_average"
     tag "collect_partitions"
     tag "find/concatenate"
+    tag "bedtools/makewindows"
+    tag "ucsc/bigwigaverageoverbed"
 
     setup {
 
-        // Build two real 12-column partition tables (one per biological replicate) by
-        // running COLLECT_PARTITIONS twice. Its six inputs are cheap FIND_CONCATENATE copies of a
-        // single real BED file (same approach as the COLLECT_PARTITIONS test).
-        run("FIND_CONCATENATE", alias: "CAT_WINDOWS") {
-            script "../../../nf-core/find/concatenate/main.nf"
+        // Two 12-column partition tables (one per biological replicate) from COLLECT_PARTITIONS.
+        // Its inputs need matching window IDs: windows from makewindows, one real coverage table
+        // over them, copied (FIND_CONCATENATE) into the other slots.
+        run("BEDTOOLS_MAKEWINDOWS") {
+            script "../../../nf-core/bedtools/makewindows/main.nf"
             process {
                 """
-                input[0] = [ [ id:'windows' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                input[0] = [ [ id:'test' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true) ]
                 """
             }
         }
-        run("FIND_CONCATENATE", alias: "CAT_BWAOB_FWD") {
-            script "../../../nf-core/find/concatenate/main.nf"
+
+        run("UCSC_BIGWIGAVERAGEOVERBED") {
+            script "../../../nf-core/ucsc/bigwigaverageoverbed/main.nf"
             process {
                 """
-                input[0] = [ [ id:'bwaob_fwd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                    .map { meta, bed -> [ meta, bed, file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bigwig/test.bigwig', checkIfExists: true) ] }
                 """
             }
         }
-        run("FIND_CONCATENATE", alias: "CAT_BWAOB_REV") {
+
+        run("FIND_CONCATENATE", alias: "CAT_REV") {
             script "../../../nf-core/find/concatenate/main.nf"
-            process {
-                """
-                input[0] = [ [ id:'bwaob_rev' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
-                """
-            }
+            process { """ input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, tab -> [ [ id:'rev' ], tab ] } """ }
         }
-        run("FIND_CONCATENATE", alias: "CAT_NORM_FWD") {
+
+        run("FIND_CONCATENATE", alias: "CAT_NORMF") {
             script "../../../nf-core/find/concatenate/main.nf"
-            process {
-                """
-                input[0] = [ [ id:'norm_fwd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
-                """
-            }
+            process { """ input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, tab -> [ [ id:'normf' ], tab ] } """ }
         }
-        run("FIND_CONCATENATE", alias: "CAT_NORM_REV") {
+
+        run("FIND_CONCATENATE", alias: "CAT_NORMR") {
             script "../../../nf-core/find/concatenate/main.nf"
-            process {
-                """
-                input[0] = [ [ id:'norm_rev' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
-                """
-            }
+            process { """ input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, tab -> [ [ id:'normr' ], tab ] } """ }
         }
+
         run("FIND_CONCATENATE", alias: "CAT_RFD") {
             script "../../../nf-core/find/concatenate/main.nf"
-            process {
-                """
-                input[0] = [ [ id:'rfd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
-                """
-            }
+            process { """ input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, tab -> [ [ id:'rfd' ], tab ] } """ }
         }
 
         run("COLLECT_PARTITIONS", alias: "COLLECT_REP1") {
             script "../../collect_partitions/main.nf"
             process {
                 """
-                input[0] = CAT_WINDOWS.out.file_out
-                    .combine(CAT_BWAOB_FWD.out.file_out.map { meta, f -> f })
-                    .combine(CAT_BWAOB_REV.out.file_out.map { meta, f -> f })
-                    .combine(CAT_NORM_FWD.out.file_out.map { meta, f -> f })
-                    .combine(CAT_NORM_REV.out.file_out.map { meta, f -> f })
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                    .combine(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, f -> f })
+                    .combine(CAT_REV.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORMF.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORMR.out.file_out.map { meta, f -> f })
                     .combine(CAT_RFD.out.file_out.map { meta, f -> f })
                     .map { meta, windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ->
                         [ [ id:'rep1' ], windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ]
@@ -80,15 +73,16 @@ nextflow_process {
                 """
             }
         }
+
         run("COLLECT_PARTITIONS", alias: "COLLECT_REP2") {
             script "../../collect_partitions/main.nf"
             process {
                 """
-                input[0] = CAT_WINDOWS.out.file_out
-                    .combine(CAT_BWAOB_FWD.out.file_out.map { meta, f -> f })
-                    .combine(CAT_BWAOB_REV.out.file_out.map { meta, f -> f })
-                    .combine(CAT_NORM_FWD.out.file_out.map { meta, f -> f })
-                    .combine(CAT_NORM_REV.out.file_out.map { meta, f -> f })
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                    .combine(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, f -> f })
+                    .combine(CAT_REV.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORMF.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORMR.out.file_out.map { meta, f -> f })
                     .combine(CAT_RFD.out.file_out.map { meta, f -> f })
                     .map { meta, windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ->
                         [ [ id:'rep2' ], windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ]

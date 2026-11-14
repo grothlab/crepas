@@ -1,12 +1,12 @@
 {
-    "sarscov2 - bed - collect partitions": {
+    "sarscov2 - collect partitions": {
         "content": [
             [
                 [
                     {
                         "id": "test"
                     },
-                    "test.collect.tsv:md5,f9dc3c554c1900ba90000345547021cd"
+                    "test.collect.tsv:md5,54a3d2bd746b8a01dae05406e34a6c7f"
                 ]
             ],
             [
@@ -14,7 +14,7 @@
                     {
                         "id": "test"
                     },
-                    "test.collect.flT_by_counts.tsv:md5,f9dc3c554c1900ba90000345547021cd"
+                    "test.collect.flT_by_counts.tsv:md5,b404994f8bbeb4221204aee7eacaa574"
                 ]
             ],
             [
@@ -22,7 +22,7 @@
                     {
                         "id": "test"
                     },
-                    "test.collect.flT_by_counts.bdg:md5,ef8df98216a6fe2ec5a857b7e2d229d4"
+                    "test.collect.flT_by_counts.bdg:md5,29b263051f540ccad552a26eca99eb68"
                 ]
             ],
             {
@@ -42,13 +42,13 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-13T16:27:49.181681977",
+        "timestamp": "2026-11-14T12:05:14.112040603",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.10.5"
         }
     },
-    "sarscov2 - bed - collect partitions - stub": {
+    "sarscov2 - collect partitions - stub": {
         "content": [
             {
                 "0": [
@@ -129,10 +129,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-07-13T16:27:58.97731905",
+        "timestamp": "2026-11-14T12:05:48.600174657",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.10.5"
         }
     }
 }

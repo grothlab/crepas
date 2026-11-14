@@ -11,6 +11,7 @@ nextflow_process {
     tag "bedtools/makewindows"
     tag "ucsc/bigwigaverageoverbed"
     tag "bedgraph_normalize"
+    tag "file_sort"
 
     setup {
 
@@ -57,6 +58,27 @@ nextflow_process {
             }
         }
 
+        // The same tables sorted by window name, as BWAOB_SORT does in the pipeline (_1, _10, _11, ..., _2, ...)
+        run("FILE_SORT", alias: "SORT_F") {
+            script "../../file_sort/main.nf"
+            process {
+                """
+                input[0] = NORM_F.out.normalized
+                input[1] = 'tab'
+                """
+            }
+        }
+
+        run("FILE_SORT", alias: "SORT_R") {
+            script "../../file_sort/main.nf"
+            process {
+                """
+                input[0] = NORM_R.out.normalized
+                input[1] = 'tab'
+                """
+            }
+        }
+
     }
 
     test("sarscov2 - partition - smooth") {
@@ -81,6 +103,63 @@ nextflow_process {
                     process.out.rfd,
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - partition - smooth - input sorted by window name") {
+
+        when {
+            process {
+                """
+                input[0] = NORM_F.out.normalized
+                    .join(NORM_R.out.normalized, by: 0)
+                    .map { meta, f_tab, r_tab -> [ [ id:'genomic' ], 'partition', f_tab, r_tab ] }
+                    .mix(SORT_F.out.sorted
+                        .join(SORT_R.out.sorted, by: 0)
+                        .map { meta, f_tab, r_tab -> [ [ id:'by_name' ], 'partition', f_tab, r_tab ] })
+                input[1] = 5
+                input[2] = 5
+                input[3] = 1
+                """
+            }
+        }
+
+        then {
+            def lines = process.out.rfd.collectEntries { meta, tsv -> [ meta.id, path(tsv).readLines() ] }
+            def ids = { tsv_lines -> tsv_lines.collect { it.split('\t')[0] } }
+            assertAll(
+                { assert process.success },
+                // one output line per input line, in the input order
+                { assert ids(lines.by_name) == ids(lines.genomic).sort(false) },
+                { assert ids(lines.by_name) != ids(lines.genomic) },
+                // and the same values for every window, whatever the input order
+                { assert lines.by_name.sort(false) == lines.genomic.sort(false) }
+            )
+        }
+
+    }
+
+    test("sarscov2 - partition - smooth - F and R in different orders") {
+
+        when {
+            process {
+                """
+                input[0] = NORM_F.out.normalized
+                    .join(SORT_R.out.sorted, by: 0)
+                    .map { meta, f_tab, r_tab -> [ meta, 'partition', f_tab, r_tab ] }
+                input[1] = 5
+                input[2] = 5
+                input[3] = 1
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.failed },
+                { assert process.errorReport.contains('Both must list the same windows in the same order') }
             )
         }
 
