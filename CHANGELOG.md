@@ -26,6 +26,7 @@ Development version of grothlab/crepas.
 
 - Long sample names in the consensus peak DESeq2 QC plots: the PCA labels went past the plot and the sample distance heatmap was unreadable, because `--sample_suffix` (left over from nf-core/chipseq) never matched the crepas BAM names. Samples are now named by their ID (e.g. `ChIP-seq_SPT5_T0_bRep_1`), also in the PCA and distance tables and the `size_factors/` file names.
 - Intersection sizes in the consensus peak UpSet plot are now vertical.
+- Partition plots (`PARTITION_PLOT_SAMPLE`, `PARTITION_PLOT_GROUP`) missing for SCAR-seq and eSPAN since 1.1.0: the filter meant to keep OK-seq out of the plot channel (`!exp_type == 'OK-seq'`) always evaluated to false and dropped every sample; it now keeps every sample that is not OK-seq.
 - `PICARD_ADDORREPLACEREADGROUPS` failing with `CIGAR_MAPS_OFF_REFERENCE` after chromap, which can report primary and secondary alignments that run past the end of a contig; it now runs with `--VALIDATION_STRINGENCY LENIENT`, like the other Picard steps.
 - Institutional profiles from `--custom_config_base` (e.g. `grothlab/configs`) not being found with Nextflow 25.10, because lineage tracking was enabled; lineage is now disabled by default (enable it with `lineage.enabled = true` in a custom config).
 - `Unrecognized config option` warnings for `prov.formats.wrroc.agent` and `prov.formats.wrroc.organization` with Nextflow 26.04; the pipeline no longer sets a fixed agent and organization in the run RO-Crate.
