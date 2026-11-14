@@ -3,84 +3,118 @@ nextflow_process {
     name "Test Process COLLECT_PARTITIONS"
     script "../main.nf"
     process "COLLECT_PARTITIONS"
+    config "./nextflow.config"
 
     tag "modules"
     tag "modules_local"
     tag "collect_partitions"
-    tag "find/concatenate"
+    tag "bedtools/makewindows"
+    tag "ucsc/bigwigaverageoverbed"
+    tag "file_sort"
+    tag "bedgraph_normalize"
+    tag "partition_or_rfd_smooth"
 
     setup {
 
-        run("FIND_CONCATENATE", alias: "CAT_WINDOWS") {
-            script "../../../nf-core/find/concatenate/main.nf"
+        // Windows named <chrom>_<window>, sorted by name as in BAM_CREATE_PARTITIONS
+        run("BEDTOOLS_MAKEWINDOWS") {
+            script "../../../nf-core/bedtools/makewindows/main.nf"
             process {
                 """
-                input[0] = [ [ id:'windows' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                input[0] = [ [ id:'test' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true) ]
                 """
             }
         }
 
-        run("FIND_CONCATENATE", alias: "CAT_BWAOB_FWD") {
-            script "../../../nf-core/find/concatenate/main.nf"
+        run("FILE_SORT", alias: "WINDOWS_SORT") {
+            script "../../file_sort/main.nf"
             process {
                 """
-                input[0] = [ [ id:'bwaob_fwd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                input[1] = 'bed'
                 """
             }
         }
 
-        run("FIND_CONCATENATE", alias: "CAT_BWAOB_REV") {
-            script "../../../nf-core/find/concatenate/main.nf"
+        run("UCSC_BIGWIGAVERAGEOVERBED") {
+            script "../../../nf-core/ucsc/bigwigaverageoverbed/main.nf"
             process {
                 """
-                input[0] = [ [ id:'bwaob_rev' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                input[0] = WINDOWS_SORT.out.sorted
+                    .map { meta, bed -> [ meta, bed, file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bigwig/test.bigwig', checkIfExists: true) ] }
                 """
             }
         }
 
-        run("FIND_CONCATENATE", alias: "CAT_NORM_FWD") {
-            script "../../../nf-core/find/concatenate/main.nf"
+        // The same coverage table is used for both strands, under different names
+        run("FILE_SORT", alias: "BWAOB_SORT_FWD") {
+            script "../../file_sort/main.nf"
             process {
                 """
-                input[0] = [ [ id:'norm_fwd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab
+                input[1] = 'tab'
                 """
             }
         }
 
-        run("FIND_CONCATENATE", alias: "CAT_NORM_REV") {
-            script "../../../nf-core/find/concatenate/main.nf"
+        run("FILE_SORT", alias: "BWAOB_SORT_REV") {
+            script "../../file_sort/main.nf"
             process {
                 """
-                input[0] = [ [ id:'norm_rev' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab
+                input[1] = 'tab'
                 """
             }
         }
 
-        run("FIND_CONCATENATE", alias: "CAT_RFD") {
-            script "../../../nf-core/find/concatenate/main.nf"
+        // Different normalizations, so the forward and reverse values differ
+        run("BEDGRAPH_NORMALIZE", alias: "NORM_F") {
+            script "../../bedgraph_normalize/main.nf"
             process {
                 """
-                input[0] = [ [ id:'rfd' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/bed/test.bed', checkIfExists: true) ]
+                input[0] = BWAOB_SORT_FWD.out.sorted
+                input[1] = 'tab'
+                """
+            }
+        }
+
+        run("BEDGRAPH_NORMALIZE", alias: "NORM_R") {
+            script "../../bedgraph_normalize/main.nf"
+            process {
+                """
+                input[0] = BWAOB_SORT_REV.out.sorted
+                input[1] = 'tab'
+                """
+            }
+        }
+
+        run("PARTITION_OR_RFD_SMOOTH") {
+            script "../../partition_or_rfd_smooth/main.nf"
+            process {
+                """
+                input[0] = NORM_F.out.normalized
+                    .join(NORM_R.out.normalized, by: 0)
+                    .map { meta, f_tab, r_tab -> [ meta, 'partition', f_tab, r_tab ] }
+                input[1] = 5
+                input[2] = 5
+                input[3] = 1
                 """
             }
         }
 
     }
 
-    test("sarscov2 - bed - collect partitions") {
+    test("sarscov2 - collect partitions") {
 
         when {
             process {
                 """
-                input[0] = CAT_WINDOWS.out.file_out
-                    .combine(CAT_BWAOB_FWD.out.file_out.map { meta, f -> f })
-                    .combine(CAT_BWAOB_REV.out.file_out.map { meta, f -> f })
-                    .combine(CAT_NORM_FWD.out.file_out.map { meta, f -> f })
-                    .combine(CAT_NORM_REV.out.file_out.map { meta, f -> f })
-                    .combine(CAT_RFD.out.file_out.map { meta, f -> f })
-                    .map { meta, windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ->
-                        [ [ id:'test' ], windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ]
-                    }
+                input[0] = WINDOWS_SORT.out.sorted
+                    .join(BWAOB_SORT_FWD.out.sorted)
+                    .join(BWAOB_SORT_REV.out.sorted)
+                    .join(NORM_F.out.normalized)
+                    .join(NORM_R.out.normalized)
+                    .join(PARTITION_OR_RFD_SMOOTH.out.rfd)
                 """
             }
         }
@@ -99,22 +133,44 @@ nextflow_process {
 
     }
 
-    test("sarscov2 - bed - collect partitions - stub") {
+    test("sarscov2 - collect partitions - windows in a different order") {
+
+        when {
+            process {
+                """
+                // windows in genomic order, the other tables sorted by name
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                    .join(BWAOB_SORT_FWD.out.sorted)
+                    .join(BWAOB_SORT_REV.out.sorted)
+                    .join(NORM_F.out.normalized)
+                    .join(NORM_R.out.normalized)
+                    .join(PARTITION_OR_RFD_SMOOTH.out.rfd)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.failed },
+                { assert process.errorReport.contains('of the input files lists different windows') }
+            )
+        }
+
+    }
+
+    test("sarscov2 - collect partitions - stub") {
 
         options "-stub"
 
         when {
             process {
                 """
-                input[0] = CAT_WINDOWS.out.file_out
-                    .combine(CAT_BWAOB_FWD.out.file_out.map { meta, f -> f })
-                    .combine(CAT_BWAOB_REV.out.file_out.map { meta, f -> f })
-                    .combine(CAT_NORM_FWD.out.file_out.map { meta, f -> f })
-                    .combine(CAT_NORM_REV.out.file_out.map { meta, f -> f })
-                    .combine(CAT_RFD.out.file_out.map { meta, f -> f })
-                    .map { meta, windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ->
-                        [ [ id:'test' ], windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ]
-                    }
+                input[0] = WINDOWS_SORT.out.sorted
+                    .join(BWAOB_SORT_FWD.out.sorted)
+                    .join(BWAOB_SORT_REV.out.sorted)
+                    .join(NORM_F.out.normalized)
+                    .join(NORM_R.out.normalized)
+                    .join(PARTITION_OR_RFD_SMOOTH.out.rfd)
                 """
             }
         }

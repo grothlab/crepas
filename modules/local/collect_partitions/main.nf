@@ -44,6 +44,13 @@ process COLLECT_PARTITIONS {
         exit 1
     fi
 
+    # Check that all input files list the same window on every line, since they are pasted by line
+    paste <(cut -f4 ${windows}) <(cut -f1 ${bwaob_fwd}) <(cut -f1 ${bwaob_rev}) <(cut -f1 ${norm_or_smi_fwd}) <(cut -f1 ${norm_or_smi_rev}) <(cut -f1 ${rfd}) \\
+    | awk -F'\\t' '{ for (k = 2; k <= NF; k++) if (\$k != \$1) {
+        printf "Error: line %d of the input files lists different windows: %s %s %s %s %s %s\\n", NR, \$1, \$2, \$3, \$4, \$5, \$6 > "/dev/stderr"
+        exit 1
+    } }'
+
     # This file will contain the following 12 columns:
     #   1. chromosome
     #   2. start
