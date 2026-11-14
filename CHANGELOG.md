@@ -26,6 +26,9 @@ Development version of grothlab/crepas.
 
 - Long sample names in the consensus peak DESeq2 QC plots: the PCA labels went past the plot and the sample distance heatmap was unreadable, because `--sample_suffix` (left over from nf-core/chipseq) never matched the crepas BAM names. Samples are now named by their ID (e.g. `ChIP-seq_SPT5_T0_bRep_1`), also in the PCA and distance tables and the `size_factors/` file names.
 - Intersection sizes in the consensus peak UpSet plot are now vertical.
+- MACS3 peaks and consensus peaks in the IGV session pointing at missing files: the peak files were given MACS3's `*_peaks.<type>Peak` name instead of the published `*.peaks.<type>Peak`, and the consensus files lost the `/` before their antibody directory.
+- SEACR peaks missing from the IGV session: every SEACR peak file (each bin size and normalisation) is now a track.
+- IGV session pointing at missing files with `--multimap_allocation_method chromap`: the paths of the coverage tracks and of the MACS3, EDD, Genrich, MACE, epic2, Consenrich and ROCCO files had a `cm_allo/` directory that the files are not published in.
 - Partition plots (`PARTITION_PLOT_SAMPLE`, `PARTITION_PLOT_GROUP`) missing for SCAR-seq and eSPAN since 1.1.0: the filter meant to keep OK-seq out of the plot channel (`!exp_type == 'OK-seq'`) always evaluated to false and dropped every sample; it now keeps every sample that is not OK-seq.
 - `PICARD_ADDORREPLACEREADGROUPS` failing with `CIGAR_MAPS_OFF_REFERENCE` after chromap, which can report primary and secondary alignments that run past the end of a contig; it now runs with `--VALIDATION_STRINGENCY LENIENT`, like the other Picard steps.
 - Institutional profiles from `--custom_config_base` (e.g. `grothlab/configs`) not being found with Nextflow 25.10, because lineage tracking was enabled; lineage is now disabled by default (enable it with `lineage.enabled = true` in a custom config).
