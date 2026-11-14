@@ -32,7 +32,9 @@ input:
         type: file
         description: |
           Forward-strand per-window coverage table (BigWigAverageOverBed-style); column 1 is a
-          `<chromosome>_<window>` window ID and column 4 the coverage value used for the score.
+          `<chromosome>_<window number>` window ID and column 4 the coverage value used for the score.
+          Each chromosome's rows must be together, in any order; windows are smoothed in order
+          of their number.
         pattern: "*.{tab,tsv}"
         ontologies:
           - edam: "http://edamontology.org/format_3475" # TSV
@@ -63,7 +65,8 @@ output:
           type: file
           description: |
             Tab-delimited per-window table: window ID, raw partition/RFD value, smoothed value,
-            derivative, boundary score, and zero-crossing derivative.
+            derivative, boundary score, and zero-crossing derivative. One row per input row, in
+            the input order.
           pattern: "*.tsv"
           ontologies:
             - edam: "http://edamontology.org/format_3475" # TSV
