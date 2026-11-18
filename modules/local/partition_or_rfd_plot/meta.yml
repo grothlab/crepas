@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "partition_or_rfd_plot"
-description: Plot averaged SCAR-seq partition or OK-seq RFD profiles around replication initiation zones using an R/Bioconductor script
+description: |
+  Plot averaged SCAR-seq/eSPAN partition or OK-seq RFD profiles around replication initiation zones
+  using an R/Bioconductor script.
 keywords:
   - scar-seq
   - ok-seq
@@ -27,19 +29,19 @@ input:
           e.g. [ id:'test', single_end:false ]
     - partition:
         type: file
-        description: Optional SCAR-seq partition table (12-column) to plot
+        description: Optional SCAR-seq or eSPAN partition table(s) (12-column) to plot
         pattern: "*.{tsv,bed}"
     - strandedinput:
         type: file
-        description: Optional stranded-input partition table (12-column)
+        description: Optional stranded-input partition table(s) (12-column)
         pattern: "*.{tsv,bed}"
-    - scarminusinput:
+    - minusinput:
         type: file
-        description: Optional SCAR-minus-input partition table (12-column)
+        description: Optional input-corrected partition table(s) (12-column)
         pattern: "*.{tsv,bed}"
-    - okseq_rfd_file:
+    - rfd_files:
         type: file
-        description: Optional OK-seq RFD partition table (12-column)
+        description: "Optional OK-seq RFD table(s) (12-column). With several, the scatter plots are named `<prefix>.<sample>.scatter_plot.*`"
         pattern: "*.{tsv,bed}"
     - initiation_zones:
         type: file
@@ -166,7 +168,7 @@ output:
           description: Groovy Map containing sample information
       - "*.scatter_plot.pdf":
           type: file
-          description: Optional SCAR-vs-OK-seq scatter plot (PDF)
+          description: Optional partition-vs-RFD scatter plot(s), one per RFD table (PDF)
           pattern: "*.scatter_plot.pdf"
   scatter_png:
     - - meta:
@@ -174,7 +176,7 @@ output:
           description: Groovy Map containing sample information
       - "*.scatter_plot.png":
           type: file
-          description: Optional SCAR-vs-OK-seq scatter plot (PNG)
+          description: Optional partition-vs-RFD scatter plot(s), one per RFD table (PNG)
           pattern: "*.scatter_plot.png"
   versions_rbase:
     - - "${task.process}":

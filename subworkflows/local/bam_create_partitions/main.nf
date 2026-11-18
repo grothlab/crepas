@@ -602,12 +602,13 @@ workflow BAM_CREATE_PARTITIONS {
                 scar_tsvs.size() > 1
             }
             .map { antibody, averaged_brep, metas, scar_tsvs, input_tsvs, minusinput_tsvs ->
-                // Sort metas and tsvs to ensure consistent order
-                def sorted_metas = metas.sort { meta -> meta.id }
+                // Sort the samples by id, keeping each sample's files at the same position in every list
+                def order = (0..<metas.size()).toList().sort { i -> metas[i].id }
+                def sorted_metas = order.collect { i -> metas[i] }
                 // .flatten() here prevents the *nested* empty lists caused by saples wo_ipcontrol, which is not a valid path input value
-                def sorted_scar_tsvs = scar_tsvs.flatten().sort { scar_tsv -> scar_tsv.name }
-                def sorted_input_tsvs = input_tsvs.flatten().sort { input_tsv -> input_tsv.name }
-                def sorted_minusinput_tsvs = minusinput_tsvs.flatten().sort { minusinput_tsv -> minusinput_tsv.name }
+                def sorted_scar_tsvs = order.collect { i -> scar_tsvs[i] }.flatten()
+                def sorted_input_tsvs = order.collect { i -> input_tsvs[i] }.flatten()
+                def sorted_minusinput_tsvs = order.collect { i -> minusinput_tsvs[i] }.flatten()
                 def meta_clone = sorted_metas[0].clone()
                 meta_clone.id = meta_clone.exp_type + '_' + antibody + (averaged_brep ? '_bRep_avg' : '')
                 [ meta_clone, sorted_scar_tsvs, sorted_input_tsvs, sorted_minusinput_tsvs ]
