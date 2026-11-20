@@ -8,7 +8,7 @@ process PARTITION_OR_RFD_PLOT {
         'community.wave.seqera.io/library/bioconductor-genomicalignments_bioconductor-genomicfeatures_r-argparse_r-ggpmisc_pruned:2c7c689513df97b4' }"
 
     input:
-    tuple val(meta), path(partition), path(strandedinput), path(scarminusinput), path(okseq_rfd_file), path(initiation_zones)
+    tuple val(meta), path(partition), path(strandedinput), path(minusinput), path(rfd_files), path(initiation_zones)
     tuple val(meta2), path(blacklist)
     tuple val(meta3), path(chrom_sizes)
 
@@ -34,19 +34,19 @@ process PARTITION_OR_RFD_PLOT {
     script:
     def args               = task.ext.args ?: ''
     def prefix             = task.ext.prefix ?: "${meta.id}"
-    def scar_partition_arg = partition ? "--scar_partition_file ${partition.join(' ')}" : ''
-    def scarminusinput_arg = scarminusinput ? "--scarminusinput_partition_file ${scarminusinput.join(' ')}" : ''
-    def strandedinput_arg  = strandedinput ? "--strandedinput_partition_file ${strandedinput.join(' ')}" : ''
-    def okseq_rfd_arg      = okseq_rfd_file ? "--okseq_rfd_file ${okseq_rfd_file}" : ''
+    def partition_arg      = partition ? "--partition_files ${partition.join(' ')}" : ''
+    def minusinput_arg     = minusinput ? "--minusinput_partition_files ${minusinput.join(' ')}" : ''
+    def strandedinput_arg  = strandedinput ? "--strandedinput_partition_files ${strandedinput.join(' ')}" : ''
+    def rfd_arg            = rfd_files ? "--rfd_files ${rfd_files.join(' ')}" : ''
     def iz_arg             = initiation_zones ? "--initiation_zones ${initiation_zones}" : ''
     def blacklist_arg      = blacklist ? "--blacklist ${blacklist}" : ''
 
     """
     partition_or_rfd_plot.R \\
-        ${scar_partition_arg} \\
-        ${scarminusinput_arg} \\
+        ${partition_arg} \\
+        ${minusinput_arg} \\
         ${strandedinput_arg} \\
-        ${okseq_rfd_arg} \\
+        ${rfd_arg} \\
         ${iz_arg} \\
         ${blacklist_arg} \\
         --chrom_sizes ${chrom_sizes} \\
