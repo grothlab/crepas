@@ -576,6 +576,14 @@ def validateInputParameters() {
         error("A pre-built strobealign index (`--strobealign_index`) has been provided along with a spike-in genome (`--spikein_genome`). `--hybrid_fasta` must also be provided in this case.")
     }
 
+    if (params.bam_downsampling_method in ['fixed_endo', 'fixed_exo'] && !params.downsampling_fixed_reads) {
+        error("`--bam_downsampling_method ${params.bam_downsampling_method}` needs the number of reads to downsample to, set with `--downsampling_fixed_reads`.")
+    }
+
+    if (params.bam_downsampling_method in ['min_exo_across', 'min_exo_by_type', 'fixed_exo'] && !params.spikein_genome) {
+        error("`--bam_downsampling_method ${params.bam_downsampling_method}` downsamples by the spike-in reads, but no spike-in genome (`--spikein_genome`) has been provided.")
+    }
+
     // The only DeNOPA container installs the tool under /root, which is unreadable when the
     // container runs as a regular user (Singularity/Apptainer, and Docker with the pipeline's
     // `-u $(id -u):$(id -g)` run options), so DeNOPA is unsupported until a usable container exists

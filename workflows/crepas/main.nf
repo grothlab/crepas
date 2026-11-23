@@ -701,7 +701,8 @@ workflow CREPAS {
             params.spikein_genome,
             params.bam_downsampling_method,
             params.downsampling_endo_threshold,
-            params.downsampling_exo_threshold
+            params.downsampling_exo_threshold,
+            params.downsampling_fixed_reads
         )
         ch_filtered_bam = BAM_DOWNSAMPLE.out.bam
         ch_filtered_index = BAM_DOWNSAMPLE.out.index
