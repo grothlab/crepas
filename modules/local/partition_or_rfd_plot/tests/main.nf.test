@@ -69,6 +69,23 @@ nextflow_process {
                 """
             }
         }
+        // The same table under another name, used as a partition table next to two RFD tables
+        run("COLLECT_PARTITIONS", alias: "COLLECT_PARTITIONS_PART") {
+            script "../../collect_partitions/main.nf"
+            process {
+                """
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                    .combine(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map { meta, f -> f })
+                    .combine(CAT_REV.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORMF.out.file_out.map { meta, f -> f })
+                    .combine(CAT_NORMR.out.file_out.map { meta, f -> f })
+                    .combine(NORM_RFD.out.normalized.map { meta, f -> f })
+                    .map { meta, windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ->
+                        [ [ id:'part' ], windows, bwaob_fwd, bwaob_rev, norm_fwd, norm_rev, rfd ]
+                    }
+                """
+            }
+        }
         run("RFD_TO_IZ") {
             script "../../rfd_to_iz/main.nf"
             process {
@@ -118,6 +135,43 @@ nextflow_process {
                     process.out.plot_smoothed_gam_pdf.collect { m, f -> file(f).name },
                     process.out.plot_raw_pdf.collect { m, f -> file(f).name },
                     process.out.plot_raw_sd_pdf.collect { m, f -> file(f).name },
+                    process.out.mean_values,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - partition and two okseq rfd tables with --rfd_names - plot around initiation zones") {
+
+        config "./nextflow.rfd_names.config"
+
+        when {
+            process {
+                """
+                input[0] = COLLECT_PARTITIONS.out.tsv
+                    .join(COLLECT_PARTITIONS.out.filtered_tsv, by: 0)
+                    .join(RFD_TO_IZ.out.iz_rm_overlaps_bed, by: 0)
+                    .combine(COLLECT_PARTITIONS_PART.out.tsv.map { meta, f -> f })
+                    .map { meta, okseq, okseq_filtered, iz, part -> [ meta, [ part ], [], [], [ okseq, okseq_filtered ], iz ] }
+                input[1] = [ [:], [] ]
+                input[2] = [ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.sizes', checkIfExists: true) ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.mean_values.get(0).get(1)).text.contains('OK-seq (rep1)') },
+                { assert path(process.out.mean_values.get(0).get(1)).text.contains('OK-seq (rep2)') },
+                { assert process.out.scatter_pdf.get(0).get(1).collect { file(it).name }.sort() == [ 'test.rep1.scatter_plot.pdf', 'test.rep2.scatter_plot.pdf' ] },
+                // PDF/PNG embed timestamps and are not byte-reproducible; snapshot names + the
+                // deterministic mean-values table + versions instead.
+                { assert snapshot(
+                    process.out.plot_smoothed_pdf.collect { m, f -> file(f).name },
+                    process.out.scatter_pdf.collect { m, f -> f.collect { file(it).name }.sort() },
                     process.out.mean_values,
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
