@@ -1,4 +1,39 @@
 {
+    "sarscov2 - partition and two okseq rfd tables with --rfd_names - plot around initiation zones": {
+        "content": [
+            [
+                "test.partition_plot_smoothed.pdf"
+            ],
+            [
+                [
+                    "test.rep1.scatter_plot.pdf",
+                    "test.rep2.scatter_plot.pdf"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_mean_values.tsv:md5,7fc5b19b0b7e90d70573f572ac63de12"
+                ]
+            ],
+            {
+                "versions_rbase": [
+                    [
+                        "PARTITION_OR_RFD_PLOT",
+                        "r-base",
+                        "4.4.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-23T13:42:13.846947348",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    },
     "sarscov2 - okseq rfd - plot around initiation zones - stub": {
         "content": [
             {

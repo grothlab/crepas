@@ -58,7 +58,7 @@ message("[", Sys.time(), "] All libraries loaded successfully.")
 # ===============================================================================
 
 # Derive the sample name from a file name. Sample ids can themselves contain dots (e.g., H3.3).
-# TODO: This function handles crepas extension conventions. Perhaps a separate sample_id argument would be better.
+# This function handles crepas extension conventions; --rfd_names overrides it for the RFD files.
 sample_name_from_file <- function(path) {
   name <- basename(path)
   stripped <- sub("\\.(?:[0-9]+bp_[35]prime|cm_allo|allo|mLb|Lb)\\..*$", "", name, perl = TRUE)
@@ -141,6 +141,10 @@ parser$add_argument("--rfd_exp_type", action = "store",
                     type = "character",
                     help = "Name of the experiment type of the RFD file(s), used in plot labels and legends. With several RFD files, each is labelled '<rfd_exp_type> (<sample name>)' [default: OK-seq]")
 
+parser$add_argument("--rfd_names", action = "store",
+                    type = "character",
+                    help = "Comma-separated sample names of the RFD file(s), one per --rfd_files entry and in the same order [optional]. They replace the sample names derived from the file names in the plot legends, the scatter plot file names and the sample column of the mean values table. A leading '<rfd_exp_type>_' is removed from them, as from the derived names.")
+
 parser$add_argument("--partition_exp_type", action = "store",
                     default = "SCAR-seq",
                     type = "character",
@@ -206,6 +210,7 @@ opt_minusinput_partition_files <- opt$minusinput_partition_files
 opt_strandedinput_partition_files <- opt$strandedinput_partition_files
 opt_rfd_files <- opt$rfd_files
 opt_rfd_exp_type <- opt$rfd_exp_type
+opt_rfd_names <- opt$rfd_names
 opt_partition_exp_type <- opt$partition_exp_type
 opt_initiation_zones <- opt$initiation_zones
 opt_blacklist <- opt$blacklist
@@ -252,22 +257,39 @@ for (file in opt_strandedinput_partition_files) {
 
 # Check OK-seq RFD files
 rfd_files <- c()
+rfd_found <- logical(0)
 if (is.null(opt_rfd_files)) {
   warning("\n[", Sys.time(), "] RFD file not provided.")
 } else {
-  for (file in opt_rfd_files) {
-    if (!file.exists(file)) {
-      warning("\n[", Sys.time(), "] RFD file not found: ", file)
-    } else {
-      rfd_files <- c(rfd_files, file)
-    }
+  rfd_found <- file.exists(opt_rfd_files)
+  for (file in opt_rfd_files[!rfd_found]) {
+    warning("\n[", Sys.time(), "] RFD file not found: ", file)
   }
+  rfd_files <- opt_rfd_files[rfd_found]
 }
 HAS_RFD <- length(rfd_files) > 0
 
+# Check the RFD sample names: one per --rfd_files entry, none empty.
+# The appended comma makes strsplit() keep a trailing empty name instead of dropping it.
+if (!is.null(opt_rfd_names)) {
+  rfd_given_names <- trimws(strsplit(paste0(opt_rfd_names, ","), ",", fixed = TRUE)[[1]])
+  if (length(rfd_given_names) != length(opt_rfd_files)) {
+    stop("[", Sys.time(), "] ERROR: --rfd_names has ", length(rfd_given_names), " name(s) but --rfd_files has ",
+         length(opt_rfd_files), " file(s). Give one name per RFD file, in the same order.")
+  }
+  if (any(rfd_given_names == "")) {
+    stop("[", Sys.time(), "] ERROR: --rfd_names contains an empty name: '", opt_rfd_names, "'")
+  }
+}
+
 # Name each OK-seq file in the plots: a single one keeps the bare experiment type name,
-# several are told apart by their sample names. rfd_file_ids name their scatter plot files.
-rfd_base_names <- vapply(rfd_files, sample_name_from_file, character(1), USE.NAMES = FALSE)
+# several are told apart by their sample names (from --rfd_names, or else from the file names).
+# rfd_file_ids name their scatter plot files.
+if (is.null(opt_rfd_names)) {
+  rfd_base_names <- vapply(rfd_files, sample_name_from_file, character(1), USE.NAMES = FALSE)
+} else {
+  rfd_base_names <- rfd_given_names[rfd_found]
+}
 # Their names in the plots and in the scatter plot file names drop a leading "<rfd_exp_type>_"
 rfd_short_names <- as.character(strip_exp_type(rfd_base_names, opt_rfd_exp_type))
 if (length(rfd_files) == 0) {
