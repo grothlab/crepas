@@ -779,9 +779,16 @@
                 "bam_downsampling_method": {
                     "type": "string",
                     "description": "Method to downsample BAM files. Leave empty to disable downsampling.",
-                    "help_text": "The `min_endo_across` method will downsample all IPs and inputs of the same antibody to the minimum number of endogenous reads across all IPs and inputs of the same antibody.\nThe `min_exo_across` method will downsample all IPs and inputs of the same antibody to the minimum number of exogenous reads across all IPs and inputs of the same antibody.\nThe `min_endo_by_type` method will downsample all IPs to the minimum number of endogenous reads across all IPs of the same antibody, and all the inputs to the minimum number of endogenous reads across all inputs of the same antibody.\nThe `min_exo_by_type` method will downsample all IPs to the minimum number of exogenous reads across all IPs of the same antibody, and all the inputs to the minimum number of exogenous reads across all inputs of the same antibody.",
+                    "help_text": "The `min_endo_across` method will downsample all IPs and inputs of the same antibody to the minimum number of endogenous reads across all IPs and inputs of the same antibody.\nThe `min_exo_across` method will downsample all IPs and inputs of the same antibody to the minimum number of exogenous reads across all IPs and inputs of the same antibody.\nThe `min_endo_by_type` method will downsample all IPs to the minimum number of endogenous reads across all IPs of the same antibody, and all the inputs to the minimum number of endogenous reads across all inputs of the same antibody.\nThe `min_exo_by_type` method will downsample all IPs to the minimum number of exogenous reads across all IPs of the same antibody, and all the inputs to the minimum number of exogenous reads across all inputs of the same antibody.\nThe `fixed_endo` method will downsample every IP and input to `--downsampling_fixed_reads` endogenous reads, whatever its antibody.\nThe `fixed_exo` method will downsample every IP and input to `--downsampling_fixed_reads` exogenous reads, whatever its antibody.\nAll methods downsample the endogenous and exogenous reads of a sample with the same probability, so their ratio does not change. Samples with fewer reads than the target are kept whole.",
                     "fa_icon": "fas fa-compress-arrows-alt",
-                    "enum": ["min_endo_across", "min_exo_across", "min_endo_by_type", "min_exo_by_type"]
+                    "enum": [
+                        "min_endo_across",
+                        "min_exo_across",
+                        "min_endo_by_type",
+                        "min_exo_by_type",
+                        "fixed_endo",
+                        "fixed_exo"
+                    ]
                 },
                 "downsampling_endo_threshold": {
                     "type": "integer",
@@ -793,6 +800,13 @@
                     "type": "integer",
                     "default": 300000,
                     "description": "Threshold of exogenous mapped reads for downsampling. For downsampling methods that search for the minimum exogenous mapped reads across a set of samples, this parameter will determine the lower limit of that minimum. In other words, the minimum mapped exogenous reads should be the minimum number above the `downsampling_exogenous_threshold`. If there are no totals above this threshold, then the (true) minimum is used.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "downsampling_fixed_reads": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of mapped reads to downsample every sample to, with `--bam_downsampling_method fixed_endo` (endogenous reads) or `fixed_exo` (exogenous reads).",
+                    "help_text": "Reads are counted as in the other downsampling methods: mapped reads (not fragments) after the last filtering step, or after flT2 (flT1 without spike-in) for the marks in `--use_flT2_as_total_ref`. Samples with fewer reads are kept whole, with a warning. Picard DownsampleSam keeps each read pair with the same probability, so the final number is close to, not exactly, the target.",
                     "fa_icon": "fas fa-compress-arrows-alt"
                 },
                 "bam_downsampling_strategy": {

@@ -30,13 +30,20 @@ input:
       description: Spike-in genome identifier, e.g. 'mm10'
   - downsampling_method:
       type: string
-      description: Downsampling method to use, e.g. 'min_by_type'
+      description: |
+        Downsampling method to use: 'min_endo_across', 'min_exo_across', 'min_endo_by_type',
+        'min_exo_by_type', 'fixed_endo' or 'fixed_exo'
   - downsampling_endo_threshold:
       type: integer
-      description: Target number of endogenous reads to downsample to
+      description: Lower limit of the minimum number of endogenous reads searched for by the 'min_endo_*' methods
   - downsampling_exo_threshold:
       type: integer
-      description: Target number of spike-in reads to downsample to
+      description: Lower limit of the minimum number of spike-in reads searched for by the 'min_exo_*' methods
+  - downsampling_fixed_reads:
+      type: integer
+      description: |
+        Number of endogenous ('fixed_endo') or spike-in ('fixed_exo') mapped reads to downsample every sample to.
+        Samples with fewer reads are kept whole.
 output:
   - bam:
       description: |

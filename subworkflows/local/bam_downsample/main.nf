@@ -11,6 +11,7 @@ workflow BAM_DOWNSAMPLE {
     downsampling_method         // string: e.g. 'min_by_type'
     downsampling_endo_threshold // int: e.g. 10000000
     downsampling_exo_threshold  // int: e.g. 300000
+    downsampling_fixed_reads    // int: e.g. 10000000, used by 'fixed_endo' and 'fixed_exo'
 
     main:
 
@@ -296,6 +297,56 @@ workflow BAM_DOWNSAMPLE {
             .map { id, antibody, meta, bam, index ->
                 def meta_clone = meta.clone()
                 [meta_clone + [downsampling_method: 'min_exo_by_type'], bam, index]
+            }
+            .set { ch_bam_index_to_ds }
+    }
+    // 'fixed_endo' downsamples every sample (ChIPs and inputs, endo and exo) so that its endogenous BAM has
+    // `downsampling_fixed_reads` reads; 'fixed_exo' does the same with the spike-in BAM.
+    // Samples with fewer reads than that are kept whole (probability 1), with a warning.
+    else if (downsampling_method in ['fixed_endo', 'fixed_exo']) {
+
+        def ref_genome = downsampling_method == 'fixed_endo' ? genome : spikein_genome
+
+        ch_bam_index
+            .map { meta, bam, index ->
+                def antibody = meta.is_input_control ? meta.input_control_of_antibody : meta.antibody
+                [meta.id, antibody, meta, bam, index]
+            }
+            .branch { _id, _antibody, meta, _bam, _index ->
+                ref: meta.genome == ref_genome
+                other: true
+            }
+            .set { ch_bam_index_fixed }
+
+        ch_bam_index_fixed.ref
+            .map { id, antibody, meta, bam, index ->
+                def meta_clone = meta.clone()
+                def total = meta[meta.ref_total_mapped_reads_for_dSp_key] as double
+                if (total < downsampling_fixed_reads) {
+                    log.warn("Downsampling (${downsampling_method}): ${meta.id} (${antibody}) has ${total as long} ${meta.genome} mapped reads, fewer than `--downsampling_fixed_reads ${downsampling_fixed_reads}`. All its reads are kept.")
+                }
+                meta_clone.downsampling_prob = total > downsampling_fixed_reads ? downsampling_fixed_reads / total : 1
+                meta_clone.downsampling_ref_total = downsampling_fixed_reads
+                [id, antibody, meta_clone, bam, index]
+            }
+            .set { ch_bam_index_fixed_ref }
+
+        // The other genome's BAM of each sample gets the same probability,
+        // so that the ratio of endo and exo reads in each sample stays the same after downsampling
+        ch_bam_index_fixed_ref
+            .combine(ch_bam_index_fixed.other, by: [0, 1])
+            .map { id, antibody, ref_meta, _ref_bam, _ref_index, meta, bam, index ->
+                def meta_clone = meta.clone()
+                meta_clone.downsampling_prob = ref_meta.downsampling_prob
+                meta_clone.downsampling_ref_total = ref_meta.downsampling_ref_total
+                [id, antibody, meta_clone, bam, index]
+            }
+            .set { ch_bam_index_fixed_other }
+
+        ch_bam_index_fixed_ref
+            .mix(ch_bam_index_fixed_other)
+            .map { _id, _antibody, meta, bam, index ->
+                [meta + [downsampling_method: downsampling_method], bam, index]
             }
             .set { ch_bam_index_to_ds }
     }
