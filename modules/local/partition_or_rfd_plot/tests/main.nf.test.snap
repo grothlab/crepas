@@ -176,7 +176,7 @@
                         {
                             "id": "test"
                         },
-                        "test_profile_difference_plot_raw.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_profile_difference_plot_raw.partition.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "24": [
@@ -184,7 +184,7 @@
                         {
                             "id": "test"
                         },
-                        "test_profile_difference_plot_raw.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_profile_difference_plot_raw.partition.png:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "25": [
@@ -257,7 +257,6 @@
                         },
                         [
                             "test_plot_raw.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_profile_difference_plot_raw.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "test_violin_plot_raw.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
@@ -269,7 +268,6 @@
                         },
                         [
                             "test_plot_raw.png:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_profile_difference_plot_raw.png:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "test_violin_plot_raw.png:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
@@ -321,7 +319,6 @@
                         },
                         [
                             "test_plot_raw.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_profile_difference_plot_raw.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "test_violin_plot_raw.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
@@ -333,7 +330,6 @@
                         },
                         [
                             "test_plot_raw.png:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_profile_difference_plot_raw.png:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "test_violin_plot_raw.png:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
@@ -423,7 +419,7 @@
                         {
                             "id": "test"
                         },
-                        "test_profile_difference_plot_raw.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_profile_difference_plot_raw.partition.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "profile_difference_png": [
@@ -431,7 +427,7 @@
                         {
                             "id": "test"
                         },
-                        "test_profile_difference_plot_raw.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_profile_difference_plot_raw.partition.png:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "profile_differences": [
@@ -545,7 +541,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-11-25T09:51:16.269962291",
+        "timestamp": "2026-11-25T14:37:56.892875035",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.10.5"
