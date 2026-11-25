@@ -1,0 +1,213 @@
+nextflow_process {
+
+    name "Test Process PARTITION_OR_RFD_PLOT - comparisons between samples"
+    script "../main.nf"
+    process "PARTITION_OR_RFD_PLOT"
+    config "./nextflow.sample_comparisons.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "partition_or_rfd_plot"
+    tag "rfd_to_iz"
+    tag "collect_partitions"
+    tag "partition_or_rfd_smooth"
+    tag "file_sort"
+    tag "bedtools/makewindows"
+    tag "ucsc/bigwigaverageoverbed"
+    tag "bedgraph_normalize"
+
+    setup {
+
+        // The violin plots and profile tests need initiation zones with windows on both sides,
+        // which the sarscov2 tables of main.nf.test do not have. These tables are built as in
+        // BAM_CREATE_PARTITIONS, from two chr22 coverage tracks used as forward and reverse
+        // strands: table 'a' takes S2 as forward and S3 as reverse, table 'b' the other way
+        // round. Both are used as partitions (filtered tables) and as RFD tables, and the
+        // initiation zones come from 'a'.
+        run("BEDTOOLS_MAKEWINDOWS") {
+            script "../../../nf-core/bedtools/makewindows/main.nf"
+            process {
+                """
+                input[0] = [ [ id:'windows' ], file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr22/sequence/hg38.chr22.fasta.fai', checkIfExists: true) ]
+                """
+            }
+        }
+        run("FILE_SORT", alias: "WINDOWS_SORT") {
+            script "../../file_sort/main.nf"
+            process {
+                """
+                input[0] = BEDTOOLS_MAKEWINDOWS.out.bed
+                input[1] = 'bed'
+                """
+            }
+        }
+        run("UCSC_BIGWIGAVERAGEOVERBED") {
+            script "../../../nf-core/ucsc/bigwigaverageoverbed/main.nf"
+            process {
+                """
+                input[0] = WINDOWS_SORT.out.sorted
+                    .combine(channel.of(
+                        [ 'S2', file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bigwig/test_S2.RPKM.bw', checkIfExists: true) ],
+                        [ 'S3', file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bigwig/test_S3.RPKM.bw', checkIfExists: true) ]
+                    ))
+                    .map { meta, windows, id, bigwig -> [ [ id:id ], windows, bigwig ] }
+                """
+            }
+        }
+        run("FILE_SORT", alias: "BWAOB_SORT") {
+            script "../../file_sort/main.nf"
+            process {
+                """
+                input[0] = UCSC_BIGWIGAVERAGEOVERBED.out.tab
+                input[1] = 'tab'
+                """
+            }
+        }
+        run("BEDGRAPH_NORMALIZE", alias: "BWAOB_NORMALIZE") {
+            script "../../bedgraph_normalize/main.nf"
+            process {
+                """
+                input[0] = BWAOB_SORT.out.sorted
+                input[1] = 'tab'
+                """
+            }
+        }
+        run("PARTITION_OR_RFD_SMOOTH") {
+            script "../../partition_or_rfd_smooth/main.nf"
+            process {
+                """
+                input[0] = BWAOB_NORMALIZE.out.normalized
+                    .map { meta, tab -> [ meta.id, tab ] }
+                    .toSortedList { x, y -> x[0] <=> y[0] }
+                    .flatMap { tabs ->
+                        def norm = tabs.collectEntries { [ (it[0]): it[1] ] }
+                        [ [ [ id:'a' ], 'RFD', norm.S2, norm.S3 ], [ [ id:'b' ], 'RFD', norm.S3, norm.S2 ] ]
+                    }
+                input[1] = 30
+                input[2] = 30
+                input[3] = 1
+                """
+            }
+        }
+        run("COLLECT_PARTITIONS") {
+            script "../../collect_partitions/main.nf"
+            process {
+                """
+                input[0] = WINDOWS_SORT.out.sorted.map { meta, windows -> windows }
+                    .combine(BWAOB_SORT.out.sorted
+                        .map { meta, f -> [ meta.id, f ] }
+                        .toSortedList { x, y -> x[0] <=> y[0] }
+                        .map { l -> [ l.collectEntries { [ (it[0]): it[1] ] } ] })
+                    .combine(BWAOB_NORMALIZE.out.normalized
+                        .map { meta, f -> [ meta.id, f ] }
+                        .toSortedList { x, y -> x[0] <=> y[0] }
+                        .map { l -> [ l.collectEntries { [ (it[0]): it[1] ] } ] })
+                    .combine(PARTITION_OR_RFD_SMOOTH.out.rfd)
+                    .map { windows, bwaob, norm, meta, rfd ->
+                        def fwd = meta.id == 'a' ? 'S2' : 'S3'
+                        def rev = meta.id == 'a' ? 'S3' : 'S2'
+                        [ meta, windows, bwaob[fwd], bwaob[rev], norm[fwd], norm[rev], rfd ]
+                    }
+                """
+            }
+        }
+        run("RFD_TO_IZ") {
+            script "../../rfd_to_iz/main.nf"
+            process {
+                """
+                input[0] = COLLECT_PARTITIONS.out.tsv.filter { meta, tsv -> meta.id == 'a' }
+                input[1] = [ [:], [] ]
+                input[2] = [ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr22/sequence/hg38.chr22.fasta.fai', checkIfExists: true) ]
+                """
+            }
+        }
+
+    }
+
+    test("homo_sapiens chr22 - two partitions and two rfd tables - Wilcoxon test") {
+
+        when {
+            process {
+                """
+                input[0] = COLLECT_PARTITIONS.out.filtered_tsv
+                    .toSortedList { x, y -> x[0].id <=> y[0].id }
+                    .map { l -> [ l.collect { it[1] } ] }
+                    .combine(COLLECT_PARTITIONS.out.tsv
+                        .toSortedList { x, y -> x[0].id <=> y[0].id }
+                        .map { l -> [ l.collect { it[1] } ] })
+                    .combine(RFD_TO_IZ.out.iz_rm_overlaps_bed.map { meta, iz -> iz })
+                    .map { partitions, rfds, iz -> [ [ id:'test' ], partitions, [], [], rfds, iz ] }
+                input[1] = [ [:], [] ]
+                input[2] = [ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr22/sequence/hg38.chr22.fasta.fai', checkIfExists: true) ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.violin_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.violin_png.get(0).get(1)).size() > 0 },
+                { assert path(process.out.profile_difference_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.profile_difference_png.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_raw_iqr_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.plot_smoothed_iqr_pdf.get(0).get(1)).size() > 0 },
+                { assert process.out.window_qc_pdf.get(0).get(1).collect { file(it).name }.sort() == [ 'test.partition_window_qc_plot.coverage.pdf', 'test.partition_window_qc_plot.fates.pdf' ] },
+                { assert process.out.window_qc_png.get(0).get(1).collect { file(it).name }.sort() == [ 'test.partition_window_qc_plot.coverage.png', 'test.partition_window_qc_plot.fates.png' ] },
+                { assert path(process.out.violin_stats.get(0).get(1)).readLines().size() == 3 },
+                { assert path(process.out.violin_stats.get(0).get(1)).text.contains('wilcoxon') },
+                // PDF/PNG embed timestamps and are not byte-reproducible; snapshot the names and
+                // the tables instead (the permutation test uses a fixed --seed).
+                { assert snapshot(
+                    process.out.violin_pdf.collect { m, f -> file(f).name },
+                    process.out.profile_difference_pdf.collect { m, f -> file(f).name },
+                    process.out.plot_raw_iqr_pdf.collect { m, f -> file(f).name },
+                    process.out.quantile_values,
+                    process.out.violin_values,
+                    process.out.violin_stats,
+                    process.out.window_qc,
+                    process.out.profile_differences,
+                    process.out.profile_tests
+                    ).match() }
+            )
+        }
+
+    }
+
+    test("homo_sapiens chr22 - two partitions and two rfd tables - Newey-West test") {
+
+        config "./nextflow.sample_comparisons_newey_west.config"
+
+        when {
+            process {
+                """
+                input[0] = COLLECT_PARTITIONS.out.filtered_tsv
+                    .toSortedList { x, y -> x[0].id <=> y[0].id }
+                    .map { l -> [ l.collect { it[1] } ] }
+                    .combine(COLLECT_PARTITIONS.out.tsv
+                        .toSortedList { x, y -> x[0].id <=> y[0].id }
+                        .map { l -> [ l.collect { it[1] } ] })
+                    .combine(RFD_TO_IZ.out.iz_rm_overlaps_bed.map { meta, iz -> iz })
+                    .map { partitions, rfds, iz -> [ [ id:'test' ], partitions, [], [], rfds, iz ] }
+                input[1] = [ [:], [] ]
+                input[2] = [ [ id:'genome' ], file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/chr22/sequence/hg38.chr22.fasta.fai', checkIfExists: true) ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.violin_pdf.get(0).get(1)).size() > 0 },
+                { assert path(process.out.violin_stats.get(0).get(1)).readLines().size() == 3 },
+                { assert path(process.out.violin_stats.get(0).get(1)).text.contains('newey_west') },
+                { assert snapshot(
+                    process.out.violin_values,
+                    process.out.violin_stats
+                    ).match() }
+            )
+        }
+
+    }
+
+}

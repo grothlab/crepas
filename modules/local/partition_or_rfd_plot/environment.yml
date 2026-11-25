@@ -10,10 +10,12 @@ dependencies:
   - conda-forge::python=3.13.5
   - conda-forge::r-argparse=2.2.5
   - conda-forge::r-base=4.4.3
+  - conda-forge::r-cowplot=1.2.0
   - conda-forge::r-ggpmisc=0.6.2
   - conda-forge::r-ggpubr=0.6.1
   - conda-forge::r-ggrepel=0.9.6
   - conda-forge::r-hexbin=1.28.5
   - conda-forge::r-rcolorbrewer=1.1_3
+  - conda-forge::r-sandwich=3.1_1
   - conda-forge::r-tidyverse=2.0.0
   - conda-forge::setuptools=80.9.0

@@ -1,0 +1,93 @@
+{
+    "homo_sapiens chr22 - two partitions and two rfd tables - Newey-West test": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_violin_values.tsv:md5,d7b59dc80bd8786abb13f09f1df237d7"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_violin_stats.tsv:md5,aae2e0c59a6bba1174c66d6d2628cd32"
+                ]
+            ]
+        ],
+        "timestamp": "2026-11-24T14:11:36.422410325",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    },
+    "homo_sapiens chr22 - two partitions and two rfd tables - Wilcoxon test": {
+        "content": [
+            [
+                "test.partition_violin_plot_raw.pdf"
+            ],
+            [
+                "test.partition_profile_difference_plot_raw.pdf"
+            ],
+            [
+                "test.partition_plot_raw.iqr.pdf"
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_quantile_values.tsv:md5,7ff9b7a7502f4a277546d4338b77c54f"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_violin_values.tsv:md5,d7b59dc80bd8786abb13f09f1df237d7"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_violin_stats.tsv:md5,8e681d94f82a64b543be5c1dec969cf5"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_window_qc.tsv:md5,33cfc28736b69e4a312585ac064ea98a"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_profile_differences.tsv:md5,7452053fb02c67f86d80a245094c049d"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.partition_profile_tests.tsv:md5,303dfd94d7b53b4eb3bfa876ebbe9773"
+                ]
+            ]
+        ],
+        "timestamp": "2026-11-24T16:23:29.004245224",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.10.5"
+        }
+    }
+}

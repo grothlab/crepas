@@ -152,6 +152,48 @@ output:
           type: file
           description: Unsmoothed partition/RFD profile plot, with the standard deviation ribbon (PNG)
           pattern: "*_plot_raw.sd.png"
+  plot_smoothed_iqr_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_smoothed.iqr.pdf":
+          type: file
+          description: Smoothed partition/RFD profile plot, median line with the interquartile range across initiation zones (PDF)
+          pattern: "*_plot_smoothed.iqr.pdf"
+  plot_smoothed_iqr_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_smoothed.iqr.png":
+          type: file
+          description: Smoothed partition/RFD profile plot, median line with the interquartile range across initiation zones (PNG)
+          pattern: "*_plot_smoothed.iqr.png"
+  plot_raw_iqr_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_raw.iqr.pdf":
+          type: file
+          description: Unsmoothed partition/RFD profile plot, median line with the interquartile range across initiation zones (PDF)
+          pattern: "*_plot_raw.iqr.pdf"
+  plot_raw_iqr_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_plot_raw.iqr.png":
+          type: file
+          description: Unsmoothed partition/RFD profile plot, median line with the interquartile range across initiation zones (PNG)
+          pattern: "*_plot_raw.iqr.png"
+  quantile_values:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_quantile_values.tsv":
+          type: file
+          description: Per-sample median and quartiles of the partition/RFD values across initiation zones at each distance, as plotted in the interquartile range plots
+          pattern: "*_quantile_values.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
   mean_values:
     - - meta:
           type: map
@@ -160,6 +202,104 @@ output:
           type: file
           description: Per-sample mean partition/RFD value table
           pattern: "*_mean_values.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  violin_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_violin_plot_raw.pdf":
+          type: file
+          description: Violin plot of one partition/RFD value per initiation zone and sample, with paired tests between samples (PDF). Not written if no initiation zone has bins on both sides.
+          pattern: "*_violin_plot_raw.pdf"
+  violin_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_violin_plot_raw.png":
+          type: file
+          description: Violin plot of one partition/RFD value per initiation zone and sample, with paired tests between samples (PNG). Not written if no initiation zone has bins on both sides.
+          pattern: "*_violin_plot_raw.png"
+  violin_values:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_violin_values.tsv":
+          type: file
+          description: Values in the violin plots, one per initiation zone and sample ((downstream - upstream mean of the raw values) / 2), with the number of bins on each side
+          pattern: "*_violin_values.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  violin_stats:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_violin_stats.tsv":
+          type: file
+          description: Paired tests between the samples in the violin plots (Wilcoxon signed-rank or Newey-West, set with --violin_test in ext.args), with the number of initiation zones, medians, median and mean paired differences, and Holm-adjusted p-values
+          pattern: "*_violin_stats.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  profile_difference_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_profile_difference_plot_raw.pdf":
+          type: file
+          description: Mean paired difference of the partition/RFD profiles of each pair of samples around the initiation zones, with its 95% confidence interval and the significant clusters of the permutation test shaded (PDF). Not written if no set has two samples.
+          pattern: "*_profile_difference_plot_raw.pdf"
+  profile_difference_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_profile_difference_plot_raw.png":
+          type: file
+          description: Mean paired difference of the partition/RFD profiles of each pair of samples around the initiation zones, with its 95% confidence interval and the significant clusters of the permutation test shaded (PNG). Not written if no set has two samples.
+          pattern: "*_profile_difference_plot_raw.png"
+  profile_differences:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_profile_differences.tsv":
+          type: file
+          description: Mean paired difference, 95% confidence interval, number of initiation zones and paired t statistic of each pair of samples in each distance bin
+          pattern: "*_profile_differences.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  profile_tests:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_profile_tests.tsv":
+          type: file
+          description: Clusters of the sign-flip cluster-based permutation test of the profile differences of each pair of samples (distance range, direction, mass, p-value, and p-value Bonferroni-adjusted over the pairs of the set), or one row per pair without clusters
+          pattern: "*_profile_tests.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  window_qc_pdf:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_window_qc_plot.*.pdf":
+          type: file
+          description: Window QC plots (PDF). `*.fates.pdf`, the fate of the windows within the plotted range of the initiation zones per sample (used, below the RPM cutoff, blacklisted, no reads); `*.coverage.pdf`, the percentage of initiation zones with a used window at each distance. Not written if no window lies within the plotted range.
+          pattern: "*_window_qc_plot.*.pdf"
+  window_qc_png:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_window_qc_plot.*.png":
+          type: file
+          description: Window QC plots (PNG), as the PDFs (`*.fates.png`, `*.coverage.png`)
+          pattern: "*_window_qc_plot.*.png"
+  window_qc:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*_window_qc.tsv":
+          type: file
+          description: Number and percentage of the windows within the plotted range of the initiation zones of each sample by fate (used, below RPM cutoff, blacklisted, no reads)
+          pattern: "*_window_qc.tsv"
           ontologies:
             - edam: "http://edamontology.org/format_3475" # TSV
   scatter_pdf:

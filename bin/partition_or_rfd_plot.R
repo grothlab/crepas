@@ -20,25 +20,14 @@
 
 options(show.error.locations = TRUE)
 
-# ### Set user's local R library path to packages
-# chooseCRANmirror(ind =  28)
-# if (!dir.exists(Sys.getenv("R_LIBS_USER"))) {
-#     dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE)
-# }
-
-# ### Install required packages if missing
-# if (!require("BiocManager", quietly = TRUE)) {
-#     install.packages("BiocManager", lib = Sys.getenv("R_LIBS_USER"))
-# }
-
 required.libs <- c("tidyverse","GenomicAlignments","GenomicFeatures",
            "RColorBrewer","ggrepel","ggpubr","ggpmisc",
-          "hexbin","argparse")
+          "hexbin","argparse","sandwich","cowplot")
 
 unavailable.libs <- setdiff(required.libs, rownames(installed.packages()))
 if (length(unavailable.libs) > 0) {
-  message("\n[", Sys.time(), "] Installing missing packages: ", paste(unavailable.libs, collapse = ", "))
-  BiocManager::install(unavailable.libs)
+  stop("Missing R packages: ", paste(unavailable.libs, collapse = ", "),
+       ". Run the script with the conda environment or container of the PARTITION_OR_RFD_PLOT module.")
 }
 
 message("\n[", Sys.time(), "] Loading required libraries...")
@@ -51,6 +40,9 @@ for (lib in required.libs) {
   })
 }
 message("[", Sys.time(), "] All libraries loaded successfully.")
+
+# Plots built only to take parts of them (e.g. a legend) would otherwise be drawn to Rplots.pdf
+grDevices::pdf(NULL)
 
 
 # ===============================================================================
@@ -99,6 +91,12 @@ rfd_linetypes <- function(n) {
             " RFD files were given; their line types are reused.")
   }
   rep_len(pool, n)
+}
+
+
+# Captions are drawn as the legend title, below the keys, one item per line
+caption_lines <- function(...) {
+  paste(c(...), collapse = "\n")
 }
 
 
@@ -203,6 +201,37 @@ parser$add_argument("-w", "--only_plot_wholly_within_iz", action = "store",
                     type = "logical",
                     help = "When calculating the distance from each partition/RFD bin to the start of initiation zones, only consider bins that are wholly contained within the initiation zones [default: FALSE]")
 
+parser$add_argument("--violin_test", action = "store",
+                    default = "wilcoxon",
+                    choices = c("wilcoxon", "newey_west"),
+                    type = "character",
+                    help = "Paired test between samples in the violin plots, which compare one value per initiation zone: 'wilcoxon' (Wilcoxon signed-rank test) or 'newey_west' (t-test of the mean paired difference with a Newey-West standard error, with the initiation zones ordered along the genome, which allows for correlation between neighbouring initiation zones). P-values are Holm-adjusted [default: wilcoxon]")
+
+parser$add_argument("--newey_west_lag", action = "store",
+                    default = NULL,
+                    type = "integer",
+                    help = "Lag (in initiation zones) of the Newey-West standard error with --violin_test newey_west [default: chosen automatically, Newey & West (1994)]")
+
+parser$add_argument("--profile_test_bin_size", action = "store",
+                    default = 5,
+                    type = "double",
+                    help = "Bin size (kb) of the distance axis for the profile difference tests: the raw values of each initiation zone are averaged in bins of this size before comparing samples. Smaller bins are noisier and split broad differences into many small clusters, and bins smaller than the windows of the tables leave empty bins [default: 5 kb]")
+
+parser$add_argument("--profile_test_permutations", action = "store",
+                    default = 5000,
+                    type = "integer",
+                    help = "Number of sign-flip permutations of the cluster-based permutation test of the profile differences. The smallest possible p-value is 1 / (permutations + 1), multiplied by the number of pairs after adjustment [default: 5000]")
+
+parser$add_argument("--profile_test_threshold", action = "store",
+                    default = 0.05,
+                    type = "double",
+                    help = "Pointwise two-sided p-value that forms the clusters in the cluster-based permutation test: neighbouring distance bins whose paired t-test passes it (with the same sign) form a cluster [default: 0.05]")
+
+parser$add_argument("--seed", action = "store",
+                    default = 1,
+                    type = "integer",
+                    help = "Random seed of the permutation tests, so that their p-values are reproducible [default: 1]")
+
 opt <- parser$parse_args()
 
 opt_partition_files <- opt$partition_files
@@ -223,6 +252,26 @@ opt_iz_rm_overlap_range <- opt$iz_rm_overlap_range
 opt_exclude_chromosomes <- opt$exclude_chromosomes
 opt_exclude_scaffolds <- opt$exclude_scaffolds
 opt_only_plot_within_iz <- opt$only_plot_wholly_within_iz
+opt_violin_test <- opt$violin_test
+opt_newey_west_lag <- opt$newey_west_lag
+
+opt_profile_test_bin_size <- opt$profile_test_bin_size
+opt_profile_test_permutations <- opt$profile_test_permutations
+opt_profile_test_threshold <- opt$profile_test_threshold
+opt_seed <- opt$seed
+
+if (!is.null(opt_newey_west_lag) && opt_newey_west_lag < 0) {
+  stop("[", Sys.time(), "] ERROR: --newey_west_lag must be 0 or larger.")
+}
+if (opt_profile_test_bin_size <= 0) {
+  stop("[", Sys.time(), "] ERROR: --profile_test_bin_size must be larger than 0.")
+}
+if (opt_profile_test_permutations < 1) {
+  stop("[", Sys.time(), "] ERROR: --profile_test_permutations must be at least 1.")
+}
+if (opt_profile_test_threshold <= 0 || opt_profile_test_threshold >= 1) {
+  stop("[", Sys.time(), "] ERROR: --profile_test_threshold must be between 0 and 1.")
+}
 
 
 # ===============================================================================
@@ -428,8 +477,9 @@ IZ_gr <- IZ_df %>%
 # coordinates are now 1-based thanks to starts.in.df.are.0based = TRUE
 IZ_gr$interval <- paste0(seqnames(IZ_gr), ":", start(IZ_gr), "-", end(IZ_gr))
 
-# Get original start coordinate for each initiation zone
+# Get original start and end coordinates for each initiation zone
 IZ_gr$break_start <- start(IZ_gr)
+IZ_gr$break_end <- end(IZ_gr)
 
 # A radius of 0 switches overlap removal off, keeping every initiation zone
 if (opt_iz_rm_overlap_range > 0) {
@@ -466,6 +516,50 @@ IZ_gr <- trim(resize(IZ_gr, IZ_PLOT_LIMITS * 2, fix = "center"))
 message("\n[", Sys.time(), "] (", iz_base_name, ") The number of initiation zones retained is: ", length(IZ_gr), ".")
 
 
+# Fate of the windows of a table that lie within the plotted range of the initiation zones, for
+# the window QC plot: used, below the RPM cutoff, blacklisted, or no reads. Tables often leave
+# out the windows without reads, so those are counted as the expected windows (from the window
+# size and step of the table) that are missing from it.
+count_window_fates <- function(df, sample, facet) {
+  df <- df %>%
+    dplyr::filter(seqnames %in% names(chrom_sizes)) %>%
+    dplyr::arrange(seqnames, start)
+  gr <- makeGRangesFromDataFrame(df, seqinfo = chrom_sizes, keep.extra.columns = TRUE,
+                                 starts.in.df.are.0based = TRUE)
+  gr <- gr[if (opt_only_plot_within_iz) overlapsAny(gr, IZ_gr, type = "within") else overlapsAny(gr, IZ_gr)]
+  has_reads <- gr$fwd_counts >= 1 | gr$rev_counts >= 1
+  blacklisted <- has_reads & overlapsAny(gr, blacklist_gr, minoverlap = 1)
+  below_cutoff <- has_reads & !blacklisted & (gr$fwd_RPM + gr$rev_RPM) < opt_rpm_cutoff
+
+  # Expected windows: width w, starting every `step` bp from 0 on each chromosome
+  widths <- table(df$end - df$start)
+  w <- as.numeric(names(widths)[which.max(widths)])
+  same_chrom <- df$seqnames[-1] == df$seqnames[-nrow(df)]
+  steps <- table(diff(df$start)[same_chrom & diff(df$start) > 0])
+  step <- if (length(steps) > 0) as.numeric(names(steps)[which.max(steps)]) else w
+  ranges <- reduce(IZ_gr)
+  a <- start(ranges)
+  b <- end(ranges)
+  chrom_len <- chrom_sizes[as.character(seqnames(ranges))]
+  if (opt_only_plot_within_iz) {
+    k_min <- ceiling((a - 1) / step)
+    k_max <- floor((b - w) / step)
+  } else {
+    k_min <- pmax(0, ceiling((a - w) / step))
+    k_max <- floor((b - 1) / step)
+  }
+  k_max <- pmin(k_max, floor((chrom_len - 1) / step))
+  n_expected <- sum(pmax(0, k_max - k_min + 1))
+  n_missing <- max(0, n_expected - length(gr))
+
+  tibble(sample = sample, sample_facet = facet,
+         fate = c("used", "below RPM cutoff", "blacklisted", "no reads"),
+         n_windows = c(sum(has_reads & !blacklisted & !below_cutoff), sum(below_cutoff),
+                       sum(blacklisted), sum(!has_reads) + n_missing))
+}
+window_qc_df <- tibble()
+
+
 if (HAS_RFD) {
 
   message("\n# ===============================================================================")
@@ -486,6 +580,8 @@ if (HAS_RFD) {
     if (ncol(RFD_file_df) != 12) {
       stop("[", Sys.time(), "] (", rfd_base_name, ") ERROR: The ", opt_rfd_exp_type, " RFD file is not in the correct format (ncol != 12)")
     }
+
+    window_qc_df <- bind_rows(window_qc_df, count_window_fates(RFD_file_df, rfd_label, "RFD"))
 
     message("\n[", Sys.time(), "] (", rfd_base_name, ") Removing ", opt_rfd_exp_type, " bins within excluded chromosomes, outside of chrom_sizes, or with <1 fwd or <1 rev counts...")
     RFD_file_df <- RFD_file_df %>%
@@ -581,6 +677,8 @@ for (type in names(part_files)) {
     if (ncol(part_df) != 12) {
       stop("[", Sys.time(), "] ERROR:", base_name, "is not a partition file format (ncol != 12)")
     }
+
+    window_qc_df <- bind_rows(window_qc_df, count_window_fates(part_df, base_name, type))
 
     message("\n[", Sys.time(), "] (", base_name, ") Removing partition bins within excluded chromosomes, outside of chromosome sizes, or with <1 fwd or <1 rev counts...")
     part_df <- part_df %>%
@@ -701,6 +799,28 @@ write_tsv(partition_mean_df,
 message("\n[", Sys.time(), "] A glimpse of the partition mean data frame:")
 print(partition_mean_df)
 
+# Medians and quartiles across initiation zones, for the interquartile range plots
+partition_quantile_df <- partition_df %>%
+  dplyr::filter(RPM >= opt_rpm_cutoff,
+                !(duplicate %in% TRUE)) %>%
+  dplyr::group_by(dist, sample, sample_type, sample_facet) %>%
+  dplyr::summarise(
+    RFD_raw_median = median(RFD_raw, na.rm = TRUE),
+    RFD_raw_q25 = quantile(RFD_raw, 0.25, na.rm = TRUE, names = FALSE),
+    RFD_raw_q75 = quantile(RFD_raw, 0.75, na.rm = TRUE, names = FALSE),
+    RFD_raw_n = sum(!is.na(RFD_raw)),
+    RFD_smooth_median = median(RFD_smooth, na.rm = TRUE),
+    RFD_smooth_q25 = quantile(RFD_smooth, 0.25, na.rm = TRUE, names = FALSE),
+    RFD_smooth_q75 = quantile(RFD_smooth, 0.75, na.rm = TRUE, names = FALSE),
+    RFD_smooth_n = sum(!is.na(RFD_smooth)),
+    .groups = "drop"
+  ) %>%
+  mutate(sample = ifelse(sample %in% rfd_labels, sample, strip_exp_type(sample, opt_partition_exp_type)))
+
+write_tsv(partition_quantile_df,
+          file = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_quantile_values.tsv")),
+          col_names = TRUE)
+
 message("\n# ===============================================================================")
 message("# STEP 5. Plotting")
 message("# ===============================================================================")
@@ -753,9 +873,30 @@ legend_key_width <- unit(ifelse(length(rfd_plotted) > 1, 0.8, 0.3), "cm")
 message("\n[", Sys.time(), "] Creating smoothed partition plot(s)...")
 
 
-plot_partition <- function(mean_col, sd_col, show_sd) {
+# band: "none" (mean), "sd" (mean +/- 1 SD) or "iqr" (median and interquartile range)
+plot_partition <- function(value, band = c("none", "sd", "iqr")) {
 
-  p <- ggplot(partition_mean_df, aes(x = dist / 1000, y = .data[[mean_col]], color = sample, linetype = sample)) +
+  band <- match.arg(band)
+  if (band == "iqr") {
+    plot_df <- partition_quantile_df
+    center_col <- paste0(value, "_median")
+    caption <- caption_lines(paste0("N = ", length(IZ_gr), " initiation zones"),
+                             "Line: median",
+                             "Band: interquartile range (25th-75th percentile)")
+  } else {
+    plot_df <- partition_mean_df
+    center_col <- paste0(value, "_mean")
+    caption <- if (band == "sd") {
+      caption_lines(paste0("N = ", length(IZ_gr), " initiation zones"),
+                    "Line: mean",
+                    "Ribbon: +/- 1 SD across initiation zones")
+    } else {
+      caption_lines(paste0("N = ", length(IZ_gr), " initiation zones"),
+                    "Line: mean")
+    }
+  }
+
+  p <- ggplot(plot_df, aes(x = dist / 1000, y = .data[[center_col]], color = sample, linetype = sample)) +
     annotate("rect", xmin = -Inf, xmax = 0, ymin = -Inf, ymax = 0,
              fill = "grey96") +
     annotate("rect", xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
@@ -763,10 +904,16 @@ plot_partition <- function(mean_col, sd_col, show_sd) {
     geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
     geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3)
 
-  if (show_sd) {
+  if (band == "sd") {
     p <- p +
-      geom_ribbon(aes(ymin = .data[[mean_col]] - .data[[sd_col]],
-                      ymax = .data[[mean_col]] + .data[[sd_col]], fill = sample),
+      geom_ribbon(aes(ymin = .data[[center_col]] - .data[[paste0(value, "_sd")]],
+                      ymax = .data[[center_col]] + .data[[paste0(value, "_sd")]], fill = sample),
+                  linetype = 0,
+                  alpha = 0.2)
+  } else if (band == "iqr") {
+    p <- p +
+      geom_ribbon(aes(ymin = .data[[paste0(value, "_q25")]],
+                      ymax = .data[[paste0(value, "_q75")]], fill = sample),
                   linetype = 0,
                   alpha = 0.2)
   }
@@ -778,11 +925,12 @@ plot_partition <- function(mean_col, sd_col, show_sd) {
     scale_fill_manual(values = line_colors) +
     xlab("Distance from initiation zone center (kb)") +
     ylab(ifelse(HAS_RFD, ifelse(num_types_with_files > 0, "Partition or RFD", "RFD"), "Partition")) +
-    labs(caption = paste("N =", length(IZ_gr))) +
+    do.call(labs, c(list(color = caption, linetype = caption), if (band != "none") list(fill = caption))) +
     theme_bw(base_family = "Helvetica") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          legend.title = element_blank(),
+          legend.title = element_text(size = 5),
+          legend.title.position = "bottom",
           axis.title = element_text(size = 6),
           axis.text = element_text(size = 6),
           legend.text = element_text(size = 6),
@@ -790,8 +938,8 @@ plot_partition <- function(mean_col, sd_col, show_sd) {
           legend.key.width = legend_key_width,
           legend.key = element_rect(color = NA, fill = NA),
           strip.background = element_blank(),
-          aspect.ratio = 1,
-          plot.caption = element_text(size = 6)) +
+          strip.text = element_text(size = 7),
+          aspect.ratio = 1) +
     guides(color = guide_legend(order = 1), linetype = guide_legend(order = 1),
            fill = guide_legend(order = 1)) +
     facet_wrap(~ sample_facet, nrow = 1, labeller = labeller(.cols = sample_labels)) +
@@ -806,8 +954,9 @@ plot_partition <- function(mean_col, sd_col, show_sd) {
             vjust = 2, size = 2)
 }
 
-smoothed_plot    <- plot_partition("RFD_smooth_mean", "RFD_smooth_sd", show_sd = FALSE)
-smoothed_plot_sd <- plot_partition("RFD_smooth_mean", "RFD_smooth_sd", show_sd = TRUE)
+smoothed_plot     <- plot_partition("RFD_smooth", "none")
+smoothed_plot_sd  <- plot_partition("RFD_smooth", "sd")
+smoothed_plot_iqr <- plot_partition("RFD_smooth", "iqr")
 
 message("\n[", Sys.time(), "] Saving smoothed partition plot(s)...")
 ggsave(filename = file.path(opt_outdir,paste0(opt_prefix,".", plot_suffix, "_plot_smoothed.pdf")),
@@ -824,6 +973,13 @@ ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_p
        plot = smoothed_plot_sd, width = plot_width, height = 2.5, units = "in",
        dpi = 600)
 
+ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_plot_smoothed.iqr.pdf")),
+       plot = smoothed_plot_iqr, width = plot_width, height = 2.5, units = "in")
+
+ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_plot_smoothed.iqr.png")),
+       plot = smoothed_plot_iqr, width = plot_width, height = 2.5, units = "in",
+       dpi = 600)
+
 
 # ===============================================================================
 # Raw (unsmoothed) partition plot(s)
@@ -831,8 +987,9 @@ ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_p
 
 message("\n[", Sys.time(), "] Creating raw partition plot(s)...")
 
-raw_plot    <- plot_partition("RFD_raw_mean", "RFD_raw_sd", show_sd = FALSE)
-raw_plot_sd <- plot_partition("RFD_raw_mean", "RFD_raw_sd", show_sd = TRUE)
+raw_plot     <- plot_partition("RFD_raw", "none")
+raw_plot_sd  <- plot_partition("RFD_raw", "sd")
+raw_plot_iqr <- plot_partition("RFD_raw", "iqr")
 
 message("\n[", Sys.time(), "] Saving raw partition plot(s)...")
 ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_plot_raw.pdf")),
@@ -848,6 +1005,14 @@ ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_p
 
 ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_plot_raw.sd.png")),
        plot = raw_plot_sd, width = plot_width, height = 2.5, units = "in",
+       dpi = 600)
+
+message("\n[", Sys.time(), "] Saving raw partition plot(s) with the interquartile band...")
+ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_plot_raw.iqr.pdf")),
+       plot = raw_plot_iqr, width = plot_width, height = 2.5, units = "in")
+
+ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_plot_raw.iqr.png")),
+       plot = raw_plot_iqr, width = plot_width, height = 2.5, units = "in",
        dpi = 600)
 
 
@@ -869,11 +1034,13 @@ smoothed_gam_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smoo
     scale_linetype_manual(values = line_types) +
     xlab("Distance from initiation zone center (kb)") +
     ylab(ifelse(HAS_RFD, ifelse(num_types_with_files > 0, "Partition or RFD", "RFD"), "Partition")) +
-    labs(caption = paste("N =", length(IZ_gr))) +
+    labs(color = caption_lines(paste0("N = ", length(IZ_gr), " initiation zones"), "Line: GAM fit of the mean"),
+         linetype = caption_lines(paste0("N = ", length(IZ_gr), " initiation zones"), "Line: GAM fit of the mean")) +
     theme_bw(base_family = "Helvetica") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          legend.title = element_blank(),
+          legend.title = element_text(size = 5),
+          legend.title.position = "bottom",
           axis.title = element_text(size = 6),
           axis.text = element_text(size = 6),
           legend.text = element_text(size = 6),
@@ -881,8 +1048,8 @@ smoothed_gam_plot <- ggplot(partition_mean_df, aes(x = dist / 1000, y = RFD_smoo
           legend.key.width = legend_key_width,
           legend.key = element_rect(color = NA, fill = NA),
           strip.background = element_blank(),
-          aspect.ratio = 1,
-          plot.caption = element_text(size = 6)) +
+          strip.text = element_text(size = 7),
+          aspect.ratio = 1) +
     guides(color = guide_legend(order = 1), linetype = guide_legend(order = 1)) +
     facet_wrap(~ sample_facet, nrow = 1, labeller = labeller(.cols = sample_labels)) +
     scale_y_continuous(expand = expansion(mult = c(0.11, 0.11))) +
@@ -902,6 +1069,634 @@ ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_p
 ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_plot_smoothed.gam.png")),
        plot = smoothed_gam_plot, width = plot_width, height = 2.5, units = "in",
        dpi = 600)
+
+
+# ===============================================================================
+# Violin plots: one value per initiation zone and sample, with paired tests between samples
+# ===============================================================================
+# Values change sign across an initiation zone, so each one gets
+# (downstream mean - upstream mean) / 2 of its raw values; bins inside the zone are left out.
+
+message("\n[", Sys.time(), "] Creating violin plot(s) of the per-initiation-zone values...")
+
+# Wilcoxon signed-rank test of paired values; NA when it cannot be computed
+wilcoxon_paired_p <- function(x, y) {
+  if (length(x) < 2 || all(x - y == 0)) return(NA_real_)
+  tryCatch(suppressWarnings(wilcox.test(x, y, paired = TRUE, exact = FALSE)$p.value),
+           error = function(e) NA_real_)
+}
+
+# Test of mean(d) = 0 with a Newey-West standard error (d ordered along the genome)
+newey_west_p <- function(d, lag) {
+  if (length(d) < 3 || all(d == d[1])) return(NA_real_)
+  fit <- lm(d ~ 1)
+  se <- sqrt(sandwich::NeweyWest(fit, lag = lag, prewhite = FALSE)[1, 1])
+  if (!is.finite(se) || se == 0) return(NA_real_)
+  2 * pnorm(-abs(unname(coef(fit)[1]) / se))
+}
+
+p_to_stars <- function(p) {
+  dplyr::case_when(is.na(p)     ~ "NA",
+                   p <= 0.0001  ~ "****",
+                   p <= 0.001   ~ "***",
+                   p <= 0.01    ~ "**",
+                   p <= 0.05    ~ "*",
+                   TRUE         ~ "ns")
+}
+
+# Original (not resized) initiation zone coordinates, to tell the bins on either side apart
+iz_info <- tibble(break_ID = IZ_gr$interval,
+                  iz_seqnames = as.character(seqnames(IZ_gr)),
+                  iz_start = IZ_gr$break_start,
+                  iz_end = IZ_gr$break_end)
+
+display_name <- function(x) ifelse(x %in% rfd_labels, x, strip_exp_type(x, opt_partition_exp_type))
+
+# Samples in input order: partitions first (by type, then file order), then the RFD tables
+violin_sample_levels <- unique(display_name(unique(partition_df$sample)))
+
+iz_values_df <- partition_df %>%
+  dplyr::filter(RPM >= opt_rpm_cutoff,
+                !(duplicate %in% TRUE),
+                !is.na(RFD_raw)) %>%
+  dplyr::inner_join(iz_info, by = "break_ID") %>%
+  mutate(side = dplyr::case_when(end < iz_start ~ "upstream",
+                                 start > iz_end ~ "downstream",
+                                 TRUE ~ NA_character_)) %>%
+  dplyr::filter(!is.na(side)) %>%
+  group_by(sample, sample_type, sample_facet, break_ID, iz_seqnames, iz_start) %>%
+  summarise(n_upstream = sum(side == "upstream"),
+            n_downstream = sum(side == "downstream"),
+            value = (mean(RFD_raw[side == "downstream"]) - mean(RFD_raw[side == "upstream"])) / 2,
+            .groups = "drop") %>%
+  dplyr::filter(n_upstream > 0, n_downstream > 0) %>%
+  mutate(sample = display_name(sample),
+         is_rfd = sample %in% rfd_labels) %>%
+  dplyr::arrange(sample_facet, factor(sample, levels = violin_sample_levels), iz_seqnames, iz_start)
+
+# With partitions, the RFD tables (repeated in every partition facet) get a single facet of their own
+violin_facet_labels <- sample_labels
+if (num_types_with_files > 0 && any(iz_values_df$is_rfd)) {
+  first_rfd_facet <- unique(iz_values_df$sample_facet[iz_values_df$is_rfd])[1]
+  iz_values_df <- iz_values_df %>%
+    dplyr::filter(!is_rfd | sample_facet == first_rfd_facet) %>%
+    mutate(sample_facet = ifelse(is_rfd, "RFD", sample_facet))
+  violin_facet_labels <- c(sample_labels, RFD = opt_rfd_exp_type)
+}
+
+write_tsv(iz_values_df %>% dplyr::select(sample, sample_type, sample_facet, break_ID,
+                                         n_upstream, n_downstream, value),
+          file = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_violin_values.tsv")),
+          col_names = TRUE)
+
+# Paired tests between all pairs of partitions and all pairs of RFD tables in each facet
+violin_stats_df <- tibble(sample_facet = character(), sample_kind = character(),
+                          group1 = character(), group2 = character(), n_iz = integer(),
+                          median1 = double(), median2 = double(), median_difference = double(),
+                          mean_difference = double(), test = character(),
+                          p_value = double(), p_adj = double(), p_adj_signif = character())
+
+for (facet in unique(iz_values_df$sample_facet)) {
+  for (kind in c(FALSE, TRUE)) {
+    facet_df <- iz_values_df %>% dplyr::filter(sample_facet == facet, is_rfd == kind)
+    samples <- intersect(violin_sample_levels, facet_df$sample)
+    if (length(samples) < 2) next
+    for (pair in combn(samples, 2, simplify = FALSE)) {
+      paired <- dplyr::inner_join(
+        facet_df %>% dplyr::filter(sample == pair[1]) %>% dplyr::select(break_ID, iz_seqnames, iz_start, x = value),
+        facet_df %>% dplyr::filter(sample == pair[2]) %>% dplyr::select(break_ID, y = value),
+        by = "break_ID") %>%
+        dplyr::arrange(iz_seqnames, iz_start)
+      d <- paired$x - paired$y
+      p <- if (opt_violin_test == "wilcoxon") {
+        wilcoxon_paired_p(paired$x, paired$y)
+      } else {
+        newey_west_p(d, opt_newey_west_lag)
+      }
+      violin_stats_df <- violin_stats_df %>%
+        bind_rows(tibble(sample_facet = facet,
+                         sample_kind = ifelse(kind, "RFD", "partition"),
+                         group1 = pair[1], group2 = pair[2], n_iz = nrow(paired),
+                         median1 = median(paired$x), median2 = median(paired$y),
+                         median_difference = median(d), mean_difference = mean(d),
+                         test = opt_violin_test, p_value = p))
+    }
+  }
+}
+
+violin_stats_df <- violin_stats_df %>%
+  group_by(sample_facet, sample_kind) %>%
+  mutate(p_adj = p.adjust(p_value, method = "holm")) %>%
+  ungroup() %>%
+  mutate(p_adj_signif = p_to_stars(p_adj))
+
+write_tsv(violin_stats_df,
+          file = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_violin_stats.tsv")),
+          col_names = TRUE, na = "NA")
+
+if (nrow(iz_values_df) == 0) {
+
+  message("\n[", Sys.time(), "] Skipping the violin plot(s): no initiation zone has bins on both sides in any sample.")
+
+} else {
+
+  # Partition facets in their usual order, then the RFD facet
+  violin_facet_levels <- c(sort(setdiff(unique(iz_values_df$sample_facet), "RFD")),
+                           intersect("RFD", unique(iz_values_df$sample_facet)))
+  iz_values_df <- iz_values_df %>%
+    mutate(sample = factor(sample, levels = violin_sample_levels),
+           sample_facet = factor(sample_facet, levels = violin_facet_levels))
+
+  # Brackets: x positions within each facet (free x scales keep only that facet's samples),
+  # stacked in tiers so that overlapping brackets do not cross; heights are set per plot below
+  brackets_df <- tibble()
+  for (facet in unique(violin_stats_df$sample_facet)) {
+    facet_levels <- intersect(violin_sample_levels, as.character(iz_values_df$sample[iz_values_df$sample_facet == facet]))
+    facet_stats <- violin_stats_df %>%
+      dplyr::filter(sample_facet == facet) %>%
+      mutate(xmin = match(group1, facet_levels), xmax = match(group2, facet_levels)) %>%
+      dplyr::arrange(xmax - xmin, xmin)
+    tiers <- integer(nrow(facet_stats))
+    occupied <- list()
+    for (i in seq_len(nrow(facet_stats))) {
+      tier <- 1
+      while (any(vapply(occupied[[as.character(tier)]] %||% list(),
+                        function(span) facet_stats$xmin[i] <= span[2] && facet_stats$xmax[i] >= span[1],
+                        logical(1)))) {
+        tier <- tier + 1
+      }
+      occupied[[as.character(tier)]] <- c(occupied[[as.character(tier)]] %||% list(),
+                                          list(c(facet_stats$xmin[i], facet_stats$xmax[i])))
+      tiers[i] <- tier
+    }
+    brackets_df <- bind_rows(brackets_df, facet_stats %>% mutate(tier = tiers))
+  }
+  n_tiers <- if (nrow(brackets_df) > 0) max(brackets_df$tier) else 0
+
+  # Median line in the violins; ggplot2 4.0 replaced draw_quantiles by quantiles
+  # The RFD tables share one grey; as in the profile plots, their outlines get a line type each
+  violin_layer <- if (utils::packageVersion("ggplot2") >= "4.0.0") {
+    geom_violin(aes(fill = sample, linetype = sample), quantiles = 0.5, quantile.linetype = "solid",
+                linewidth = 0.3, alpha = 0.6, scale = "width", trim = TRUE)
+  } else {
+    geom_violin(aes(fill = sample, linetype = sample), draw_quantiles = 0.5,
+                linewidth = 0.3, alpha = 0.6, scale = "width", trim = TRUE)
+  }
+
+  n_iz_used <- n_distinct(iz_values_df$break_ID)
+  test_name <- ifelse(opt_violin_test == "wilcoxon", "Wilcoxon signed-rank test",
+                      paste0("Newey-West test (lag ", ifelse(is.null(opt_newey_west_lag), "automatic", opt_newey_west_lag), ")"))
+
+  violin_caption <- caption_lines(paste0("N = ", n_iz_used, " initiation zones"),
+                                  paste0("Test: ", test_name, ", paired by initiation zone"),
+                                  "P-values: Holm-adjusted over the pairs")
+  max_label_chars <- max(nchar(as.character(iz_values_df$sample)))
+  n_per_facet <- iz_values_df %>% dplyr::distinct(sample_facet, sample) %>% dplyr::count(sample_facet)
+
+  # One y scale for all the violins, with room for the brackets
+  y_max <- max(iz_values_df$value, na.rm = TRUE)
+  y_range <- diff(range(iz_values_df$value, na.rm = TRUE))
+  if (!is.finite(y_range) || y_range == 0) y_range <- 1
+  tip <- 0.02 * y_range
+  violin_ylim <- c(min(iz_values_df$value, na.rm = TRUE),
+                   y_max + (n_tiers + 0.9) * 0.09 * y_range)
+
+  # Violin plot of the given facets, with its own y axis title
+  violin_subplot <- function(facets, value_name) {
+    df <- iz_values_df %>%
+      dplyr::filter(sample_facet %in% facets) %>%
+      mutate(sample_facet = factor(as.character(sample_facet), levels = intersect(violin_facet_levels, facets)))
+    label_chars <- max(nchar(as.character(df$sample)))
+
+    p <- ggplot(df, aes(x = sample, y = value)) +
+      geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3) +
+      violin_layer +
+      geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white", linewidth = 0.3) +
+      scale_fill_manual(values = sample_colors) +
+      scale_linetype_manual(values = line_types) +
+      xlab(NULL) +
+      ylab(paste0("(mean downstream raw ", value_name, " -\nmean upstream raw ", value_name,
+                  ") / 2, +/- ", opt_plot_range, " kb")) +
+      labs(fill = violin_caption, linetype = violin_caption) +
+      theme_bw(base_family = "Helvetica") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            legend.title = element_text(size = 5),
+            legend.title.position = "bottom",
+            legend.text = element_text(size = 6),
+            legend.key.size = unit(0.3, "cm"),
+            legend.key.width = legend_key_width,
+            axis.title = element_text(size = 6),
+            axis.text = element_text(size = 6),
+            axis.text.x = element_text(angle = 45, hjust = 1),
+            strip.background = element_blank(),
+            strip.text = element_text(size = 7),
+            # The first x label is rotated to the left of the panel: widen the margin for long labels
+            plot.margin = margin(5.5, 5.5, 5.5, max(5.5, 2.2 * label_chars - 35), unit = "pt")) +
+      facet_wrap(~ sample_facet, nrow = 1, scales = "free_x", labeller = labeller(.cols = violin_facet_labels)) +
+      expand_limits(y = violin_ylim)
+
+    br <- if (nrow(brackets_df) > 0) brackets_df %>% dplyr::filter(sample_facet %in% facets) else brackets_df
+    if (nrow(br) > 0) {
+      br <- br %>%
+        mutate(y = y_max + tier * 0.09 * y_range,
+               sample_facet = factor(as.character(sample_facet), levels = levels(df$sample_facet)))
+      p <- p +
+        geom_segment(data = br, aes(x = xmin, xend = xmax, y = y, yend = y),
+                     inherit.aes = FALSE, linewidth = 0.3) +
+        geom_segment(data = br, aes(x = xmin, xend = xmin, y = y, yend = y - tip),
+                     inherit.aes = FALSE, linewidth = 0.3) +
+        geom_segment(data = br, aes(x = xmax, xend = xmax, y = y, yend = y - tip),
+                     inherit.aes = FALSE, linewidth = 0.3) +
+        geom_text(data = br, aes(x = (xmin + xmax) / 2, y = y, label = p_adj_signif),
+                  inherit.aes = FALSE, vjust = -0.3, size = 2)
+    }
+    p
+  }
+
+  # Width of the panels of the given facets, with the y axis and the margin for rotated labels
+  subplot_width <- function(facets) {
+    label_chars <- max(nchar(as.character(iz_values_df$sample[iz_values_df$sample_facet %in% facets])))
+    0.9 + sum(0.6 + 0.45 * n_per_facet$n[n_per_facet$sample_facet %in% facets]) + max(0, 0.031 * label_chars - 0.49)
+  }
+  legend_width <- 0.9 + max(0.05 * max_label_chars, 1.7)
+
+  # With partitions and RFD tables, each gets its own plot (and y axis title), side by side
+  partition_facets <- setdiff(violin_facet_levels, "RFD")
+  if (length(partition_facets) > 0 && "RFD" %in% violin_facet_levels) {
+    widths <- c(subplot_width(partition_facets), subplot_width("RFD"), legend_width)
+    violin_legend <- ggpubr::get_legend(violin_subplot(violin_facet_levels, "partition"))
+    # Panels aligned at top and bottom, whatever the height of their sample labels
+    violin_plot <- cowplot::plot_grid(violin_subplot(partition_facets, "partition") + theme(legend.position = "none"),
+                                      violin_subplot("RFD", "RFD") + theme(legend.position = "none"),
+                                      violin_legend,
+                                      nrow = 1, rel_widths = widths, align = "h", axis = "tb")
+  } else {
+    widths <- c(subplot_width(violin_facet_levels), legend_width)
+    violin_plot <- violin_subplot(violin_facet_levels, ifelse(length(partition_facets) > 0, "partition", "RFD"))
+  }
+  violin_width <- sum(widths)
+  # The 45-degree sample names take about 0.03 in of height per character
+  violin_height <- 2.8 + 0.18 * n_tiers + 0.03 * max_label_chars
+
+  message("\n[", Sys.time(), "] Saving violin plot(s)...")
+  ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_violin_plot_raw.pdf")),
+         plot = violin_plot, width = violin_width, height = violin_height, units = "in",
+         limitsize = FALSE)
+
+  ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_violin_plot_raw.png")),
+         plot = violin_plot, width = violin_width, height = violin_height, units = "in",
+         dpi = 600, limitsize = FALSE, bg = "white")
+
+}
+
+
+# ===============================================================================
+# Window QC: fate of the windows around the initiation zones, and coverage along the distance axis
+# ===============================================================================
+
+message("\n[", Sys.time(), "] Creating the window QC plot...")
+
+# As in the violin plots, the RFD tables get a facet of their own when there are partitions
+qc_rfd_facet <- if (num_types_with_files > 0) "RFD" else opt_rfd_exp_type
+qc_facet_labels <- c(sample_labels, RFD = opt_rfd_exp_type)
+
+window_qc_df <- window_qc_df %>%
+  mutate(sample = display_name(sample),
+         sample_facet = ifelse(sample_facet == "RFD", qc_rfd_facet, sample_facet)) %>%
+  group_by(sample, sample_facet) %>%
+  mutate(percent = 100 * n_windows / sum(n_windows)) %>%
+  ungroup()
+
+write_tsv(window_qc_df,
+          file = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_window_qc.tsv")),
+          col_names = TRUE)
+
+# Percentage of initiation zones with a used window at each distance (RFD tables counted once)
+coverage_df <- partition_df %>%
+  dplyr::filter(RPM >= opt_rpm_cutoff,
+                !(duplicate %in% TRUE),
+                !is.na(RFD_raw)) %>%
+  mutate(sample = display_name(sample),
+         is_rfd = sample %in% rfd_labels)
+if (any(coverage_df$is_rfd)) {
+  first_rfd_facet <- unique(coverage_df$sample_facet[coverage_df$is_rfd])[1]
+  coverage_df <- coverage_df %>%
+    dplyr::filter(!is_rfd | sample_facet == first_rfd_facet) %>%
+    mutate(sample_facet = ifelse(is_rfd, qc_rfd_facet, sample_facet))
+}
+coverage_df <- coverage_df %>%
+  group_by(sample, sample_facet, dist) %>%
+  summarise(percent_iz = 100 * n_distinct(break_ID) / length(IZ_gr), .groups = "drop")
+
+if (nrow(window_qc_df) > 0 && sum(window_qc_df$n_windows) > 0) {
+
+  qc_facet_levels <- c(sort(setdiff(unique(window_qc_df$sample_facet), qc_rfd_facet)),
+                       intersect(qc_rfd_facet, unique(window_qc_df$sample_facet)))
+  qc_sample_levels <- unique(c(intersect(violin_sample_levels, window_qc_df$sample), window_qc_df$sample))
+  fate_colors <- c("used" = "#4D4D4D", "below RPM cutoff" = "#E8C547",
+                   "blacklisted" = "#C0504D", "no reads" = "#BFBFBF")
+
+  qc_theme <- theme_bw(base_family = "Helvetica") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.title = element_text(size = 5),
+          legend.title.position = "bottom",
+          legend.text = element_text(size = 6),
+          legend.key.size = unit(0.3, "cm"),
+          axis.title = element_text(size = 6),
+          axis.text = element_text(size = 6),
+          strip.background = element_blank(),
+          strip.text = element_text(size = 7))
+
+  # A: fate of the windows within the plotted range, per sample
+  qc_fates_plot <- ggplot(window_qc_df %>%
+                            mutate(sample = factor(sample, levels = qc_sample_levels),
+                                   sample_facet = factor(sample_facet, levels = qc_facet_levels),
+                                   fate = factor(fate, levels = rev(names(fate_colors)))),
+                          aes(x = sample, y = percent, fill = fate)) +
+    geom_col(width = 0.7) +
+    scale_fill_manual(values = fate_colors, guide = guide_legend(reverse = TRUE)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    facet_wrap(~ sample_facet, nrow = 1, scales = "free_x", labeller = labeller(.cols = qc_facet_labels)) +
+    xlab(NULL) +
+    ylab(paste0("Windows within +/- ", opt_plot_range, " kb (%)")) +
+    labs(fill = caption_lines(paste0("Windows within +/- ", opt_plot_range, " kb of ",
+                                     length(IZ_gr), " initiation zones"),
+                              paste0("RPM cutoff: ", opt_rpm_cutoff))) +
+    qc_theme +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          # The first x label is rotated to the left of the panel: widen the margin for long labels
+          plot.margin = margin(5.5, 5.5, 5.5, max(5.5, 2.2 * max(nchar(window_qc_df$sample)) - 35), unit = "pt"))
+
+  # B: initiation zones with a used window at each distance, per sample
+  qc_coverage_plot <- ggplot(coverage_df %>%
+                               mutate(sample = factor(sample, levels = qc_sample_levels),
+                                      sample_facet = factor(sample_facet, levels = qc_facet_levels)),
+                             aes(x = dist / 1000, y = percent_iz, color = sample, linetype = sample)) +
+    geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
+    geom_line(linewidth = 0.3) +
+    scale_color_manual(values = line_colors) +
+    scale_linetype_manual(values = line_types) +
+    coord_cartesian(ylim = c(0, 100)) +
+    facet_wrap(~ sample_facet, nrow = 1, labeller = labeller(.cols = qc_facet_labels), drop = FALSE) +
+    xlab("Distance from initiation zone center (kb)") +
+    ylab("Initiation zones with a used window (%)") +
+    labs(color = caption_lines(paste0("N = ", length(IZ_gr), " initiation zones"),
+                               "Line: initiation zones with a used window at each distance"),
+         linetype = caption_lines(paste0("N = ", length(IZ_gr), " initiation zones"),
+                                  "Line: initiation zones with a used window at each distance")) +
+    qc_theme +
+    theme(legend.key.width = legend_key_width)
+
+  qc_label_chars <- max(nchar(window_qc_df$sample))
+  qc_samples_per_facet <- max(table(window_qc_df$sample_facet[window_qc_df$fate == "used"]))
+  qc_width <- 1.2 + length(qc_facet_levels) * max(1.8, 0.6 + 0.35 * qc_samples_per_facet) +
+    1.3 + max(0.055 * qc_label_chars, 1.7) + max(0, 0.031 * qc_label_chars - 0.49)
+  # The window fates page needs room for the 45-degree sample names
+  qc_heights <- c(fates = 2.6 + 0.03 * qc_label_chars, coverage = 2.8)
+
+  # One PDF and one PNG per part
+  message("\n[", Sys.time(), "] Saving the window QC plots...")
+  qc_plots <- list(fates = qc_fates_plot, coverage = qc_coverage_plot)
+  for (part in names(qc_plots)) {
+    qc_file <- file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_window_qc_plot.", part))
+    ggsave(filename = paste0(qc_file, ".pdf"), plot = qc_plots[[part]],
+           width = qc_width, height = qc_heights[[part]], units = "in", limitsize = FALSE)
+    ggsave(filename = paste0(qc_file, ".png"), plot = qc_plots[[part]],
+           width = qc_width, height = qc_heights[[part]], units = "in", dpi = 600,
+           limitsize = FALSE, bg = "white")
+  }
+
+} else {
+
+  message("\n[", Sys.time(), "] Skipping the window QC plot: no window lies within the plotted range of the initiation zones.")
+
+}
+
+
+# ===============================================================================
+# Profile difference tests: cluster-based sign-flip permutation test between pairs of samples
+# ===============================================================================
+# Paired per-bin t statistics; clusters of neighbouring significant bins are tested against
+# random sign flips of whole initiation zone curves (Maris & Oostenveld, 2007). Cluster p-values
+# already cover the whole distance axis, so they are only adjusted over the pairs (Bonferroni).
+
+message("\n[", Sys.time(), "] Testing the profile differences between samples (cluster-based permutation test)...")
+
+PROFILE_TEST_BIN <- opt_profile_test_bin_size * 1000
+window_widths <- table(partition_df$end - partition_df$start + 1)
+if (PROFILE_TEST_BIN < max(as.numeric(names(window_widths)))) {
+  warning("\n[", Sys.time(), "] WARNING: --profile_test_bin_size (", opt_profile_test_bin_size,
+          " kb) is smaller than the windows of some tables; their empty bins split the clusters.")
+}
+
+profile_values_df <- partition_df %>%
+  dplyr::filter(RPM >= opt_rpm_cutoff,
+                !(duplicate %in% TRUE),
+                !is.na(RFD_raw)) %>%
+  mutate(bin = floor(dist / PROFILE_TEST_BIN)) %>%
+  group_by(sample, sample_facet, break_ID, bin) %>%
+  summarise(value = mean(RFD_raw), .groups = "drop") %>%
+  mutate(sample = display_name(sample),
+         is_rfd = sample %in% rfd_labels)
+
+# Paired t per bin, observed (signs = NULL) or for each row of random signs.
+# D0: initiation zone x bin differences (0 if missing); n, ss: per-bin counts and sums of squares.
+paired_t <- function(D0, n, ss, signs = NULL) {
+  sums <- if (is.null(signs)) matrix(colSums(D0), nrow = 1) else signs %*% D0
+  N <- matrix(n, nrow = nrow(sums), ncol = length(n), byrow = TRUE)
+  m <- sums / N
+  v <- (matrix(ss, nrow = nrow(sums), ncol = length(ss), byrow = TRUE) - N * m^2) / (N - 1)
+  t <- m / sqrt(v / N)
+  t[!is.finite(t) | N < 3] <- 0
+  t
+}
+
+# Runs of neighbouring bins beyond the threshold with the same sign
+find_clusters <- function(t, thr) {
+  s <- ifelse(t > thr, 1L, ifelse(t < -thr, -1L, 0L))
+  r <- rle(s)
+  ends <- cumsum(r$lengths)
+  starts <- ends - r$lengths + 1
+  keep <- which(r$values != 0)
+  tibble(first = starts[keep], last = ends[keep], sign = r$values[keep],
+         mass = vapply(keep, function(k) sum(t[starts[k]:ends[k]]), double(1)))
+}
+
+# Pairs within the partitions of each facet, and within the RFD tables (once)
+profile_sets <- list()
+for (facet in unique(profile_values_df$sample_facet)) {
+  samples <- intersect(violin_sample_levels,
+                       profile_values_df$sample[profile_values_df$sample_facet == facet & !profile_values_df$is_rfd])
+  if (length(samples) >= 2) profile_sets[[facet]] <- list(facet = facet, samples = samples)
+}
+rfd_samples <- intersect(violin_sample_levels, profile_values_df$sample[profile_values_df$is_rfd])
+if (length(rfd_samples) >= 2) {
+  profile_sets[["RFD"]] <- list(facet = unique(profile_values_df$sample_facet[profile_values_df$is_rfd])[1],
+                                samples = rfd_samples)
+}
+
+set_label <- function(s) {
+  vapply(s, function(x) {
+    if (x == "RFD") opt_rfd_exp_type else if (x %in% names(sample_labels)) unname(sample_labels[[x]]) else x
+  }, character(1), USE.NAMES = FALSE)
+}
+
+set.seed(opt_seed)
+profile_clusters_df <- tibble(set = character(), group1 = character(), group2 = character(),
+                              n_iz = integer(), cluster = integer(), direction = character(),
+                              start_kb = double(), end_kb = double(), n_bins = integer(),
+                              mass = double(), p_value = double())
+profile_diff_df <- tibble(set = character(), group1 = character(), group2 = character(),
+                          bin_start_kb = double(), bin_center_kb = double(), n_iz = integer(),
+                          mean_difference = double(), ci_low = double(), ci_high = double(),
+                          t = double())
+
+for (set_name in names(profile_sets)) {
+  set <- profile_sets[[set_name]]
+  set_df <- profile_values_df %>% dplyr::filter(sample_facet == set$facet, sample %in% set$samples)
+
+  for (pair in combn(set$samples, 2, simplify = FALSE)) {
+
+    paired <- dplyr::inner_join(
+      set_df %>% dplyr::filter(sample == pair[1]) %>% dplyr::select(break_ID, bin, x = value),
+      set_df %>% dplyr::filter(sample == pair[2]) %>% dplyr::select(break_ID, bin, y = value),
+      by = c("break_ID", "bin"))
+    if (nrow(paired) == 0) next
+
+    bins <- seq(min(paired$bin), max(paired$bin))
+    izs <- unique(paired$break_ID)
+    D0 <- matrix(0, nrow = length(izs), ncol = length(bins))
+    D0[cbind(match(paired$break_ID, izs), match(paired$bin, bins))] <- paired$x - paired$y
+    n <- tabulate(match(paired$bin, bins), nbins = length(bins))
+    ss <- colSums(D0^2)
+    thr <- ifelse(n >= 3, qt(1 - opt_profile_test_threshold / 2, df = pmax(n - 1, 1)), Inf)
+
+    t_obs <- as.vector(paired_t(D0, n, ss))
+    clusters <- find_clusters(t_obs, thr)
+
+    # Largest cluster mass of each permutation, with the random signs drawn in chunks to bound memory
+    chunks <- diff(c(seq(0, opt_profile_test_permutations - 1, by = 1000), opt_profile_test_permutations))
+    null_max <- unlist(lapply(chunks, function(n_perm) {
+      signs <- matrix(sample(c(-1, 1), n_perm * length(izs), replace = TRUE), nrow = n_perm)
+      apply(paired_t(D0, n, ss, signs), 1, function(t) {
+        cl <- find_clusters(t, thr)
+        if (nrow(cl) == 0) 0 else max(abs(cl$mass))
+      })
+    }))
+
+    if (nrow(clusters) > 0) {
+      profile_clusters_df <- bind_rows(profile_clusters_df, tibble(
+        set = set_name, group1 = pair[1], group2 = pair[2], n_iz = length(izs),
+        cluster = seq_len(nrow(clusters)),
+        direction = ifelse(clusters$sign > 0, "group1 > group2", "group1 < group2"),
+        start_kb = bins[clusters$first] * PROFILE_TEST_BIN / 1000,
+        end_kb = (bins[clusters$last] + 1) * PROFILE_TEST_BIN / 1000,
+        n_bins = as.integer(clusters$last - clusters$first + 1),
+        mass = clusters$mass,
+        p_value = (1 + vapply(abs(clusters$mass), function(m) sum(null_max >= m), double(1))) /
+                  (opt_profile_test_permutations + 1)))
+    } else {
+      profile_clusters_df <- bind_rows(profile_clusters_df, tibble(
+        set = set_name, group1 = pair[1], group2 = pair[2], n_iz = length(izs),
+        cluster = NA_integer_, direction = "no cluster"))
+    }
+
+    mean_d <- ifelse(n > 0, colSums(D0) / pmax(n, 1), NA_real_)
+    se <- ifelse(n >= 2, sqrt(pmax(ss - n * mean_d^2, 0) / pmax(n - 1, 1) / pmax(n, 1)), NA_real_)
+    q <- ifelse(n >= 2, qt(0.975, df = pmax(n - 1, 1)), NA_real_)
+    profile_diff_df <- bind_rows(profile_diff_df, tibble(
+      set = set_name, group1 = pair[1], group2 = pair[2],
+      bin_start_kb = bins * PROFILE_TEST_BIN / 1000,
+      bin_center_kb = (bins + 0.5) * PROFILE_TEST_BIN / 1000,
+      n_iz = n, mean_difference = mean_d,
+      ci_low = mean_d - q * se, ci_high = mean_d + q * se, t = t_obs))
+  }
+}
+
+profile_clusters_df <- profile_clusters_df %>%
+  group_by(set) %>%
+  mutate(n_pairs = n_distinct(group1, group2),
+         p_adj = pmin(1, p_value * n_pairs)) %>%
+  ungroup()
+
+write_tsv(profile_clusters_df,
+          file = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_profile_tests.tsv")),
+          col_names = TRUE, na = "NA")
+write_tsv(profile_diff_df,
+          file = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_profile_differences.tsv")),
+          col_names = TRUE, na = "NA")
+
+if (nrow(profile_diff_df) == 0) {
+
+  message("\n[", Sys.time(), "] Skipping the profile difference plot: fewer than two samples to compare in every set.")
+
+} else {
+
+  panel_title <- function(set, g1, g2) paste0(set_label(set), "\n", g1, " -\n", g2)
+  profile_diff_df <- profile_diff_df %>%
+    mutate(panel = panel_title(set, group1, group2))
+  profile_diff_df$panel <- factor(profile_diff_df$panel, levels = unique(profile_diff_df$panel))
+  significant_df <- profile_clusters_df %>%
+    dplyr::filter(!is.na(p_adj), p_adj <= 0.05) %>%
+    mutate(panel = factor(panel_title(set, group1, group2), levels = levels(profile_diff_df$panel)),
+           p_label = ifelse(p_adj < 0.001, "p < 0.001", paste0("p = ", signif(p_adj, 2))))
+
+  n_panels <- nlevels(profile_diff_df$panel)
+  n_cols <- min(3, n_panels)
+  n_rows <- ceiling(n_panels / n_cols)
+
+  # One plot per pair, so that every panel has its own axes and axis titles
+  plot_pair_difference <- function(panel_name) {
+    ggplot(profile_diff_df %>% dplyr::filter(panel == panel_name),
+           aes(x = bin_center_kb, y = mean_difference)) +
+      geom_rect(data = significant_df %>% dplyr::filter(panel == panel_name),
+                aes(xmin = start_kb, xmax = end_kb, ymin = -Inf, ymax = Inf),
+                inherit.aes = FALSE, fill = "#E8C547", alpha = 0.3) +
+      geom_hline(yintercept = 0, color = "grey70", linewidth = 0.3) +
+      geom_vline(xintercept = 0, color = "grey70", linewidth = 0.3) +
+      geom_ribbon(aes(ymin = ci_low, ymax = ci_high), fill = "grey50", alpha = 0.3) +
+      geom_line(linewidth = 0.4) +
+      geom_text(data = significant_df %>% dplyr::filter(panel == panel_name),
+                aes(x = (start_kb + end_kb) / 2, y = Inf, label = p_label),
+                inherit.aes = FALSE, vjust = 1.5, size = 1.8) +
+      facet_wrap(~ panel) +
+      coord_cartesian(clip = "off") +
+      xlab("Distance from initiation zone (kb)") +
+      ylab("Mean paired difference (95% CI)") +
+      theme_bw(base_family = "Helvetica") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.title = element_text(size = 6),
+            axis.text = element_text(size = 6),
+            strip.background = element_blank(),
+            strip.text = element_text(size = 6),
+            aspect.ratio = 1,
+            plot.margin = margin(5.5, 10, 5.5, 10, unit = "pt"))
+  }
+
+  profile_diff_plot <- ggpubr::ggarrange(plotlist = lapply(levels(profile_diff_df$panel), plot_pair_difference),
+                                         ncol = n_cols, nrow = n_rows) %>%
+    ggpubr::annotate_figure(bottom = ggpubr::text_grob(
+      caption_lines(paste0("Bins: ", PROFILE_TEST_BIN / 1000, " kb, raw values averaged per initiation zone"),
+                    "Line: mean paired difference",
+                    "Band: 95% confidence interval",
+                    paste0("Shaded: clusters with p <= 0.05 (sign-flip cluster permutation test, ",
+                           opt_profile_test_permutations, " permutations, cluster-forming p < ",
+                           opt_profile_test_threshold, ")"),
+                    "P-values: Bonferroni-adjusted over the pairs"),
+      size = 5, family = "Helvetica", hjust = 0, x = 0.01))
+
+  message("\n[", Sys.time(), "] Saving profile difference plot...")
+  ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_profile_difference_plot_raw.pdf")),
+         plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
+         limitsize = FALSE)
+  ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_profile_difference_plot_raw.png")),
+         plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
+         dpi = 600, limitsize = FALSE, bg = "white")
+
+}
 
 
 # ===============================================================================
