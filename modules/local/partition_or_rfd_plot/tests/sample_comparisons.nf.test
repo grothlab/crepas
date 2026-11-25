@@ -148,8 +148,10 @@ nextflow_process {
                 { assert process.success },
                 { assert path(process.out.violin_pdf.get(0).get(1)).size() > 0 },
                 { assert path(process.out.violin_png.get(0).get(1)).size() > 0 },
-                { assert path(process.out.profile_difference_pdf.get(0).get(1)).size() > 0 },
-                { assert path(process.out.profile_difference_png.get(0).get(1)).size() > 0 },
+                { assert process.out.profile_difference_pdf.get(0).get(1).collect { file(it).name }.sort() == [ 'test.partition_profile_difference_plot_raw.RFD.pdf', 'test.partition_profile_difference_plot_raw.partition.pdf' ] },
+                { assert process.out.profile_difference_pdf.get(0).get(1).every { path(it).size() > 0 } },
+                { assert process.out.profile_difference_png.get(0).get(1).collect { file(it).name }.sort() == [ 'test.partition_profile_difference_plot_raw.RFD.png', 'test.partition_profile_difference_plot_raw.partition.png' ] },
+                { assert process.out.profile_difference_png.get(0).get(1).every { path(it).size() > 0 } },
                 { assert path(process.out.plot_raw_iqr_pdf.get(0).get(1)).size() > 0 },
                 { assert path(process.out.plot_smoothed_iqr_pdf.get(0).get(1)).size() > 0 },
                 { assert process.out.window_qc_pdf.get(0).get(1).collect { file(it).name }.sort() == [ 'test.partition_window_qc_plot.coverage.pdf', 'test.partition_window_qc_plot.fates.pdf' ] },
@@ -160,7 +162,7 @@ nextflow_process {
                 // the tables instead (the permutation test uses a fixed --seed).
                 { assert snapshot(
                     process.out.violin_pdf.collect { m, f -> file(f).name },
-                    process.out.profile_difference_pdf.collect { m, f -> file(f).name },
+                    process.out.profile_difference_pdf.collect { m, f -> f.collect { file(it).name }.sort() },
                     process.out.plot_raw_iqr_pdf.collect { m, f -> file(f).name },
                     process.out.quantile_values,
                     process.out.violin_values,

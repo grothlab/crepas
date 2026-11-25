@@ -1643,10 +1643,6 @@ if (nrow(profile_diff_df) == 0) {
     mutate(panel = factor(panel_title(set, group1, group2), levels = levels(profile_diff_df$panel)),
            p_label = ifelse(p_adj < 0.001, "p < 0.001", paste0("p = ", signif(p_adj, 2))))
 
-  n_panels <- nlevels(profile_diff_df$panel)
-  n_cols <- min(3, n_panels)
-  n_rows <- ceiling(n_panels / n_cols)
-
   # One plot per pair, so that every panel has its own axes and axis titles
   plot_pair_difference <- function(panel_name) {
     ggplot(profile_diff_df %>% dplyr::filter(panel == panel_name),
@@ -1676,25 +1672,35 @@ if (nrow(profile_diff_df) == 0) {
             plot.margin = margin(5.5, 10, 5.5, 10, unit = "pt"))
   }
 
-  profile_diff_plot <- ggpubr::ggarrange(plotlist = lapply(levels(profile_diff_df$panel), plot_pair_difference),
-                                         ncol = n_cols, nrow = n_rows) %>%
-    ggpubr::annotate_figure(bottom = ggpubr::text_grob(
-      caption_lines(paste0("Bins: ", PROFILE_TEST_BIN / 1000, " kb, raw values averaged per initiation zone"),
-                    "Line: mean paired difference",
-                    "Band: 95% confidence interval",
-                    paste0("Shaded: clusters with p <= 0.05 (sign-flip cluster permutation test, ",
-                           opt_profile_test_permutations, " permutations, cluster-forming p < ",
-                           opt_profile_test_threshold, ")"),
-                    "P-values: Bonferroni-adjusted over the pairs"),
-      size = 5, family = "Helvetica", hjust = 0, x = 0.01))
+  # One figure per set (partition type, or the RFD tables)
+  for (set_name in unique(as.character(profile_diff_df$set))) {
 
-  message("\n[", Sys.time(), "] Saving profile difference plot...")
-  ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_profile_difference_plot_raw.pdf")),
-         plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
-         limitsize = FALSE)
-  ggsave(filename = file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_profile_difference_plot_raw.png")),
-         plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
-         dpi = 600, limitsize = FALSE, bg = "white")
+    set_panels <- levels(droplevels(profile_diff_df$panel[profile_diff_df$set == set_name]))
+    n_cols <- min(3, length(set_panels))
+    n_rows <- ceiling(length(set_panels) / n_cols)
+
+    profile_diff_plot <- ggpubr::ggarrange(plotlist = lapply(set_panels, plot_pair_difference),
+                                           ncol = n_cols, nrow = n_rows) %>%
+      ggpubr::annotate_figure(bottom = ggpubr::text_grob(
+        caption_lines(paste0("Bins: ", PROFILE_TEST_BIN / 1000, " kb, raw values averaged per initiation zone"),
+                      "Line: mean paired difference",
+                      "Band: 95% confidence interval",
+                      paste0("Shaded: clusters with p <= 0.05 (sign-flip cluster permutation test, ",
+                             opt_profile_test_permutations, " permutations, cluster-forming p < ",
+                             opt_profile_test_threshold, ")"),
+                      "P-values: Bonferroni-adjusted over the pairs"),
+        size = 5, family = "Helvetica", hjust = 0, x = 0.01))
+
+    set_file <- file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_profile_difference_plot_raw.",
+                                             gsub("[^A-Za-z0-9_-]", "_", set_name)))
+    message("\n[", Sys.time(), "] Saving profile difference plot (", set_label(set_name), ")...")
+    ggsave(filename = paste0(set_file, ".pdf"),
+           plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
+           limitsize = FALSE)
+    ggsave(filename = paste0(set_file, ".png"),
+           plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
+           dpi = 600, limitsize = FALSE, bg = "white")
+  }
 
 }
 

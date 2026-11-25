@@ -36,8 +36,8 @@ process PARTITION_OR_RFD_PLOT {
     tuple val(meta), path("*_window_qc_plot.*.pdf"), emit: window_qc_pdf, optional:true
     tuple val(meta), path("*_window_qc_plot.*.png"), emit: window_qc_png, optional:true
     tuple val(meta), path("*_window_qc.tsv"),      emit: window_qc
-    tuple val(meta), path("*_profile_difference_plot_raw.pdf"), emit: profile_difference_pdf, optional:true
-    tuple val(meta), path("*_profile_difference_plot_raw.png"), emit: profile_difference_png, optional:true
+    tuple val(meta), path("*_profile_difference_plot_raw.*.pdf"), emit: profile_difference_pdf, optional:true
+    tuple val(meta), path("*_profile_difference_plot_raw.*.png"), emit: profile_difference_png, optional:true
     tuple val(meta), path("*_profile_differences.tsv"),     emit: profile_differences
     tuple val(meta), path("*_profile_tests.tsv"),           emit: profile_tests
     tuple val(meta), path("*.scatter_plot.pdf"),   emit: scatter_pdf, optional:true
@@ -101,8 +101,8 @@ process PARTITION_OR_RFD_PLOT {
     touch  ${prefix}_window_qc_plot.fates.png
     touch  ${prefix}_window_qc_plot.coverage.png
     touch  ${prefix}_window_qc.tsv
-    touch  ${prefix}_profile_difference_plot_raw.pdf
-    touch  ${prefix}_profile_difference_plot_raw.png
+    touch  ${prefix}_profile_difference_plot_raw.partition.pdf
+    touch  ${prefix}_profile_difference_plot_raw.partition.png
     touch  ${prefix}_profile_differences.tsv
     touch  ${prefix}_profile_tests.tsv
     """
