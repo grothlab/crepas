@@ -12,8 +12,6 @@
    - [UMI extraction/transfer](#umi-extractiontransfer)
    - [Adapter trimming](#adapter-trimming)
    - [Alignment](#alignment)
-     - [Unmapped reads](#unmapped-reads)
-     - [STAR logs](#star-logs)
 4. [Merged library-level analysis](#merged-library-level-analysis)
    - [Alignment merging](#alignment-merging)
    - [Preseq](#preseq)
@@ -33,7 +31,8 @@
    - [Peak calling](#peak-calling)
    - [Create and quantify consensus set of peaks](#create-and-quantify-consensus-set-of-peaks)
    - [ENCODE-ChIP-seq-pipeline-like analysis](#encode-chip-seq-pipeline-like-analysis)
-   - [SCAR-seq analysis](#scar-seq-analysis)
+   - [Partition, bias and replication fork directionality analysis](#partition-bias-and-replication-fork-directionality-analysis)
+     - [Partition and RFD plots around initiation zones](#partition-and-rfd-plots-around-initiation-zones)
 
    ***
 
@@ -826,7 +825,7 @@ As an alternative to IDR (particularly useful for broad marks), peaks can be fil
   - `*.narrowPeak`, `*.broadPeak`, `*.bed`: Overlap-thresholded peak files.
   </details>
 
-## SCAR-seq analysis
+## Partition, bias and replication fork directionality analysis
 
 ### Splitting of alignments by strand
 
@@ -875,6 +874,84 @@ First, non-overlapping genomic windows are generated. The size of the windows is
 ### Normalization of the average coverage
 
 ### Substraction of stranded input signal
+
+### Partition and RFD plots around initiation zones
+
+Partition (SCAR-seq, eSPAN) and RFD (OK-seq) values are plotted around initiation zones, and the samples are compared with each other. The plots are made by `partition_or_rfd_plot.R` (`PARTITION_OR_RFD_PLOT`), in three kinds of runs:
+
+- OK-seq: one run per sample, of its RFD around the initiation zones called from it (`7_rfd_to_iz/`).
+- SCAR-seq and eSPAN, one run per sample: its partitions, and when it has an input control also its stranded input and input-corrected partitions, together with the RFD table given with `--okseq_rfd_file`, around the initiation zones of `--initiation_zones`.
+- SCAR-seq and eSPAN, one run per antibody with all its samples (`<exp_type>_<antibody>`), unless `--skip_partition_group_plot` is set. The tests between samples are only made in these runs, and between several RFD tables, since they need at least two samples of the same kind.
+
+All plots use the windows within `--partition_plot_range` kb (default 100) of the initiation zone centres, after discarding initiation zones within `--partition_iz_rm_overlap_range` kb of each other and leaving out windows below `--partition_rpm_cutoff` RPM and blacklisted windows. Partition types (partition, input-corrected, stranded input) are shown as separate facets.
+
+The example figures below are from mouse (mm39) SCAR-seq H3K27me3 of two clones (410 and 439), each at 0 and 8 h (one replicate, with stranded inputs), plotted with two versions of an OK-seq RFD table, with and without the final `flTbl` filtering, around 2249 initiation zones.
+
+<details markdown="1" open>
+    <summary>Output files</summary>
+
+- `<aligner>/mergedLibrary/[<multimapper>/]<exp_type>/[downsampled/]7_plots/[bRep_average/]<id>/`, where `<id>` is the sample, or `<exp_type>_<antibody>` for the runs per antibody. The file names start with the name of the plotted table, ending in `.partition` or `.RFD`.
+  - Profile plots, partition or RFD against the distance from the initiation zone centre, one line per sample. When partitions are plotted, the RFD tables are drawn in grey in every facet, with a different line type each.
+    - `*_plot_raw.{pdf,png}`: mean of the raw values across initiation zones.
+
+      ![Profile plot of the mean raw partition and RFD values](images/partition_rfd_profile_raw.png)
+
+    - `*_plot_smoothed.{pdf,png}`: mean of the smoothed values across initiation zones.
+
+      ![Profile plot of the mean smoothed partition and RFD values](images/partition_rfd_profile_smoothed.png)
+
+    - `*_plot_raw.sd.{pdf,png}` and `*_plot_smoothed.sd.{pdf,png}`: the same, with a ribbon of +/- 1 SD across initiation zones. The ribbon shows how much the initiation zones vary, not the uncertainty of the mean, so overlapping ribbons do not mean that two samples are alike.
+
+      ![Profile plot of the mean raw values with the SD ribbon](images/partition_rfd_profile_raw_sd.png)
+
+      ![Profile plot of the mean smoothed values with the SD ribbon](images/partition_rfd_profile_smoothed_sd.png)
+
+    - `*_plot_raw.iqr.{pdf,png}` and `*_plot_smoothed.iqr.{pdf,png}`: median line with the interquartile range across initiation zones, which describes bounded and skewed values better than the SD. With few reads per window, raw values are often close to -1 or 1, so the raw interquartile range mostly shows counting noise, as in the input-corrected facet below.
+
+      ![Profile plot of the median raw values with the interquartile range](images/partition_rfd_profile_raw_iqr.png)
+
+      ![Profile plot of the median smoothed values with the interquartile range](images/partition_rfd_profile_smoothed_iqr.png)
+
+    - `*_plot_smoothed.gam.{pdf,png}`: GAM fit of the mean smoothed values.
+
+      ![GAM fit of the mean smoothed partition and RFD values](images/partition_rfd_profile_smoothed_gam.png)
+
+    - `*_mean_values.tsv` and `*_quantile_values.tsv`: the plotted means, SDs, medians and quartiles per sample and distance.
+
+  - `*.scatter_plot.{pdf,png}`: smoothed RFD against smoothed partition per window, with a linear fit and the Spearman correlation, one panel per partition sample and type (`<prefix>.<rfd_name>.scatter_plot.*` when there are several RFD tables).
+
+    ![Scatter plots of RFD against partition per window](images/partition_rfd_scatter.png)
+
+  - Violin plots of one value per initiation zone and sample:
+    - `*_violin_plot_raw.{pdf,png}`: partition and RFD values change sign across an initiation zone, so each initiation zone gets (mean downstream - mean upstream raw value) / 2, from the windows on each side within the plotted range (windows overlapping the initiation zone left out). Each violin has a median line and a box plot. The RFD tables are in a subplot of their own, on the same y scale. Every pair of partition samples (within each type) and every pair of RFD tables is compared with a paired test over the initiation zones, shown as brackets with stars (`ns`, `*` p <= 0.05, `**` p <= 0.01, `***` p <= 0.001, `****` p <= 0.0001, Holm-adjusted over the pairs). The test is the Wilcoxon signed-rank test, or a test of the mean paired difference with a Newey-West standard error with `--violin_test newey_west` in the module's `ext.args`, which allows for correlation between neighbouring initiation zones. With thousands of initiation zones even small differences are significant, so read the stars together with the differences in `*_violin_stats.tsv`: the two OK-seq tables below differ by only 0.0025 (median paired difference), yet with p < 1e-100.
+
+      ![Violin plots of one value per initiation zone and sample, with paired tests](images/partition_rfd_violin.png)
+
+    - `*_violin_values.tsv`: the value of each initiation zone and sample, with the number of windows on each side.
+    - `*_violin_stats.tsv`: for each pair, the number of initiation zones, the medians, the median and mean paired differences, and the p-values.
+
+  - Profile difference plots, comparing the whole profiles of each pair of samples:
+    - `*_profile_difference_plot_raw.{pdf,png}`: mean paired difference between two samples (same initiation zone and distance) against the distance, with its 95% confidence interval, one panel per pair. The raw values of each initiation zone are averaged in bins of the distance axis (5 kb by default). Shaded ranges are clusters of neighbouring bins where the samples differ, from a sign-flip cluster-based permutation test (Maris & Oostenveld, 2007): the p-value of each cluster is corrected over the whole distance axis by the test, and Bonferroni-adjusted over the pairs.
+
+      ![Mean paired differences between the profiles of each pair of samples, with the significant ranges shaded](images/partition_rfd_profile_difference.png)
+
+    - `*_profile_differences.tsv`: the difference, confidence interval and paired t statistic of each pair in each bin.
+    - `*_profile_tests.tsv`: the clusters of each pair (distance range, direction, mass, p-value and adjusted p-value), or one row for a pair without clusters.
+
+  - Window QC plots, of how many windows each sample loses and where:
+    - `*_window_qc_plot.fates.{pdf,png}`: per sample, the windows within the plotted range of the initiation zones that are used, below the RPM cutoff, blacklisted, or without reads (counting the windows missing from the table). Input-corrected partitions often lose many windows to the RPM cutoff.
+
+      ![Fate of the windows around the initiation zones per sample](images/partition_rfd_window_qc_fates.png)
+
+    - `*_window_qc_plot.coverage.{pdf,png}`: per sample, the percentage of initiation zones with a used window at each distance. Losses that depend on the distance or the side could bias the profiles and the violin values.
+
+      ![Initiation zones with a used window at each distance per sample](images/partition_rfd_window_qc_coverage.png)
+
+    - `*_window_qc.tsv`: the number and percentage of windows of each fate per sample.
+
+</details>
+
+The tests and their settings can be changed through the module's `ext.args`: `--violin_test` and `--newey_west_lag` for the violin plots, and `--profile_test_bin_size` (kb, default 5), `--profile_test_permutations` (default 5000), `--profile_test_threshold` (cluster-forming p-value, default 0.05) and `--seed` for the profile difference tests.
 
 ## Aggregate analysis
 

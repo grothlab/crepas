@@ -4,8 +4,8 @@ process PARTITION_OR_RFD_PLOT {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/99/99b2a7149c1943265175ef013ca8c247c9847b14a0d2e802d0cbdda4a58458a5/data' :
-        'community.wave.seqera.io/library/bioconductor-genomicalignments_bioconductor-genomicfeatures_r-argparse_r-ggpmisc_pruned:2c7c689513df97b4' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/5f/5f4eebb916d1153809da29b40cbf56a5f78486e982a4a7373b3641cf6783236a/data' :
+        'community.wave.seqera.io/library/bioconductor-genomicalignments_bioconductor-genomicfeatures_pip_python_pruned:6979014ed3536274' }"
 
     input:
     tuple val(meta), path(partition), path(strandedinput), path(minusinput), path(rfd_files), path(initiation_zones)
@@ -23,7 +23,23 @@ process PARTITION_OR_RFD_PLOT {
     tuple val(meta), path("*_plot_raw.png"),        emit: plot_raw_png
     tuple val(meta), path("*_plot_raw.sd.pdf"),     emit: plot_raw_sd_pdf
     tuple val(meta), path("*_plot_raw.sd.png"),     emit: plot_raw_sd_png
+    tuple val(meta), path("*_plot_smoothed.iqr.pdf"), emit: plot_smoothed_iqr_pdf
+    tuple val(meta), path("*_plot_smoothed.iqr.png"), emit: plot_smoothed_iqr_png
+    tuple val(meta), path("*_plot_raw.iqr.pdf"),      emit: plot_raw_iqr_pdf
+    tuple val(meta), path("*_plot_raw.iqr.png"),      emit: plot_raw_iqr_png
+    tuple val(meta), path("*_quantile_values.tsv"),   emit: quantile_values
     tuple val(meta), path("*_mean_values.tsv"),    emit: mean_values
+    tuple val(meta), path("*_violin_plot_raw.pdf"),    emit: violin_pdf, optional:true
+    tuple val(meta), path("*_violin_plot_raw.png"),    emit: violin_png, optional:true
+    tuple val(meta), path("*_violin_values.tsv"),  emit: violin_values
+    tuple val(meta), path("*_violin_stats.tsv"),   emit: violin_stats
+    tuple val(meta), path("*_window_qc_plot.*.pdf"), emit: window_qc_pdf, optional:true
+    tuple val(meta), path("*_window_qc_plot.*.png"), emit: window_qc_png, optional:true
+    tuple val(meta), path("*_window_qc.tsv"),      emit: window_qc
+    tuple val(meta), path("*_profile_difference_plot_raw.pdf"), emit: profile_difference_pdf, optional:true
+    tuple val(meta), path("*_profile_difference_plot_raw.png"), emit: profile_difference_png, optional:true
+    tuple val(meta), path("*_profile_differences.tsv"),     emit: profile_differences
+    tuple val(meta), path("*_profile_tests.tsv"),           emit: profile_tests
     tuple val(meta), path("*.scatter_plot.pdf"),   emit: scatter_pdf, optional:true
     tuple val(meta), path("*.scatter_plot.png"),   emit: scatter_png, optional:true
     tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | head -1 | sed 's/^R version //; s/ .*\$//'"), topic: versions, emit: versions_rbase
@@ -71,5 +87,23 @@ process PARTITION_OR_RFD_PLOT {
     touch  ${prefix}_plot_raw.sd.pdf
     touch  ${prefix}_plot_raw.sd.png
     touch  ${prefix}_mean_values.tsv
+    touch  ${prefix}_plot_smoothed.iqr.pdf
+    touch  ${prefix}_plot_smoothed.iqr.png
+    touch  ${prefix}_plot_raw.iqr.pdf
+    touch  ${prefix}_plot_raw.iqr.png
+    touch  ${prefix}_quantile_values.tsv
+    touch  ${prefix}_violin_plot_raw.pdf
+    touch  ${prefix}_violin_plot_raw.png
+    touch  ${prefix}_violin_values.tsv
+    touch  ${prefix}_violin_stats.tsv
+    touch  ${prefix}_window_qc_plot.fates.pdf
+    touch  ${prefix}_window_qc_plot.coverage.pdf
+    touch  ${prefix}_window_qc_plot.fates.png
+    touch  ${prefix}_window_qc_plot.coverage.png
+    touch  ${prefix}_window_qc.tsv
+    touch  ${prefix}_profile_difference_plot_raw.pdf
+    touch  ${prefix}_profile_difference_plot_raw.png
+    touch  ${prefix}_profile_differences.tsv
+    touch  ${prefix}_profile_tests.tsv
     """
 }
