@@ -246,7 +246,7 @@ output:
           description: Groovy Map containing sample information
       - "*_profile_difference_plot_raw.*.pdf":
           type: file
-          description: Mean paired difference of the partition/RFD profiles of each pair of samples around the initiation zones, with its 95% confidence interval and the significant clusters of the permutation test shaded (PDF), one file per set of compared samples (`*.<partition type>.pdf`, `*.RFD.pdf`). Not written for sets with fewer than two samples.
+          description: Mean paired difference of the partition/RFD profiles of each pair of samples around the initiation zones, with its 95% confidence interval and the significant clusters of the permutation test shaded (PDF), one file per set of compared samples (`*.<partition type>.pdf`, `*.RFD.pdf`), split into numbered parts (`*.<set>.part<N>.pdf`) of at most 60 pairs when a set has more. Not written for sets with fewer than two samples.
           pattern: "*_profile_difference_plot_raw.*.pdf"
   profile_difference_png:
     - - meta:
@@ -254,7 +254,7 @@ output:
           description: Groovy Map containing sample information
       - "*_profile_difference_plot_raw.*.png":
           type: file
-          description: Mean paired difference of the partition/RFD profiles of each pair of samples around the initiation zones, with its 95% confidence interval and the significant clusters of the permutation test shaded (PNG), one file per set of compared samples (`*.<partition type>.png`, `*.RFD.png`). Not written for sets with fewer than two samples.
+          description: Mean paired difference of the partition/RFD profiles of each pair of samples around the initiation zones, with its 95% confidence interval and the significant clusters of the permutation test shaded (PNG), one file per set of compared samples (`*.<partition type>.png`, `*.RFD.png`), split into numbered parts (`*.<set>.part<N>.png`) of at most 60 pairs when a set has more. Not written for sets with fewer than two samples.
           pattern: "*_profile_difference_plot_raw.*.png"
   profile_differences:
     - - meta:

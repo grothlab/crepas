@@ -1485,6 +1485,7 @@ if (nrow(window_qc_df) > 0 && sum(window_qc_df$n_windows) > 0) {
 message("\n[", Sys.time(), "] Testing the profile differences between samples (cluster-based permutation test)...")
 
 PROFILE_TEST_BIN <- opt_profile_test_bin_size * 1000
+PROFILE_PAIRS_PER_FIGURE <- 60
 window_widths <- table(partition_df$end - partition_df$start + 1)
 if (PROFILE_TEST_BIN < max(as.numeric(names(window_widths)))) {
   warning("\n[", Sys.time(), "] WARNING: --profile_test_bin_size (", opt_profile_test_bin_size,
@@ -1672,34 +1673,44 @@ if (nrow(profile_diff_df) == 0) {
             plot.margin = margin(5.5, 10, 5.5, 10, unit = "pt"))
   }
 
-  # One figure per set (partition type, or the RFD tables)
+  # One figure per set (partition type, or the RFD tables), in numbered parts of at most
+  # PROFILE_PAIRS_PER_FIGURE pairs
   for (set_name in unique(as.character(profile_diff_df$set))) {
 
     set_panels <- levels(droplevels(profile_diff_df$panel[profile_diff_df$set == set_name]))
-    n_cols <- min(3, length(set_panels))
-    n_rows <- ceiling(length(set_panels) / n_cols)
-
-    profile_diff_plot <- ggpubr::ggarrange(plotlist = lapply(set_panels, plot_pair_difference),
-                                           ncol = n_cols, nrow = n_rows) %>%
-      ggpubr::annotate_figure(bottom = ggpubr::text_grob(
-        caption_lines(paste0("Bins: ", PROFILE_TEST_BIN / 1000, " kb, raw values averaged per initiation zone"),
-                      "Line: mean paired difference",
-                      "Band: 95% confidence interval",
-                      paste0("Shaded: clusters with p <= 0.05 (sign-flip cluster permutation test, ",
-                             opt_profile_test_permutations, " permutations, cluster-forming p < ",
-                             opt_profile_test_threshold, ")"),
-                      "P-values: Bonferroni-adjusted over the pairs"),
-        size = 5, family = "Helvetica", hjust = 0, x = 0.01))
-
+    part_panels <- split(set_panels, ceiling(seq_along(set_panels) / PROFILE_PAIRS_PER_FIGURE))
+    n_parts <- length(part_panels)
     set_file <- file.path(opt_outdir, paste0(opt_prefix, ".", plot_suffix, "_profile_difference_plot_raw.",
                                              gsub("[^A-Za-z0-9_-]", "_", set_name)))
-    message("\n[", Sys.time(), "] Saving profile difference plot (", set_label(set_name), ")...")
-    ggsave(filename = paste0(set_file, ".pdf"),
-           plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
-           limitsize = FALSE)
-    ggsave(filename = paste0(set_file, ".png"),
-           plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
-           dpi = 600, limitsize = FALSE, bg = "white")
+
+    for (part in seq_len(n_parts)) {
+
+      panels <- part_panels[[part]]
+      n_cols <- min(3, length(panels))
+      n_rows <- ceiling(length(panels) / n_cols)
+
+      profile_diff_plot <- ggpubr::ggarrange(plotlist = lapply(panels, plot_pair_difference),
+                                             ncol = n_cols, nrow = n_rows) %>%
+        ggpubr::annotate_figure(bottom = ggpubr::text_grob(
+          caption_lines(paste0("Bins: ", PROFILE_TEST_BIN / 1000, " kb, raw values averaged per initiation zone"),
+                        "Line: mean paired difference",
+                        "Band: 95% confidence interval",
+                        paste0("Shaded: clusters with p <= 0.05 (sign-flip cluster permutation test, ",
+                               opt_profile_test_permutations, " permutations, cluster-forming p < ",
+                               opt_profile_test_threshold, ")"),
+                        "P-values: Bonferroni-adjusted over the pairs"),
+          size = 5, family = "Helvetica", hjust = 0, x = 0.01))
+
+      part_file <- if (n_parts > 1) paste0(set_file, ".part", part) else set_file
+      message("\n[", Sys.time(), "] Saving profile difference plot (", set_label(set_name),
+              if (n_parts > 1) paste0(", part ", part, " of ", n_parts), ")...")
+      ggsave(filename = paste0(part_file, ".pdf"),
+             plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
+             limitsize = FALSE)
+      ggsave(filename = paste0(part_file, ".png"),
+             plot = profile_diff_plot, width = 0.6 + 2.8 * n_cols, height = 0.7 + 3.1 * n_rows, units = "in",
+             dpi = 600, limitsize = FALSE, bg = "white")
+    }
   }
 
 }
