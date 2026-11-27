@@ -107,6 +107,32 @@ strip_exp_type <- function(x, exp_type) {
 }
 
 
+# Returns the step as the most common distance between consecutive bin starts
+# on the same chromosome, or the bin width when no chromosome has more than one bin.
+get_bin_step_size <- function(gr) {
+  gr <- sort(gr)
+  chroms <- as.character(seqnames(gr))
+  gaps <- diff(start(gr))[chroms[-1] == chroms[-length(chroms)]]
+  gaps <- gaps[gaps > 0]
+  if (length(gaps) == 0) {
+    return(width(gr)[1])
+  }
+  as.numeric(names(which.max(table(gaps))))
+}
+
+
+# Distance (bp) from the start of each bin to the start of its initiation zone. With align = TRUE,
+# it is measured to the start of the bin that contains the initiation zone start instead, so that
+# it is a multiple of the step size and all initiation zones have bins at the same distances.
+get_bin_distance_to_iz <- function(bin_start, iz_start, step, align) {
+  if (align) {
+    bin_start - iz_start + ((iz_start - bin_start) %% step)
+  } else {
+    bin_start - iz_start
+  }
+}
+
+
 # ===============================================================================
 # Argument parsing
 # ===============================================================================
@@ -201,6 +227,11 @@ parser$add_argument("-w", "--only_plot_wholly_within_iz", action = "store",
                     type = "logical",
                     help = "When calculating the distance from each partition/RFD bin to the start of initiation zones, only consider bins that are wholly contained within the initiation zones [default: FALSE]")
 
+parser$add_argument("--align_dist_to_bins", action = "store",
+                    default = TRUE,
+                    type = "logical",
+                    help = "Measure the distance of each partition/RFD bin from the bin that contains the initiation zone start, instead of from the start itself, so that every point of the profiles averages all initiation zones. With FALSE, initiation zones that start at different positions within their bins get bins at different distances, and each point averages only some of them [default: TRUE]")
+
 parser$add_argument("--violin_test", action = "store",
                     default = "wilcoxon",
                     choices = c("wilcoxon", "newey_west"),
@@ -252,6 +283,7 @@ opt_iz_rm_overlap_range <- opt$iz_rm_overlap_range
 opt_exclude_chromosomes <- opt$exclude_chromosomes
 opt_exclude_scaffolds <- opt$exclude_scaffolds
 opt_only_plot_within_iz <- opt$only_plot_wholly_within_iz
+opt_align_dist_to_bins <- opt$align_dist_to_bins
 opt_violin_test <- opt$violin_test
 opt_newey_west_lag <- opt$newey_west_lag
 
@@ -526,6 +558,7 @@ count_window_fates <- function(df, sample, facet) {
     dplyr::arrange(seqnames, start)
   gr <- makeGRangesFromDataFrame(df, seqinfo = chrom_sizes, keep.extra.columns = TRUE,
                                  starts.in.df.are.0based = TRUE)
+  step <- get_bin_step_size(gr)
   gr <- gr[if (opt_only_plot_within_iz) overlapsAny(gr, IZ_gr, type = "within") else overlapsAny(gr, IZ_gr)]
   has_reads <- gr$fwd_counts >= 1 | gr$rev_counts >= 1
   blacklisted <- has_reads & overlapsAny(gr, blacklist_gr, minoverlap = 1)
@@ -534,9 +567,6 @@ count_window_fates <- function(df, sample, facet) {
   # Expected windows: width w, starting every `step` bp from 0 on each chromosome
   widths <- table(df$end - df$start)
   w <- as.numeric(names(widths)[which.max(widths)])
-  same_chrom <- df$seqnames[-1] == df$seqnames[-nrow(df)]
-  steps <- table(diff(df$start)[same_chrom & diff(df$start) > 0])
-  step <- if (length(steps) > 0) as.numeric(names(steps)[which.max(steps)]) else w
   ranges <- reduce(IZ_gr)
   a <- start(ranges)
   b <- end(ranges)
@@ -605,6 +635,7 @@ if (HAS_RFD) {
     message("\n[", Sys.time(), "] (", rfd_base_name, ") Calculating ", opt_rfd_exp_type, " bin size...")
 
     RFD_BIN_SIZES[rfd_label] <- width(RFD_file_gr)[1]
+    RFD_STEP <- get_bin_step_size(RFD_file_gr)
 
     message("\n[", Sys.time(), "] (", rfd_base_name, ") Removing ", opt_rfd_exp_type, " bins that overlap a blacklisted region...")
     if (HAS_BLACKLIST) {
@@ -625,7 +656,8 @@ if (HAS_RFD) {
     RFD_gr$break_ID <- IZ_gr$interval[subjectHits(overlap_pairs)]
 
     message("\n[", Sys.time(), "] (", rfd_base_name, ") Calculating the distance from each ", opt_rfd_exp_type, " bin to the initiation zone with which it overlaps...")
-    RFD_gr$dist <- start(RFD_gr) - IZ_gr$break_start[subjectHits(overlap_pairs)]
+    RFD_gr$dist <- get_bin_distance_to_iz(start(RFD_gr), IZ_gr$break_start[subjectHits(overlap_pairs)],
+                                           RFD_STEP, opt_align_dist_to_bins)
 
     RFD_df <- RFD_df %>%
       bind_rows(as_tibble(RFD_gr))
@@ -705,6 +737,7 @@ for (type in names(part_files)) {
     part_gr <- part_gr[!overlapsAny(part_gr, blacklist_gr, minoverlap = 1)]
 
     PART_BIN_SIZE <- width(part_gr)[1]
+    PART_STEP <- get_bin_step_size(part_gr)
     message("\n[", Sys.time(), "] (", base_name, ") This partition's bin size is ", PART_BIN_SIZE, " bp.")
 
     for (rfd_label in names(RFD_BIN_SIZES)[RFD_BIN_SIZES != PART_BIN_SIZE]) {
@@ -731,7 +764,8 @@ for (type in names(part_files)) {
   partition_gr$break_ID <- IZ_gr$interval[subjectHits(overlap_pairs)]
 
   message("\n[", Sys.time(), "] (", base_name, ") Calculating the distance from each partition bin to the initiation zone with which it overlaps...")
-  partition_gr$dist <- start(partition_gr) - IZ_gr$break_start[subjectHits(overlap_pairs)]
+  partition_gr$dist <- get_bin_distance_to_iz(start(partition_gr), IZ_gr$break_start[subjectHits(overlap_pairs)],
+                                               PART_STEP, opt_align_dist_to_bins)
 
   partition_df <- partition_df %>%
     bind_rows(as_tibble(partition_gr))

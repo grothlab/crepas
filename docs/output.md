@@ -891,7 +891,7 @@ The example figures below are from mouse (mm39) SCAR-seq H3K27me3 of two clones 
     <summary>Output files</summary>
 
 - `<aligner>/mergedLibrary/[<multimapper>/]<exp_type>/[downsampled/]7_plots/[bRep_average/]<id>/`, where `<id>` is the sample, or `<exp_type>_<antibody>` for the runs per antibody. The file names start with the name of the plotted table, ending in `.partition` or `.RFD`.
-  - Profile plots, partition or RFD against the distance from the initiation zone centre, one line per sample. When partitions are plotted, the RFD tables are drawn in grey in every facet, with a different line type each.
+  - Profile plots, partition or RFD against the distance from the initiation zone centre, one line per sample. When partitions are plotted, the RFD tables are drawn in grey in every facet, with a different line type each. The distance of each bin is counted from the bin that contains the initiation zone, so that every initiation zone contributes to every point of the profile (`--align_dist_to_bins`).
     - `*_plot_raw.{pdf,png}`: mean of the raw values across initiation zones.
 
       ![Profile plot of the mean raw partition and RFD values](images/partition_rfd_profile_raw.png)
